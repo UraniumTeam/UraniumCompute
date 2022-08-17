@@ -1,0 +1,57 @@
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(UN_COMPILER_CLANG ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(UN_COMPILER_GCC ON)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(UN_COMPILER_MSVC ON)
+endif()
+
+set(CMAKE_DEBUG_POSTFIX "")
+
+if (UN_COMPILER_MSVC)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+    add_compile_definitions(_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+    add_compile_definitions(_ENABLE_EXTENDED_ALIGNED_STORAGE)
+    set(CMAKE_USE_WIN32_THREADS_INIT ON)
+endif()
+
+option(UN_USE_SSE3 "Set this option to use SSE3 instructions" ON)
+option(UN_USE_SSE41 "Set this option to use SSE4.1 instructions" ON)
+
+if (NOT UN_USE_SSE3)
+    if (UN_USE_SSE41)
+        message(WARNING "SSE4.1 instructions are enabled, but SSE3 are not")
+        message(NOTICE "SSE3 instructions will be enabled automatically")
+        set(UN_USE_SSE3 ON)
+    endif()
+endif()
+
+if (UN_USE_SSE3)
+    add_compile_definitions(UN_SSE3_SUPPORTED=1)
+endif()
+if (UN_USE_SSE41)
+    add_compile_definitions(UN_SSE41_SUPPORTED=1)
+endif()
+
+function(un_enable_sse_for_target SSE_TARGET)
+    if (UN_USE_SSE41 AND NOT UN_COMPILER_MSVC)
+        target_compile_options(${SSE_TARGET} PUBLIC -msse4.1)
+    endif()
+endfunction()
+
+function(un_configure_target TARGET)
+    if(UN_COMPILER_MSVC)
+        target_compile_options(${TARGET} PRIVATE /W4 /WX)
+    else()
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -pedantic -Werror)
+    endif()
+endfunction()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)

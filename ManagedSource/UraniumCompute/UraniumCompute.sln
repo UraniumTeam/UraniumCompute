@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute", "UraniumCompute\UraniumCompute.csproj", "{076DB3C9-6A35-4CE4-AAC2-E778457951D2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{D49CD7B7-43E6-4891-8CCC-CC830743B97B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Backend.Vulkan", "UraniumCompute.Backend.Vulkan\UraniumCompute.Backend.Vulkan.csproj", "{7BECD4EA-543C-4A53-A5C5-6818317F1A8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Backend.Cpu", "UraniumCompute.Backend.Cpu\UraniumCompute.Backend.Cpu.csproj", "{05FDC39D-E427-41E0-9C8E-125C5F3D1759}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{C6D61B2E-7CEA-4DF8-BB65-6392A541F769}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleProject", "SampleProject\SampleProject.csproj", "{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1C90E1A7-E5D8-44AB-B187-7BC851F4E02F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{244E34B1-1F8A-429D-957B-795B8AA94927}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{076DB3C9-6A35-4CE4-AAC2-E778457951D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{076DB3C9-6A35-4CE4-AAC2-E778457951D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{076DB3C9-6A35-4CE4-AAC2-E778457951D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{076DB3C9-6A35-4CE4-AAC2-E778457951D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BECD4EA-543C-4A53-A5C5-6818317F1A8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BECD4EA-543C-4A53-A5C5-6818317F1A8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BECD4EA-543C-4A53-A5C5-6818317F1A8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BECD4EA-543C-4A53-A5C5-6818317F1A8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05FDC39D-E427-41E0-9C8E-125C5F3D1759}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05FDC39D-E427-41E0-9C8E-125C5F3D1759}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05FDC39D-E427-41E0-9C8E-125C5F3D1759}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05FDC39D-E427-41E0-9C8E-125C5F3D1759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}.Release|Any CPU.Build.0 = Release|Any CPU
+		{244E34B1-1F8A-429D-957B-795B8AA94927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{244E34B1-1F8A-429D-957B-795B8AA94927}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{244E34B1-1F8A-429D-957B-795B8AA94927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{244E34B1-1F8A-429D-957B-795B8AA94927}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{076DB3C9-6A35-4CE4-AAC2-E778457951D2} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
+		{7BECD4EA-543C-4A53-A5C5-6818317F1A8E} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
+		{05FDC39D-E427-41E0-9C8E-125C5F3D1759} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
+		{39B4C30B-A47D-4165-A38E-BF4C0DEA4731} = {C6D61B2E-7CEA-4DF8-BB65-6392A541F769}
+		{244E34B1-1F8A-429D-957B-795B8AA94927} = {1C90E1A7-E5D8-44AB-B187-7BC851F4E02F}
+	EndGlobalSection
+EndGlobal
