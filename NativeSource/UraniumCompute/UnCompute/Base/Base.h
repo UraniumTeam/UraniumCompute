@@ -1,5 +1,6 @@
 #pragma once
 #include <UnCompute/Base/Platform.h>
+#include <UnCompute/Base/ResultCode.h>
 #include <atomic>
 #include <cassert>
 #include <cstdint>
@@ -18,11 +19,14 @@ namespace UN
     using UInt32 = uint32_t;
     using UInt64 = uint64_t;
 
+    using Int  = Int32;
+    using UInt = UInt32;
+
     using Float32 = float;
     using Float64 = double;
 
-    using USize = UInt64;
-    using SSize = Int64;
+    using USize = size_t;
+    using SSize = ptrdiff_t;
 
     //! \brief The version of the library.
     inline constexpr struct
@@ -33,7 +37,7 @@ namespace UN
     //! \internal
     namespace Internal
     {
-        //! \brief A simple `std::string_view` wrapper
+        //! \brief A simple `std::string_view` wrapper.
         //!
         //! This is useful for function signatures when compiling with MSVC. `std::string_view` is a template class
         //! (`std::basic_string_view< ... >`). It makes difficult to retrieve typename from a template function
@@ -182,12 +186,12 @@ namespace UN
         };                                                                                                                       \
     }
 
-#    define UN_ASSERT(expression, msg)                                                                                           \
-        do                                                                                                                       \
-        {                                                                                                                        \
-            assert((expression) && (msg));                                                                                       \
-        }                                                                                                                        \
-        while (0)
+#define UN_ASSERT(expression, msg)                                                                                               \
+    do                                                                                                                           \
+    {                                                                                                                            \
+        assert((expression) && (msg));                                                                                           \
+    }                                                                                                                            \
+    while (0)
 
     //! \brief Define bitwise operations on `enum`.
     //!

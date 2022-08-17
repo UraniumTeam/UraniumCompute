@@ -1,23 +1,17 @@
 #pragma once
+#include <UnCompute/Acceleration/IDeviceFactory.h>
 
 namespace UN
 {
-    enum class BackendKind
-    {
-        Cpu,
-        Vulkan
-    };
-
-    class DeviceFactory final
+    //! \brief Implementation of IDeviceFactory.
+    class DeviceFactory final : public Object<IDeviceFactory>
     {
         BackendKind m_BackendKind;
 
     public:
-        explicit DeviceFactory(BackendKind backendKind);
+        ResultCode Init(BackendKind backendKind) override;
 
-        inline BackendKind GetBackendKind()
-        {
-            return m_BackendKind;
-        }
+        [[nodiscard]] BackendKind GetBackendKind() const override;
+        ResultCode CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** ppDevice) override;
     };
 } // namespace UN
