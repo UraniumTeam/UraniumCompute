@@ -60,7 +60,7 @@ namespace UN
             UInt32 result = 0;
             if (m_pObject)
             {
-                result   = m_pObject->ReleaseStrongRef();
+                result    = m_pObject->ReleaseStrongRef();
                 m_pObject = nullptr;
             }
 
@@ -119,7 +119,7 @@ namespace UN
         //! \brief Swap raw pointers of two objects without incrementing and decrementing ref-counters.
         inline void Swap(Ptr& other)
         {
-            auto* t        = other.m_pObject;
+            auto* t         = other.m_pObject;
             other.m_pObject = m_pObject;
             m_pObject       = t;
         }
@@ -174,12 +174,19 @@ namespace UN
             return &m_pObject;
         }
 
+        //! \brief Attach a pointer and do not add strong reference.
+        inline void Attach(T* pObject)
+        {
+            InternalRelease();
+            m_pObject = pObject;
+        }
+
         //! \brief Forget object and don't free it automatically.
         //!
         //! Can be useful to send an object to managed program.
         inline T* Detach()
         {
-            T* ptr   = m_pObject;
+            T* ptr    = m_pObject;
             m_pObject = nullptr;
             return ptr;
         }

@@ -6,12 +6,31 @@ namespace UN
     ResultCode DeviceFactory::Init(BackendKind backendKind)
     {
         m_BackendKind = backendKind;
-        return ResultCode::Success;
+        auto result   = VulkanInstance::Create(&m_pVulkanInstance);
+        if (UN_SUCCEEDED(result))
+        {
+            m_pVulkanInstance->Init("App name");
+        }
+
+        return result;
     }
 
-    ResultCode DeviceFactory::CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** result)
+    std::vector<AdapterInfo> DeviceFactory::EnumerateAdapters()
     {
-        *result = nullptr;
+        switch (m_BackendKind)
+        {
+        case BackendKind::Cpu:
+            return { AdapterInfo() };
+        case BackendKind::Vulkan:
+            return m_pVulkanInstance->EnumerateAdapters();
+        default:
+            return {};
+        }
+    }
+
+    ResultCode DeviceFactory::CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** ppDevice)
+    {
+        *ppDevice = nullptr;
 
         (void)desc;
         switch (m_BackendKind)

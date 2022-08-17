@@ -1,5 +1,7 @@
 #pragma once
 #include <UnCompute/Memory/Object.h>
+#include <UnCompute/Acceleration/AdapterInfo.h>
+#include <vector>
 
 namespace UN
 {
@@ -27,6 +29,9 @@ namespace UN
 
         //! \brief Get kind of backend for the compute devices created by this factory.
         [[nodiscard]] virtual BackendKind GetBackendKind() const = 0;
+
+        //! \brief Get all adapters supported by the specified backend.
+        [[nodiscard]] virtual std::vector<AdapterInfo> EnumerateAdapters() = 0;
 
         //! \brief Create a compute device.
         //!

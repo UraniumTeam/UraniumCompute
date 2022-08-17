@@ -31,7 +31,7 @@ ResultCode TryCreateObject(TestObject** ppObject)
     return ResultCode::InvalidArguments;
 }
 
-int main()
+void PointerTest()
 {
     Ptr<TestObject> pObject;
     if (UN_SUCCEEDED(TryCreateObject(&pObject)))
@@ -55,5 +55,22 @@ int main()
 
         std::cout << pObject->Data << std::endl;
         std::cout << pObjectCopy->Data << std::endl;
+    }
+}
+
+int main()
+{
+    PointerTest();
+    Ptr<DeviceFactory> pFactory;
+    DeviceFactory::Create(&pFactory);
+    pFactory->Init(BackendKind::Vulkan);
+
+    auto adapters = pFactory->EnumerateAdapters();
+    for (auto& adapter : adapters)
+    {
+        std::cout << "Vulkan adapter #" << adapter.Id << ":\n";
+        std::cout << "  Name = " << adapter.Name << "\n";
+        std::cout << "  Kind = " << static_cast<Int>(adapter.Kind) << "\n";
+        std::cout << std::endl;
     }
 }
