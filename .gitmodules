@@ -1,0 +1,9 @@
+[submodule "NativeSource/ThirdParty/DirectXShaderCompiler"]
+	path = NativeSource/ThirdParty/DirectXShaderCompiler
+	url = https://github.com/microsoft/DirectXShaderCompiler
+[submodule "NativeSource/ThirdParty/googletest"]
+	path = NativeSource/ThirdParty/googletest
+	url = https://github.com/google/googletest
+[submodule "NativeSource/ThirdParty/volk"]
+	path = NativeSource/ThirdParty/volk
+	url = https://github.com/zeux/volk.git
