@@ -17,6 +17,12 @@ set(SRC
     UnCompute/Memory/SystemAllocator.h
     UnCompute/Base/ResultCode.h
     UnCompute/Acceleration/IDeviceFactory.h
+    UnCompute/VulkanBackend/VulkanComputeDevice.cpp
+    UnCompute/VulkanBackend/VulkanComputeDevice.h
+    UnCompute/VulkanBackend/VulkanInstance.cpp
+    UnCompute/VulkanBackend/VulkanInstance.h
+    UnCompute/VulkanBackend/VulkanInclude.h
+    UnCompute/Acceleration/AdapterInfo.h
 )
 
 add_library(UnCompute STATIC ${SRC})
