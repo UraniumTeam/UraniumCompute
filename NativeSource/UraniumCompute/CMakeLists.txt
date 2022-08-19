@@ -24,7 +24,10 @@ set(SRC
     UnCompute/VulkanBackend/VulkanInclude.h
     UnCompute/Acceleration/AdapterInfo.h
     UnCompute/Backend/DeviceObjectBase.h
-    UnCompute/Base/Logger.h)
+    UnCompute/Base/Logger.h
+    UnCompute/Containers/ArraySlice.h
+    UnCompute/Containers/HeapArray.h
+)
 
 add_library(UnCompute STATIC ${SRC})
 
