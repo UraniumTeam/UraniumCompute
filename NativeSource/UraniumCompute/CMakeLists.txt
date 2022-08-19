@@ -23,6 +23,7 @@ set(SRC
     UnCompute/VulkanBackend/VulkanInstance.h
     UnCompute/VulkanBackend/VulkanInclude.h
     UnCompute/Acceleration/AdapterInfo.h
+    UnCompute/Backend/DeviceObjectBase.h
 )
 
 add_library(UnCompute STATIC ${SRC})

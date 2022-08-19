@@ -3,23 +3,26 @@
 
 namespace UN
 {
+    class IComputeDevice;
+
     //! \brief Base interface for all compute backend objects.
     //!
-    //! All object related to a compute backend must implement deferred initialization.
+    //! All objects related to a compute backend must implement deferred initialization.
     //! For example:
     //! \code{.cpp}
     //! class IBuffer : public IDeviceObject
     //! {
     //! public:
     //!     virtual void Init(const BufferDesc& desc) = 0;
+    //!     virtual const BufferDesc& GetDesc()       = 0;
     //! };
     //!
-    //! class CpuBuffer : public Object<IBuffer>
+    //! class Buffer : public DeviceObjectBase<IBuffer>
     //! {
     //! public:
-    //!     static Ptr<CpuBuffer> Create() { ... }             // doesn't create any device objects
-    //!     void Init(const BufferDesc& desc) override { ... } // creates device objects, allocates memory, etc.
-    //!     void Reset() override { ... }                      // releases device objects and memory
+    //!     static ResultCode Create(Buffer** ppBuffer) { ... } // doesn't create any device objects
+    //!     void Init(const BufferDesc& desc) override  { ... } // creates device objects, allocates memory, etc.
+    //!     void Reset() override                       { ... } // releases device objects and memory
     //! };
     //! \endcode
     class IDeviceObject : public IObject
@@ -29,5 +32,10 @@ namespace UN
 
         //! \brief Reset the object to uninitialized state.
         virtual void Reset() = 0;
+
+        //! \brief Get the compute device this object was created on.
+        //!
+        //! \note This function doesn't increment reference counter of the compute device.
+        [[nodiscard]] virtual IComputeDevice* GetDevice() const = 0;
     };
 } // namespace UN
