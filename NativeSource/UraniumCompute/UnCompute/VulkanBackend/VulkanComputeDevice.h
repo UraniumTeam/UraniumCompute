@@ -11,6 +11,8 @@ namespace UN
         Ptr<VulkanInstance> m_pInstance;
 
     public:
+        using DescriptorType = ComputeDeviceDesc;
+
         explicit VulkanComputeDevice(VulkanInstance* pInstance);
         ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;

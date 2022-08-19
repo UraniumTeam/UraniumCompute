@@ -27,7 +27,7 @@ namespace UN
     //!
     //! Compute devices are a part of UraniumCompute low-level API and should not be used directly together with job graphs
     //! and other higher-level objects.
-    class IComputeDevice : public IDeviceObject
+    class IComputeDevice : public IObject
     {
     public:
         ~IComputeDevice() override = default;
@@ -36,5 +36,8 @@ namespace UN
         //!
         //! \param desc - A compute device descriptor.
         virtual ResultCode Init(const ComputeDeviceDesc& desc) = 0;
+
+        //! \brief Reset the object to uninitialized state.
+        virtual void Reset() = 0;
     };
 } // namespace UN
