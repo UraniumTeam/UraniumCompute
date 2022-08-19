@@ -71,7 +71,7 @@ namespace UN
         //! of itself (commits suicide) when the reference counter reaches zero.
         inline UInt32 Release() override
         {
-            return m_RefCounter->ReleaseStrongRef([this]() {
+            return m_RefCounter->ReleaseStrongRef([this] {
                 this->~Object();
             });
         }
