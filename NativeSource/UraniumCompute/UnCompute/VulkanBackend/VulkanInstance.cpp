@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT /* flags */,
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
                                                           VkDebugReportObjectTypeEXT /* objectType */, UN::UInt64 /* object */,
                                                           size_t /* location */, UN::Int32 /* messageCode */,
                                                           const char* /* pLayerPrefix */, const char* pMessage,
@@ -20,7 +20,26 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
         }
     }
 
-    std::cout << "[Vulkan validation]: " << message << std::endl;
+    switch (flags)
+    {
+    case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
+        UNLOG_Info("[Vulkan validation]: {}", message);
+        break;
+    case VK_DEBUG_REPORT_WARNING_BIT_EXT:
+    case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
+        UNLOG_Warning("[Vulkan validation]: {}", message);
+        break;
+    case VK_DEBUG_REPORT_ERROR_BIT_EXT:
+        UNLOG_Error("[Vulkan validation]: {}", message);
+        break;
+    case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
+        UNLOG_Debug("[Vulkan validation]: {}", message);
+        break;
+    default:
+        UNLOG_Warning("[Vulkan validation]: {}", message);
+        break;
+    }
+
     return VK_FALSE;
 }
 
@@ -89,7 +108,7 @@ namespace UN
         debugCI.pfnCallback = &DebugReportCallback;
         vkCreateDebugReportCallbackEXT(m_Instance, &debugCI, VK_NULL_HANDLE, &m_Debug);
 #endif
-        std::cout << "Vulkan instance created successfully" << std::endl;
+        UNLOG_Info("Vulkan instance created successfully");
 
         UInt32 adapterCount;
         vkEnumeratePhysicalDevices(m_Instance, &adapterCount, nullptr);
@@ -100,6 +119,8 @@ namespace UN
         {
             auto& props = m_PhysicalDeviceProperties.emplace_back();
             vkGetPhysicalDeviceProperties(vkAdapter, &props);
+
+            UNLOG_Info("Found Vulkan compatible GPU: {}", props.deviceName);
         }
 
         return ResultCode::Success;
@@ -131,7 +152,7 @@ namespace UN
         for (USize i = 0; i < m_PhysicalDevices.size(); ++i)
         {
             auto& adapter = result.emplace_back();
-            adapter.Id    = static_cast<Int>(i);
+            adapter.Id    = static_cast<Int32>(i);
 
             memcpy(adapter.Name, m_PhysicalDeviceProperties[i].deviceName, std::min(256u, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE));
 

@@ -7,14 +7,14 @@ namespace UN
     //! \brief Compute device descriptor.
     struct ComputeDeviceDesc
     {
-        Int AdapterId; //!< ID of the adapter to create the device on.
+        Int32 AdapterId; //!< ID of the adapter to create the device on.
 
         inline ComputeDeviceDesc()
             : AdapterId(0)
         {
         }
 
-        inline explicit ComputeDeviceDesc(Int adapterId)
+        inline explicit ComputeDeviceDesc(Int32 adapterId)
             : AdapterId(adapterId)
         {
         }

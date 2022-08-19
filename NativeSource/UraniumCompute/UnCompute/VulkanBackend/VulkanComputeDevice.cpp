@@ -11,16 +11,30 @@ namespace UN
 
     ResultCode VulkanComputeDevice::Init(const ComputeDeviceDesc& desc)
     {
-        (void)desc;
+        UN_UNUSED(desc);
+        UNLOG_Debug("Creating Vulkan compute device on Adapter #{}", desc.AdapterId);
         return ResultCode::Success;
     }
 
-    void VulkanComputeDevice::Reset() {}
+    void VulkanComputeDevice::Reset()
+    {
+        ResetInternal();
+    }
 
     ResultCode VulkanComputeDevice::Create(VulkanInstance* pInstance, VulkanComputeDevice** ppDevice)
     {
         *ppDevice = AllocateObject<VulkanComputeDevice>(pInstance);
         (*ppDevice)->AddRef();
         return ResultCode::Success;
+    }
+
+    VulkanComputeDevice::~VulkanComputeDevice()
+    {
+        ResetInternal();
+    }
+
+    void VulkanComputeDevice::ResetInternal()
+    {
+        UNLOG_Debug("Vulkan compute device was destroyed");
     }
 } // namespace UN

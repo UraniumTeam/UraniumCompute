@@ -24,7 +24,7 @@ set(SRC
     UnCompute/VulkanBackend/VulkanInclude.h
     UnCompute/Acceleration/AdapterInfo.h
     UnCompute/Backend/DeviceObjectBase.h
-)
+    UnCompute/Base/Logger.h)
 
 add_library(UnCompute STATIC ${SRC})
 
@@ -34,7 +34,7 @@ un_enable_sse_for_target(UnCompute)
 target_include_directories(UnCompute PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set_target_properties(UnCompute PROPERTIES FOLDER "UraniumCompute")
-target_link_libraries(UnCompute volk)
+target_link_libraries(UnCompute volk spdlog)
 
 get_property("TARGET_SOURCE_FILES" TARGET UnCompute PROPERTY SOURCES)
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${TARGET_SOURCE_FILES})

@@ -7,3 +7,6 @@
 [submodule "NativeSource/ThirdParty/volk"]
 	path = NativeSource/ThirdParty/volk
 	url = https://github.com/zeux/volk.git
+[submodule "NativeSource/ThirdParty/spdlog"]
+	path = NativeSource/ThirdParty/spdlog
+	url = https://github.com/gabime/spdlog.git
