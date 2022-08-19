@@ -12,6 +12,11 @@ namespace UN
         Ptr<VulkanInstance> m_pVulkanInstance;
 
     public:
+        //! \brief Create a Device factory.
+        //!
+        //! \param ppFactory - A pointer to memory where the pointer to the created device factory will be written.
+        //!
+        //! \return ResultCode::Success or an error code.
         inline static ResultCode Create(DeviceFactory** ppFactory)
         {
             *ppFactory = AllocateObject<DeviceFactory>();

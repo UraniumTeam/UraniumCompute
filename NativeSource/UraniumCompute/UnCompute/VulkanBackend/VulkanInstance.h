@@ -7,7 +7,7 @@
 namespace UN
 {
     //! \brief This class holds a Vulkan API instance.
-    class VulkanInstance final : public Object<IDeviceObject>
+    class VulkanInstance final : public Object<IObject>
     {
         VkInstance m_Instance;
         VkDebugReportCallbackEXT m_Debug;
@@ -19,7 +19,7 @@ namespace UN
 
         //! \brief Create a VkInstance, VkDebugReportCallbackEXT (if needed) and get physical device properties.
         ResultCode Init(const std::string& applicationName);
-        void Reset() override;
+        void Reset();
 
         //! \brief Convert Vulkan physical devices to a vector of AdapterInfo structs.
         std::vector<AdapterInfo> EnumerateAdapters();

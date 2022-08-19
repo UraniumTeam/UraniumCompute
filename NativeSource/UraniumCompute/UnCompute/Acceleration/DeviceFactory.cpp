@@ -1,6 +1,6 @@
-#include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/Acceleration/DeviceFactory.h>
 #include <UnCompute/Backend/IComputeDevice.h>
+#include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 
 namespace UN
 {
@@ -8,7 +8,7 @@ namespace UN
     {
         m_BackendKind = backendKind;
         auto result   = VulkanInstance::Create(&m_pVulkanInstance);
-        if (UN_SUCCEEDED(result))
+        if (UN_Succeeded(result))
         {
             m_pVulkanInstance->Init("App name");
         }
@@ -38,10 +38,12 @@ namespace UN
         case BackendKind::Cpu:
             break;
         case BackendKind::Vulkan:
-            VulkanComputeDevice* pResult;
-            VulkanComputeDevice::Create(m_pVulkanInstance.Get(), &pResult);
-            *ppDevice = pResult;
-            return ResultCode::Success;
+            {
+                VulkanComputeDevice* pResult;
+                auto resultCode = VulkanComputeDevice::Create(m_pVulkanInstance.Get(), &pResult);
+                *ppDevice       = pResult;
+                return resultCode;
+            }
         default:
             return ResultCode::InvalidArguments;
         }

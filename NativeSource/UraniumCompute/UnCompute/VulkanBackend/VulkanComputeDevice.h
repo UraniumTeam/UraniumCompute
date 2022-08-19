@@ -10,10 +10,14 @@ namespace UN
     {
         Ptr<VulkanInstance> m_pInstance;
 
+        void ResetInternal();
+
     public:
         using DescriptorType = ComputeDeviceDesc;
 
         explicit VulkanComputeDevice(VulkanInstance* pInstance);
+        ~VulkanComputeDevice() override;
+
         ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;
 

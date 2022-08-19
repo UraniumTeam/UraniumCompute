@@ -7,7 +7,7 @@ using namespace UN;
 
 class TestObject : public Object<IObject>
 {
-    Int m_Value = 0;
+    Int32 m_Value = 0;
 
 public:
     inline TestObject()           = default;
@@ -20,18 +20,18 @@ public:
         return ResultCode::Success;
     }
 
-    inline virtual ResultCode Init(Int value)
+    inline virtual ResultCode Init(Int32 value)
     {
         m_Value = value;
         return ResultCode::Success;
     }
 
-    [[nodiscard]] inline Int GetValue() const
+    [[nodiscard]] inline Int32 GetValue() const
     {
         return m_Value;
     }
 
-    inline void SetValue(Int value)
+    inline void SetValue(Int32 value)
     {
         m_Value = value;
     }
@@ -39,7 +39,7 @@ public:
 
 class DerivedTestObject final : public TestObject
 {
-    Int m_Value = 0;
+    Int32 m_Value = 0;
 
 public:
     inline DerivedTestObject()           = default;
@@ -52,19 +52,19 @@ public:
         return ResultCode::Success;
     }
 
-    inline ResultCode Init(Int value) override
+    inline ResultCode Init(Int32 value) override
     {
         TestObject::Init(value * 2);
         m_Value = value;
         return ResultCode::Success;
     }
 
-    [[nodiscard]] inline Int GetDerivedValue() const
+    [[nodiscard]] inline Int32 GetDerivedValue() const
     {
         return m_Value;
     }
 
-    inline void SetDerivedValue(Int value)
+    inline void SetDerivedValue(Int32 value)
     {
         m_Value = value;
     }

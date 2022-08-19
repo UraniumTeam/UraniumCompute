@@ -10,6 +10,9 @@
 
 #define UN_MAKE_STR(txt) #txt
 
+//! \brief Mark an unused parameter to suppress compiler warning.
+#define UN_UNUSED(expr) (void)(expr)
+
 #if defined __clang__
 #    define UN_COMPILER_CLANG 1
 
@@ -45,7 +48,7 @@
 #endif
 
 #if UN_COMPILER_MSVC || UN_COMPILER_MS_CLANG
-#    define UN_DEBUGBREAK __debugbreak()
+#    define UN_DebugBreak() __debugbreak()
 #else
-#    define UN_DEBUGBREAK raise(SIGTRAP)
+#    define UN_DebugBreak() raise(SIGTRAP)
 #endif

@@ -1,4 +1,5 @@
 #pragma once
+#include <UnCompute/Base/Logger.h>
 #include <UnCompute/Base/Platform.h>
 #include <UnCompute/Base/ResultCode.h>
 #include <atomic>
@@ -9,6 +10,8 @@
 
 namespace UN
 {
+    //! \brief Numeric type aliases
+    //! @{
     using Int8  = int8_t;
     using Int16 = int16_t;
     using Int32 = int32_t;
@@ -19,20 +22,30 @@ namespace UN
     using UInt32 = uint32_t;
     using UInt64 = uint64_t;
 
-    using Int  = Int32;
-    using UInt = UInt32;
-
     using Float32 = float;
     using Float64 = double;
+    //! @}
 
-    using USize = size_t;
-    using SSize = ptrdiff_t;
+    using USize = size_t;    //!< Unsigned integer with the size of a pointer on the current platform.
+    using SSize = ptrdiff_t; //!< Signed integer with the size of a pointer on the current platform.
 
-    //! \brief The version of the library.
+    //! \brief C#-compatible type aliases
+    //! @{
+    using CsSByte = Int8;
+    using CsShort = Int16;
+    using CsInt   = Int32;
+    using CsLong  = Int64;
+
+    using CsByte   = UInt8;
+    using CsUShort = UInt16;
+    using CsUInt   = UInt32;
+    using CsULong  = UInt64;
+    //! @}
+
     inline constexpr struct
     {
         int Major = 0, Minor = 1, Patch = 0;
-    } UnComputeVersion;
+    } UnComputeVersion; //!< The version of the library.
 
     //! \internal
     namespace Internal
@@ -88,8 +101,8 @@ namespace UN
 
     //! \brief Align up an integer.
     //!
-    //! \param [in] x     - Value to align.
-    //! \param [in] align - Alignment to use.
+    //! \param x     - Value to align.
+    //! \param align - Alignment to use.
     template<class T, class U = T>
     inline T AlignUp(T x, U align)
     {
@@ -98,8 +111,8 @@ namespace UN
 
     //! \brief Align up a pointer.
     //!
-    //! \param [in] x     - Value to align.
-    //! \param [in] align - Alignment to use.
+    //! \param x     - Value to align.
+    //! \param align - Alignment to use.
     template<class T>
     inline T* AlignUpPtr(const T* x, USize align)
     {
@@ -108,7 +121,7 @@ namespace UN
 
     //! \brief Align up an integer.
     //!
-    //! \param [in] x     - Value to align.
+    //! \param x     - Value to align.
     //! \tparam A         - Alignment to use.
     template<UInt32 A, class T>
     inline constexpr T AlignUp(T x)
@@ -118,8 +131,8 @@ namespace UN
 
     //! \brief Align down an integer.
     //!
-    //! \param [in] x     - Value to align.
-    //! \param [in] align - Alignment to use.
+    //! \param x     - Value to align.
+    //! \param align - Alignment to use.
     template<class T, class U = T>
     inline T AlignDown(T x, U align)
     {
@@ -128,8 +141,8 @@ namespace UN
 
     //! \brief Align down a pointer.
     //!
-    //! \param [in] x     - Value to align.
-    //! \param [in] align - Alignment to use.
+    //! \param x     - Value to align.
+    //! \param align - Alignment to use.
     template<class T>
     inline constexpr T* AlignDownPtr(const T* x, USize align)
     {
@@ -138,14 +151,18 @@ namespace UN
 
     //! \brief Align down an integer.
     //!
-    //! \param [in] x     - Value to align.
-    //! \tparam A         - Alignment to use.
+    //! \param x  - Value to align.
+    //! \tparam A - Alignment to use.
     template<UInt32 A, class T>
     inline constexpr T AlignDown(T x)
     {
         return (x & ~(A - 1));
     }
 
+    //! \brief Create a bit mask.
+    //!
+    //! \param bitCount  - Number of bits in the mask.
+    //! \param leftShift - Number of zeros on the left side of the mask.
     template<class T>
     inline constexpr T MakeMask(T bitCount, T leftShift)
     {
@@ -160,8 +177,8 @@ namespace UN
     //!
     //! \tparam Args - Types of values.
     //!
-    //! \param [in,out] seed - Initial hash value to combine with.
-    //! \param [in]     args - The values to calculate hash of.
+    //! \param seed - Initial hash value to combine with.
+    //! \param args - The values to calculate hash of.
     template<typename T, typename... Args>
     inline void HashCombine(std::size_t& seed, const T& value, const Args&... args)
     {
@@ -187,23 +204,16 @@ namespace UN
     }
 
 #if UN_DEBUG
+    //! \brief Is true in debug builds.
     inline constexpr bool ValidationEnabled = true;
 #else
+    //! \brief Is true in debug builds.
     inline constexpr bool ValidationEnabled = false;
 #endif
 
-#define UN_Assert(expression, msg)                                                                                               \
-    do                                                                                                                           \
-    {                                                                                                                            \
-        assert((expression) && (msg));                                                                                           \
-    }                                                                                                                            \
-    while (0)
-
-#define UN_Fail(msg) UN_Assert(false, msg)
-
     //! \brief Cast from base to derived or crash in debug build.
     //!
-    //! This function uses `UN_ASSERT` to verify that that the base pointer can be casted to derived pointer in debug builds.
+    //! This function uses `UN_Assert` to verify that that the base pointer can be casted to derived pointer in debug builds.
     //! In release builds it behaves like standard `static_cast`.
     //!
     //! \tparam TDest - Destination pointer type.
@@ -222,7 +232,7 @@ namespace UN
                 return result;
             }
 
-            UN_Fail("Verifying cast failed");
+            UN_Assert(false, "Verifying cast failed");
         }
 
         return static_cast<TDest*>(pSourceObject);

@@ -19,5 +19,5 @@ namespace UN
     };
 
     //! \brief Macro to check if an operation returned ResultCode::Success.
-#define UN_SUCCEEDED(result) ((result) == ::UN::ResultCode::Success)
+#define UN_Succeeded(result) ((result) == ::UN::ResultCode::Success)
 } // namespace UN
