@@ -186,12 +186,47 @@ namespace UN
         };                                                                                                                       \
     }
 
-#define UN_ASSERT(expression, msg)                                                                                               \
+#if UN_DEBUG
+    inline constexpr bool ValidationEnabled = true;
+#else
+    inline constexpr bool ValidationEnabled = false;
+#endif
+
+#define UN_Assert(expression, msg)                                                                                               \
     do                                                                                                                           \
     {                                                                                                                            \
         assert((expression) && (msg));                                                                                           \
     }                                                                                                                            \
     while (0)
+
+#define UN_Fail(msg) UN_Assert(false, msg)
+
+    //! \brief Cast from base to derived or crash in debug build.
+    //!
+    //! This function uses `UN_ASSERT` to verify that that the base pointer can be casted to derived pointer in debug builds.
+    //! In release builds it behaves like standard `static_cast`.
+    //!
+    //! \tparam TDest - Destination pointer type.
+    //! \tparam TSrc  - Source pointer type.
+    //!
+    //! \param pSourceObject - The pointer to cast.
+    //!
+    //! \return The result pointer.
+    template<class TDest, class TSrc>
+    inline std::enable_if_t<std::is_base_of_v<TSrc, TDest>, TDest*> un_verify_cast(TSrc* pSourceObject)
+    {
+        if constexpr (ValidationEnabled) // NOLINT
+        {
+            if (auto* result = dynamic_cast<TDest*>(pSourceObject))
+            {
+                return result;
+            }
+
+            UN_Fail("Verifying cast failed");
+        }
+
+        return static_cast<TDest*>(pSourceObject);
+    }
 
     //! \brief Define bitwise operations on `enum`.
     //!

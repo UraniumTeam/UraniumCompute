@@ -51,7 +51,7 @@ namespace UN
         {
             if (m_pObject)
             {
-                m_pObject->AddStrongRef();
+                m_pObject->AddRef();
             }
         }
 
@@ -60,7 +60,7 @@ namespace UN
             UInt32 result = 0;
             if (m_pObject)
             {
-                result    = m_pObject->ReleaseStrongRef();
+                result    = m_pObject->Release();
                 m_pObject = nullptr;
             }
 
@@ -250,6 +250,30 @@ namespace UN
     inline bool operator!=(std::nullptr_t, const Ptr<T>& rhs)
     {
         return !(nullptr == rhs);
+    }
+
+    template<class T1, class T2>
+    inline bool operator==(const Ptr<T1>& lhs, T2* rhs)
+    {
+        return static_cast<IObject*>(lhs.Get()) == static_cast<IObject*>(rhs);
+    }
+
+    template<class T1, class T2>
+    inline bool operator!=(const Ptr<T1>& lhs, T2* rhs)
+    {
+        return !(lhs == rhs);
+    }
+
+    template<class T1, class T2>
+    inline bool operator==(T1* lhs, const Ptr<T2>& rhs)
+    {
+        return rhs == lhs;
+    }
+
+    template<class T1, class T2>
+    inline bool operator!=(T1* lhs, const Ptr<T2>& rhs)
+    {
+        return !(lhs == rhs);
     }
 
     template<class T1, class T2>

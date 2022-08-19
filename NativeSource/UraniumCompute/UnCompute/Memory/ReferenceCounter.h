@@ -82,5 +82,11 @@ namespace UN
 
             return m_StrongRefCount;
         }
+
+        //! \brief Get number of strong references.
+        inline UInt32 GetStrongRefCount() const
+        {
+            return m_StrongRefCount;
+        }
     };
 } // namespace UN

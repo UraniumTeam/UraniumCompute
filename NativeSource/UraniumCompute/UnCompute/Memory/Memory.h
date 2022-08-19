@@ -28,7 +28,6 @@ namespace UN
 
         T* object = new (ptr + counterSize) T(std::forward<Args>(args)...);
         object->AttachRefCounter(counter);
-        object->AddStrongRef();
         return object;
     }
 

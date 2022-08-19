@@ -22,6 +22,6 @@ namespace UN
 
         [[nodiscard]] BackendKind GetBackendKind() const override;
         std::vector<AdapterInfo> EnumerateAdapters() override;
-        ResultCode CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** ppDevice) override;
+        ResultCode CreateDevice(IComputeDevice** ppDevice) override;
     };
 } // namespace UN

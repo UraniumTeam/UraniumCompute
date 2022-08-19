@@ -41,7 +41,7 @@ namespace UN
             });
             if (!found)
             {
-                UN_ASSERT(found, "Vulkan instance layer not found");
+                UN_Assert(found, "Vulkan instance layer not found");
                 return ResultCode::Fail;
             }
         }
@@ -58,7 +58,7 @@ namespace UN
             });
             if (!found)
             {
-                UN_ASSERT(found, "Vulkan instance extension not found");
+                UN_Assert(found, "Vulkan instance extension not found");
                 return ResultCode::Fail;
             }
         }
@@ -161,6 +161,7 @@ namespace UN
     ResultCode VulkanInstance::Create(VulkanInstance** ppInstance)
     {
         *ppInstance = AllocateObject<VulkanInstance>();
+        (*ppInstance)->AddRef();
         return ResultCode::Success;
     }
 } // namespace UN
