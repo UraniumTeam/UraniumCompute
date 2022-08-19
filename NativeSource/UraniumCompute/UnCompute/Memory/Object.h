@@ -12,7 +12,7 @@ namespace UN
         //! \brief Add a strong reference to object's reference counter.
         //!
         //! \return The new (incremented) value of strong reference counter.
-        virtual UInt32 AddStrongRef() = 0;
+        virtual UInt32 AddRef() = 0;
 
         //! \brief Remove a strong reference from object's reference counter.
         //!
@@ -20,7 +20,7 @@ namespace UN
         //! it's own memory and calling it's own destructor.
         //!
         //! \return The new (decremented) value of strong reference counter.
-        virtual UInt32 ReleaseStrongRef() = 0;
+        virtual UInt32 Release() = 0;
 
         //! \brief Attach a ReferenceCounter to this object.
         //!
@@ -62,14 +62,14 @@ namespace UN
         //! \brief Add a strong reference to the object.
         //!
         //! \return The new (incremented) number of strong references.
-        inline UInt32 AddStrongRef() override
+        inline UInt32 AddRef() override
         {
             return m_RefCounter->AddStrongRef();
         }
 
         //! Directly uses ReferenceCounter::ReleaseStrongRef, but also calls the virtual destructor
         //! of itself (commits suicide) when the reference counter reaches zero.
-        inline UInt32 ReleaseStrongRef() override
+        inline UInt32 Release() override
         {
             return m_RefCounter->ReleaseStrongRef([this]() {
                 this->~Object();

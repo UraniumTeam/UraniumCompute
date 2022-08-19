@@ -1,4 +1,5 @@
 #include <UnCompute/Acceleration/DeviceFactory.h>
+#include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Memory/Memory.h>
 #include <iostream>
 
@@ -25,6 +26,7 @@ ResultCode TryCreateObject(TestObject** ppObject)
     if (ppObject)
     {
         *ppObject = AllocateObject<TestObject>();
+        (*ppObject)->AddRef();
         return *ppObject ? ResultCode::Success : ResultCode::Fail;
     }
 
@@ -62,8 +64,15 @@ int main()
 {
     PointerTest();
     Ptr<DeviceFactory> pFactory;
-    DeviceFactory::Create(&pFactory);
-    pFactory->Init(BackendKind::Vulkan);
+    if (!UN_SUCCEEDED(DeviceFactory::Create(&pFactory)))
+    {
+        return 1;
+    }
+
+    if (!UN_SUCCEEDED(pFactory->Init(BackendKind::Vulkan)))
+    {
+        return 1;
+    }
 
     auto adapters = pFactory->EnumerateAdapters();
     for (auto& adapter : adapters)
@@ -72,5 +81,18 @@ int main()
         std::cout << "  Name = " << adapter.Name << "\n";
         std::cout << "  Kind = " << static_cast<Int>(adapter.Kind) << "\n";
         std::cout << std::endl;
+    }
+
+    std::cout << "Using adapter #0...\n";
+
+    Ptr<IComputeDevice> pDevice;
+    if (!UN_SUCCEEDED(pFactory->CreateDevice(&pDevice)))
+    {
+        return 1;
+    }
+
+    if (!UN_SUCCEEDED(pDevice->Init(ComputeDeviceDesc(0))))
+    {
+        return 1;
     }
 }

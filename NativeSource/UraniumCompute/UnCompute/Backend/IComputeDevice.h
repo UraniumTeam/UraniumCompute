@@ -8,6 +8,16 @@ namespace UN
     struct ComputeDeviceDesc
     {
         Int AdapterId; //!< ID of the adapter to create the device on.
+
+        inline ComputeDeviceDesc()
+            : AdapterId(0)
+        {
+        }
+
+        inline explicit ComputeDeviceDesc(Int adapterId)
+            : AdapterId(adapterId)
+        {
+        }
     };
 
     //! \brief Interface for all backend-specific compute devices.
@@ -25,6 +35,6 @@ namespace UN
         //! \brief Initializes the compute device with the provided descriptor.
         //!
         //! \param desc - A compute device descriptor.
-        virtual void Init(const ComputeDeviceDesc& desc) = 0;
+        virtual ResultCode Init(const ComputeDeviceDesc& desc) = 0;
     };
 } // namespace UN

@@ -8,11 +8,13 @@ namespace UN
 
     class VulkanComputeDevice : public Object<IComputeDevice>
     {
-        Ptr<VulkanInstance> m_Instance;
+        Ptr<VulkanInstance> m_pInstance;
 
     public:
         explicit VulkanComputeDevice(VulkanInstance* pInstance);
-        void Init(const ComputeDeviceDesc& desc) override;
+        ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;
+
+        static ResultCode Create(VulkanInstance* pInstance, VulkanComputeDevice** ppDevice);
     };
 } // namespace UN

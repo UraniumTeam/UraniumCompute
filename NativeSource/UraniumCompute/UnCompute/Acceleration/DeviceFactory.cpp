@@ -1,3 +1,4 @@
+#include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/Acceleration/DeviceFactory.h>
 #include <UnCompute/Backend/IComputeDevice.h>
 
@@ -28,17 +29,19 @@ namespace UN
         }
     }
 
-    ResultCode DeviceFactory::CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** ppDevice)
+    ResultCode DeviceFactory::CreateDevice(IComputeDevice** ppDevice)
     {
         *ppDevice = nullptr;
 
-        (void)desc;
         switch (m_BackendKind)
         {
         case BackendKind::Cpu:
             break;
         case BackendKind::Vulkan:
-            break;
+            VulkanComputeDevice* pResult;
+            VulkanComputeDevice::Create(m_pVulkanInstance.Get(), &pResult);
+            *ppDevice = pResult;
+            return ResultCode::Success;
         default:
             return ResultCode::InvalidArguments;
         }

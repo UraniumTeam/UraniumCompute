@@ -38,5 +38,5 @@ target_link_libraries(UnCompute volk)
 get_property("TARGET_SOURCE_FILES" TARGET UnCompute PROPERTY SOURCES)
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${TARGET_SOURCE_FILES})
 
-# add_subdirectory(Tests)
+add_subdirectory(Tests)
 # add_subdirectory(Bindings)

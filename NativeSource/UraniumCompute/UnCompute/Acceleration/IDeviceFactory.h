@@ -35,10 +35,9 @@ namespace UN
 
         //! \brief Create a compute device.
         //!
-        //! \param desc     - Compute device descriptor.
         //! \param ppDevice - A pointer to memory where the pointer to the created device will be written.
         //!
         //! \return ResultCode::Success or an error code.
-        virtual ResultCode CreateDevice(const ComputeDeviceDesc& desc, IComputeDevice** ppDevice) = 0;
+        virtual ResultCode CreateDevice(IComputeDevice** ppDevice) = 0;
     };
 } // namespace UN
