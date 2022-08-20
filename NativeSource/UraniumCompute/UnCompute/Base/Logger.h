@@ -35,7 +35,6 @@
 #define UNLOG_Info(...) SPDLOG_INFO(__VA_ARGS__)
 #define UNLOG_Warning(...) SPDLOG_WARN(__VA_ARGS__)
 #define UNLOG_Error(...) SPDLOG_ERROR(__VA_ARGS__)
-#define UNLOG_Fatal(...) SPDLOG_CRITICAL(__VA_ARGS__)
 //! @}
 
 //! \brief Verify expression, will use UN_Fail() to stop the program in debug and release builds.
@@ -44,7 +43,7 @@
     {                                                                                                                            \
         if (!(expr))                                                                                                             \
         {                                                                                                                        \
-            UNLOG_Fatal(__VA_ARGS__);                                                                                            \
+            UNLOG_Error(__VA_ARGS__);                                                                                            \
             UN_Fail();                                                                                                           \
         }                                                                                                                        \
     }                                                                                                                            \
