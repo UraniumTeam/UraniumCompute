@@ -3,7 +3,7 @@ set(SRC
 
     Common/Common.h
     main.cpp
-    Containers/ArraySlice.cpp)
+    Containers/ArraySlice.cpp Containers/HeapArray.cpp)
 
 add_executable(UnComputeTests ${SRC})
 

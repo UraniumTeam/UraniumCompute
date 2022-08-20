@@ -14,7 +14,7 @@ TEST(ArraySlice, EmptyConstructor)
 TEST(ArraySlice, CreateFromVector)
 {
     std::vector<Int32> vector = { 1, 2, 3, 4, 5, 1 };
-    ArraySlice<Int32> slice(vector);
+    ArraySlice<Int32> slice   = vector;
 
     EXPECT_EQ(slice.Length(), vector.size());
 
@@ -49,8 +49,8 @@ TEST(ArraySlice, CreateFromVector)
 
 TEST(ArraySlice, CreateFromConstVector)
 {
-    std::vector<Int32> vector = { 1, 2, 3, 4, 5, 1 };
-    ArraySlice<const Int32> slice(vector);
+    std::vector<Int32> vector     = { 1, 2, 3, 4, 5, 1 };
+    ArraySlice<const Int32> slice = vector;
 
     EXPECT_EQ(slice.Length(), vector.size());
 
