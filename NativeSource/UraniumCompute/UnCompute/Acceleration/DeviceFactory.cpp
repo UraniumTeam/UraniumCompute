@@ -10,7 +10,7 @@ namespace UN
         auto result   = VulkanInstance::Create(&m_pVulkanInstance);
         if (UN_Succeeded(result))
         {
-            m_pVulkanInstance->Init("App name");
+            return m_pVulkanInstance->Init("UraniumCompute");
         }
 
         return result;

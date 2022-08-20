@@ -1,6 +1,7 @@
 #pragma once
 #include <UnCompute/Acceleration/AdapterInfo.h>
 #include <UnCompute/Backend/IDeviceObject.h>
+#include <UnCompute/Containers/ArraySlice.h>
 #include <UnCompute/VulkanBackend/VulkanInclude.h>
 #include <vector>
 
@@ -23,6 +24,16 @@ namespace UN
 
         //! \brief Convert Vulkan physical devices to a vector of AdapterInfo structs.
         std::vector<AdapterInfo> EnumerateAdapters();
+
+        [[nodiscard]] inline ArraySlice<const VkPhysicalDevice> GetVulkanAdapters() const
+        {
+            return m_PhysicalDevices;
+        }
+
+        [[nodiscard]] inline ArraySlice<const VkPhysicalDeviceProperties> GetVulkanAdapterProperties() const
+        {
+            return m_PhysicalDeviceProperties;
+        }
 
         static ResultCode Create(VulkanInstance** ppInstance);
     };

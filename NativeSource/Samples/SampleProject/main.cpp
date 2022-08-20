@@ -14,5 +14,7 @@ int main()
     auto adapters = pFactory->EnumerateAdapters();
     Ptr<IComputeDevice> pDevice;
     UN_VerifyResult(pFactory->CreateDevice(&pDevice), "Couldn't create Vulkan device");
-    UN_VerifyResult(pDevice->Init(ComputeDeviceDesc(adapters[0].Id)), "Couldn't initialize Vulkan device");
+
+    ComputeDeviceDesc deviceDesc(adapters[0].Id);
+    UN_VerifyResult(pDevice->Init(deviceDesc), "Couldn't initialize Vulkan device");
 }

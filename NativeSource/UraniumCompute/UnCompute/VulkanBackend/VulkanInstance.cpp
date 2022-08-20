@@ -77,7 +77,7 @@ namespace UN
             });
             if (!found)
             {
-                UN_Assert(found, "Vulkan instance extension not found");
+                UN_Assert(found, "Vulkan instance extension '{}' not found", ext);
                 return ResultCode::Fail;
             }
         }

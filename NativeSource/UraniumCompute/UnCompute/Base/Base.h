@@ -237,33 +237,4 @@ namespace UN
 
         return static_cast<TDest*>(pSourceObject);
     }
-
-    //! \brief Define bitwise operations on `enum`.
-    //!
-    //! The macro defines bitwise or, and, xor operators.
-#define UN_ENUM_OPERATORS(Name)                                                                                                  \
-    inline constexpr Name operator|(Name a, Name b)                                                                              \
-    {                                                                                                                            \
-        return Name(((std::underlying_type_t<Name>)a) | ((std::underlying_type_t<Name>)b));                                      \
-    }                                                                                                                            \
-    inline constexpr Name& operator|=(Name& a, Name b)                                                                           \
-    {                                                                                                                            \
-        return a = a | b;                                                                                                        \
-    }                                                                                                                            \
-    inline constexpr Name operator&(Name a, Name b)                                                                              \
-    {                                                                                                                            \
-        return Name(((std::underlying_type_t<Name>)a) & ((std::underlying_type_t<Name>)b));                                      \
-    }                                                                                                                            \
-    inline constexpr Name& operator&=(Name& a, Name b)                                                                           \
-    {                                                                                                                            \
-        return a = a & b;                                                                                                        \
-    }                                                                                                                            \
-    inline constexpr Name operator^(Name a, Name b)                                                                              \
-    {                                                                                                                            \
-        return Name(((std::underlying_type_t<Name>)a) ^ ((std::underlying_type_t<Name>)b));                                      \
-    }                                                                                                                            \
-    inline constexpr Name& operator^=(Name& a, Name b)                                                                           \
-    {                                                                                                                            \
-        return a = a ^ b;                                                                                                        \
-    }
 } // namespace UN

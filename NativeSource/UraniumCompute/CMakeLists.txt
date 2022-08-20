@@ -27,7 +27,7 @@ set(SRC
     UnCompute/Base/Logger.h
     UnCompute/Containers/ArraySlice.h
     UnCompute/Containers/HeapArray.h
-)
+    UnCompute/Base/Flags.h)
 
 add_library(UnCompute STATIC ${SRC})
 
