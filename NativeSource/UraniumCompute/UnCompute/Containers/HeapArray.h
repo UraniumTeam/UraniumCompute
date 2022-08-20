@@ -13,13 +13,13 @@ namespace UN
 
         inline void AllocateStorage(USize count)
         {
-            m_Storage = ArraySlice<T>(m_pAllocator->Allocate(count * sizeof(T), alignof(T)), count);
+            void* pData = m_pAllocator->Allocate(count * sizeof(T), alignof(T));
+            m_Storage = ArraySlice<T>(static_cast<T*>(pData), count);
         }
 
         inline void AllocateStorage(USize count, const T& value)
         {
-            m_Storage = ArraySlice<T>(m_pAllocator->Allocate(count * sizeof(T), alignof(T)), count);
-
+            AllocateStorage(count);
             for (USize i = 0; i < count; ++i)
             {
                 m_Storage[i] = value;
@@ -34,12 +34,12 @@ namespace UN
             }
 
             m_pAllocator->Deallocate(storage.Data());
-            storage = {};
         }
 
         inline void DeallocateStorage()
         {
             DeallocateStorage(m_Storage);
+            m_Storage = {};
         }
 
     public:
@@ -63,6 +63,25 @@ namespace UN
             , m_pAllocator(other.m_pAllocator)
         {
             other.m_Storage = {};
+        }
+
+//        //! \brief Create an array.
+//        //!
+//        //! \param data - An array slice to copy the data from.
+//        inline HeapArray(const ArraySlice<T>& data) // NOLINT(google-explicit-constructor)
+//        {
+//            AllocateStorage(data.Length());
+//            data.CopyDataTo(m_Storage);
+//        }
+
+        //! \brief Create an array.
+        //!
+        //! \param data - An array slice to copy the data from.
+        inline HeapArray(const ArraySlice<const T>& data) // NOLINT(google-explicit-constructor)
+            : m_pAllocator(SystemAllocator::Get())
+        {
+            AllocateStorage(data.Length());
+            data.CopyDataTo(m_Storage);
         }
 
         //! \brief Copy assignment.
@@ -237,7 +256,7 @@ namespace UN
             return m_Storage.end();
         }
 
-        inline operator ArraySlice<T>() const // NOLINT(google-explicit-constructor)
+        inline explicit operator ArraySlice<T>() const // NOLINT(google-explicit-constructor)
         {
             return m_Storage;
         }

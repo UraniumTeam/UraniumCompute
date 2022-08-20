@@ -50,5 +50,5 @@
 #if UN_COMPILER_MSVC || UN_COMPILER_MS_CLANG
 #    define UN_DebugBreak() __debugbreak()
 #else
-#    define UN_DebugBreak() raise(SIGTRAP)
+#    define UN_DebugBreak() raise(SIGABRT)
 #endif
