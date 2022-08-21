@@ -15,7 +15,7 @@ TEST(HeapArray, CreateFromArraySlice)
 {
     std::vector<Int32> vector = { 1, 2, 3, 4, 5, 1 };
     ArraySlice<Int32> slice   = vector;
-    HeapArray<Int32> array    = slice.AsConst();
+    HeapArray<Int32> array    = HeapArray<Int32>::CopyFrom(slice);
 
     EXPECT_EQ(array.Length(), vector.size());
 
@@ -49,7 +49,7 @@ TEST(HeapArray, CreateFromArraySlice)
 TEST(HeapArray, CreateFromVector)
 {
     std::vector<Int32> vector = { 1, 2, 3, 4, 5, 1 };
-    HeapArray<Int32> array    = ArraySlice<const Int32>(vector);
+    HeapArray<Int32> array    = HeapArray<Int32>::CopyFrom(vector);
 
     EXPECT_EQ(array.Length(), vector.size());
 

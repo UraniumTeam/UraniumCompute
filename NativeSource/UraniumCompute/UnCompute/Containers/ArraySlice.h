@@ -218,9 +218,9 @@ namespace UN
             return m_pEnd;
         }
 
-        inline ArraySlice<std::add_const_t<T>> AsConst() const noexcept
+        inline operator ArraySlice<std::add_const_t<T>>() const noexcept // NOLINT(google-explicit-constructor)
         {
-            return {Data(), Data() + Length()};
+            return { Data(), Data() + Length() };
         }
 
         inline friend bool operator==(const ArraySlice& lhs, const ArraySlice& rhs) noexcept
