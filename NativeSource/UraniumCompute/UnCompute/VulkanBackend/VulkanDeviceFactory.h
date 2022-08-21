@@ -1,5 +1,6 @@
 #pragma once
 #include <UnCompute/Acceleration/AdapterInfo.h>
+#include <UnCompute/Acceleration/IDeviceFactory.h>
 #include <UnCompute/Backend/IDeviceObject.h>
 #include <UnCompute/Containers/ArraySlice.h>
 #include <UnCompute/VulkanBackend/VulkanInclude.h>
@@ -8,7 +9,7 @@
 namespace UN
 {
     //! \brief This class holds a Vulkan API instance.
-    class VulkanInstance final : public Object<IObject>
+    class VulkanDeviceFactory final : public Object<IDeviceFactory>
     {
         VkInstance m_Instance;
         VkDebugReportCallbackEXT m_Debug;
@@ -16,14 +17,13 @@ namespace UN
         std::vector<VkPhysicalDeviceProperties> m_PhysicalDeviceProperties;
 
     public:
-        ~VulkanInstance() override;
+        ~VulkanDeviceFactory() override;
 
         //! \brief Create a VkInstance, VkDebugReportCallbackEXT (if needed) and get physical device properties.
-        ResultCode Init(const std::string& applicationName);
-        void Reset();
+        ResultCode Init(const DeviceFactoryDesc& desc) override;
+        void Reset() override;
 
-        //! \brief Convert Vulkan physical devices to a vector of AdapterInfo structs.
-        std::vector<AdapterInfo> EnumerateAdapters();
+        std::vector<AdapterInfo> EnumerateAdapters() override;
 
         [[nodiscard]] inline ArraySlice<const VkPhysicalDevice> GetVulkanAdapters() const
         {
@@ -35,6 +35,9 @@ namespace UN
             return m_PhysicalDeviceProperties;
         }
 
-        static ResultCode Create(VulkanInstance** ppInstance);
+        [[nodiscard]] BackendKind GetBackendKind() const override;
+        ResultCode CreateDevice(IComputeDevice** ppDevice) override;
+
+        static ResultCode Create(VulkanDeviceFactory** ppInstance);
     };
 } // namespace UN

@@ -1,5 +1,6 @@
 #include <UnCompute/Memory/Memory.h>
-#include <UnCompute/VulkanBackend/VulkanInstance.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
+#include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <algorithm>
 #include <iostream>
 
@@ -45,7 +46,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
 
 namespace UN
 {
-    ResultCode VulkanInstance::Init(const std::string& applicationName)
+    ResultCode VulkanDeviceFactory::Init(const DeviceFactoryDesc& desc)
     {
         volkInitialize();
         UInt32 layerCount;
@@ -86,7 +87,7 @@ namespace UN
         appInfo.sType            = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.apiVersion       = VK_API_VERSION_1_2;
         appInfo.pEngineName      = "UraniumCompute";
-        appInfo.pApplicationName = applicationName.c_str();
+        appInfo.pApplicationName = desc.ApplicationName;
 
         VkInstanceCreateInfo instanceCI{};
         instanceCI.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -126,7 +127,7 @@ namespace UN
         return ResultCode::Success;
     }
 
-    void VulkanInstance::Reset()
+    void VulkanDeviceFactory::Reset()
     {
         if (m_Debug)
         {
@@ -140,12 +141,12 @@ namespace UN
         }
     }
 
-    VulkanInstance::~VulkanInstance()
+    VulkanDeviceFactory::~VulkanDeviceFactory()
     {
         Reset();
     }
 
-    std::vector<AdapterInfo> VulkanInstance::EnumerateAdapters()
+    std::vector<AdapterInfo> VulkanDeviceFactory::EnumerateAdapters()
     {
         std::vector<AdapterInfo> result;
         result.reserve(m_PhysicalDevices.size());
@@ -179,9 +180,22 @@ namespace UN
         return result;
     }
 
-    ResultCode VulkanInstance::Create(VulkanInstance** ppInstance)
+    BackendKind VulkanDeviceFactory::GetBackendKind() const
     {
-        *ppInstance = AllocateObject<VulkanInstance>();
+        return BackendKind::Vulkan;
+    }
+
+    ResultCode VulkanDeviceFactory::CreateDevice(IComputeDevice** ppDevice)
+    {
+        VulkanComputeDevice* pResult;
+        auto resultCode = VulkanComputeDevice::Create(this, &pResult);
+        *ppDevice       = pResult;
+        return resultCode;
+    }
+
+    ResultCode VulkanDeviceFactory::Create(VulkanDeviceFactory** ppInstance)
+    {
+        *ppInstance = AllocateObject<VulkanDeviceFactory>();
         (*ppInstance)->AddRef();
         return ResultCode::Success;
     }

@@ -20,11 +20,11 @@ namespace UN
         }
     };
 
-    class VulkanInstance;
+    class VulkanDeviceFactory;
 
     class VulkanComputeDevice : public Object<IComputeDevice>
     {
-        Ptr<VulkanInstance> m_pInstance;
+        Ptr<VulkanDeviceFactory> m_pFactory;
 
         std::vector<VulkanQueueFamily> m_QueueFamilies;
 
@@ -40,12 +40,12 @@ namespace UN
     public:
         using DescriptorType = ComputeDeviceDesc;
 
-        explicit VulkanComputeDevice(VulkanInstance* pInstance);
+        explicit VulkanComputeDevice(VulkanDeviceFactory* pInstance);
         ~VulkanComputeDevice() override;
 
         ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;
 
-        static ResultCode Create(VulkanInstance* pInstance, VulkanComputeDevice** ppDevice);
+        static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };
 } // namespace UN

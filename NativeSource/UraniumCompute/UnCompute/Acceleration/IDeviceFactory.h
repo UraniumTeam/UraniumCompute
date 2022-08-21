@@ -1,6 +1,7 @@
 #pragma once
-#include <UnCompute/Memory/Object.h>
 #include <UnCompute/Acceleration/AdapterInfo.h>
+#include <UnCompute/Memory/Object.h>
+#include <UnCompute/Utils/DynamicLibrary.h>
 #include <vector>
 
 namespace UN
@@ -10,22 +11,36 @@ namespace UN
     {
         Cpu,   //!< CPU backend, jobs on this kind of backend will be executed on the CPU.
         Vulkan //!< Vulkan backend, jobs on this kind of backend will be executed on the GPU
-               //!< using Vulkan API compute shaders.
+               //! using Vulkan API compute shaders.
+    };
+
+    //! \brief IDeviceFactory descriptor.
+    struct DeviceFactoryDesc
+    {
+        const char* ApplicationName; //!< Name of the application.
+
+        inline DeviceFactoryDesc(const char* applicationName)
+            : ApplicationName(applicationName)
+        {
+        }
     };
 
     class IComputeDevice;
     struct ComputeDeviceDesc;
 
-    //! \brief This class is used to create backend-specific compute devices.
+    //! \brief This class is used to create backend-specific compute devices and related objects.
     class IDeviceFactory : public IObject
     {
     public:
-        //! \brief Initialize the compute device factory for a specific backend kind.
+        //! \brief Initialize the compute device factory.
         //!
-        //! \param backendKind - Kind of backend for the created devices.
+        //! \param desc - Device factory descriptor.
         //!
         //! \return ResultCode::Success or an error code.
-        virtual ResultCode Init(BackendKind backendKind) = 0;
+        virtual ResultCode Init(const DeviceFactoryDesc& desc) = 0;
+
+        //! \brief Reset the compute device factory.
+        virtual void Reset() = 0;
 
         //! \brief Get kind of backend for the compute devices created by this factory.
         [[nodiscard]] virtual BackendKind GetBackendKind() const = 0;
@@ -40,4 +55,52 @@ namespace UN
         //! \return ResultCode::Success or an error code.
         virtual ResultCode CreateDevice(IComputeDevice** ppDevice) = 0;
     };
+
+    inline constexpr const char* CreateDeviceFactoryProcName = "CreateDeviceFactory";
+    inline constexpr const char* UraniumComputeDllName       = "UnCompute";
+
+    extern "C"
+    {
+        typedef ResultCode (*CreateDeviceFactoryProc)(BackendKind backendKind, IDeviceFactory** ppDeviceFactory);
+    }
+
+    //! \brief Load the UraniumCompute dynamic library and get the function to create IDeviceFactory instance.
+    //!
+    //! \param pCreateDeviceFactoryProc - A pointer in memory where the function pointer will be written.
+    //!
+    //! \return ResultCode::Success or an error code.
+    inline ResultCode LoadCreateDeviceFactoryProc(CreateDeviceFactoryProc* pCreateDeviceFactoryProc)
+    {
+        // TODO: this function requires us to add DynamicLibrary.h include here which requires to include windows.h
+        // and it's not desired. We can possibly create another STATIC library in the future dedicated for
+        // DynamicLibrary class to avoid including platform headers.
+
+        ResultCode resultCode;
+        Ptr<DynamicLibrary> pLibrary;
+
+        resultCode = DynamicLibrary::Create(&pLibrary);
+        if (!UN_Succeeded(resultCode))
+        {
+            return ResultCode::Fail;
+        }
+
+        resultCode = pLibrary->Init(UraniumComputeDllName);
+        if (!UN_Succeeded(resultCode))
+        {
+            UN_Error(false, "Couldn't load {} library", UraniumComputeDllName);
+            return ResultCode::Fail;
+        }
+
+        resultCode = pLibrary->GetFunction(CreateDeviceFactoryProcName, pCreateDeviceFactoryProc);
+        if (!UN_Succeeded(resultCode))
+        {
+            UN_Error(false,
+                     "Couldn't get the entry point named \"{}\" in \"{}\" library",
+                     CreateDeviceFactoryProcName,
+                     UraniumComputeDllName);
+            return ResultCode::Fail;
+        }
+
+        return resultCode;
+    }
 } // namespace UN

@@ -1,58 +1,30 @@
-#include <UnCompute/Acceleration/DeviceFactory.h>
-#include <UnCompute/Backend/IComputeDevice.h>
-#include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 
 namespace UN
 {
-    ResultCode DeviceFactory::Init(BackendKind backendKind)
+    extern "C"
     {
-        m_BackendKind = backendKind;
-        auto result   = VulkanInstance::Create(&m_pVulkanInstance);
-        if (UN_Succeeded(result))
+        UN_DLL_EXPORT ResultCode CreateDeviceFactory(BackendKind backendKind, IDeviceFactory** ppDeviceFactory)
         {
-            return m_pVulkanInstance->Init("UraniumCompute");
-        }
+            static_assert(std::is_same_v<decltype(&CreateDeviceFactory), CreateDeviceFactoryProc>);
 
-        return result;
-    }
-
-    std::vector<AdapterInfo> DeviceFactory::EnumerateAdapters()
-    {
-        switch (m_BackendKind)
-        {
-        case BackendKind::Cpu:
-            return { AdapterInfo() };
-        case BackendKind::Vulkan:
-            return m_pVulkanInstance->EnumerateAdapters();
-        default:
-            return {};
-        }
-    }
-
-    ResultCode DeviceFactory::CreateDevice(IComputeDevice** ppDevice)
-    {
-        *ppDevice = nullptr;
-
-        switch (m_BackendKind)
-        {
-        case BackendKind::Cpu:
-            break;
-        case BackendKind::Vulkan:
+            InitializeLogger();
+            switch (backendKind)
             {
-                VulkanComputeDevice* pResult;
-                auto resultCode = VulkanComputeDevice::Create(m_pVulkanInstance.Get(), &pResult);
-                *ppDevice       = pResult;
-                return resultCode;
+            case BackendKind::Cpu:
+                *ppDeviceFactory = nullptr;
+                return ResultCode::NotImplemented;
+            case BackendKind::Vulkan:
+                {
+                    VulkanDeviceFactory* pResult;
+                    auto resultCode  = VulkanDeviceFactory::Create(&pResult);
+                    *ppDeviceFactory = pResult;
+                    return resultCode;
+                }
+            default:
+                *ppDeviceFactory = nullptr;
+                return ResultCode::InvalidArguments;
             }
-        default:
-            return ResultCode::InvalidArguments;
         }
-
-        return ResultCode::NotImplemented;
-    }
-
-    BackendKind DeviceFactory::GetBackendKind() const
-    {
-        return m_BackendKind;
     }
 } // namespace UN
