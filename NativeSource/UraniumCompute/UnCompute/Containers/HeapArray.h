@@ -222,6 +222,12 @@ namespace UN
         }
 
         //! \brief Get pointer to the beginning of the array.
+        [[nodiscard]] inline T* Data()
+        {
+            return m_Storage.Data();
+        }
+
+        //! \brief Get pointer to the beginning of the array.
         [[nodiscard]] inline const T* Data() const
         {
             return m_Storage.Data();
