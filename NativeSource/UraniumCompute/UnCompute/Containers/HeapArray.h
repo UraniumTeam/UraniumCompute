@@ -145,7 +145,7 @@ namespace UN
             temp.CopyDataTo(m_Storage);
             for (USize i = temp.Length(); i < Length(); ++i)
             {
-                m_Storage[i] = temp[i];
+                m_Storage[i] = value;
             }
             DeallocateStorage(temp);
         }
