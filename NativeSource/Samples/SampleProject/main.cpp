@@ -6,9 +6,11 @@ using namespace UN;
 
 int main()
 {
+    Ptr<DynamicLibrary> pLibrary;
     Ptr<IDeviceFactory> pFactory;
+
     CreateDeviceFactoryProc CreateDeviceFactory;
-    UN_VerifyResult(LoadCreateDeviceFactoryProc(&CreateDeviceFactory), "Couldn't load DLL");
+    UN_VerifyResult(LoadCreateDeviceFactoryProc(&pLibrary, &CreateDeviceFactory), "Couldn't load DLL");
     UN_VerifyResult(CreateDeviceFactory(BackendKind::Vulkan, &pFactory), "Couldn't create Vulkan factory");
 
     DeviceFactoryDesc deviceFactoryDesc("Test application");
