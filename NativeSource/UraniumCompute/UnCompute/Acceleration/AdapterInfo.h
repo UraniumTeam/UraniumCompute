@@ -16,7 +16,7 @@ namespace UN
     //! \brief Information about an adapter.
     struct AdapterInfo
     {
-        Int32 Id;         //!< Adapter ID, used to create a compute device on it.
+        UInt32 Id;        //!< Adapter ID, used to create a compute device on it.
         AdapterKind Kind; //!< Kind of adapter (integrated, discrete, etc.)
         char Name[256];   //!< Name of adapter.
     };
