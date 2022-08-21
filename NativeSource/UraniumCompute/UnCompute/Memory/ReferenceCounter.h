@@ -32,9 +32,9 @@ namespace UN
     //! This layout is used for better locality and performance: it groups two allocations into one.
     //! The internal reference counting system also supports copying shared pointers using their raw pointers:
     //! \code{.cpp}
-    //!     Ptr<MyObject> pObj1 = MakeShared<MyObject>(); // refcount = 1
-    //!     Ptr<MyObject> pObj2 = pObj1;                  // refcount = 2 <-- Valid for std::shared_ptr too
-    //!     Ptr<MyObject> pObj3 = pObj1.Get();            // refcount = 3 <-- Also valid here!
+    //!     Ptr<MyObject> pObj1 = AllocateObject<MyObject>(); // refcount = 1
+    //!     Ptr<MyObject> pObj2 = pObj1;                      // refcount = 2 <-- Valid for std::shared_ptr too
+    //!     Ptr<MyObject> pObj3 = pObj1.Get();                // refcount = 3 <-- Also valid here!
     //! \endcode
     class ReferenceCounter final
     {
