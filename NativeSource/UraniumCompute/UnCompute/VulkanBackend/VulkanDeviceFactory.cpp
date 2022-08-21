@@ -1,6 +1,6 @@
 #include <UnCompute/Memory/Memory.h>
-#include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <algorithm>
 #include <iostream>
 
@@ -113,15 +113,42 @@ namespace UN
 
         UInt32 adapterCount;
         vkEnumeratePhysicalDevices(m_Instance, &adapterCount, nullptr);
-        m_PhysicalDevices.resize(adapterCount, VK_NULL_HANDLE);
-        m_PhysicalDeviceProperties.reserve(adapterCount);
-        vkEnumeratePhysicalDevices(m_Instance, &adapterCount, m_PhysicalDevices.data());
-        for (auto& vkAdapter : m_PhysicalDevices)
+
+        m_PhysicalDevices.Resize(adapterCount);
+        m_PhysicalDeviceProperties.Resize(adapterCount);
+        m_Adapters.Resize(adapterCount);
+
+        vkEnumeratePhysicalDevices(m_Instance, &adapterCount, m_PhysicalDevices.Data());
+
+        for (UInt32 i = 0; i < m_PhysicalDevices.Length(); ++i)
         {
-            auto& props = m_PhysicalDeviceProperties.emplace_back();
-            vkGetPhysicalDeviceProperties(vkAdapter, &props);
+            auto& props = m_PhysicalDeviceProperties[i];
+            vkGetPhysicalDeviceProperties(m_PhysicalDevices[i], &props);
 
             UNLOG_Info("Found Vulkan compatible GPU: {}", props.deviceName);
+
+            auto& adapter = m_Adapters[i];
+            adapter.Id    = i;
+            memcpy(adapter.Name, m_PhysicalDeviceProperties[i].deviceName, std::min(256u, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE));
+
+            switch (m_PhysicalDeviceProperties[i].deviceType)
+            {
+            case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+                adapter.Kind = AdapterKind::Integrated;
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+                adapter.Kind = AdapterKind::Discrete;
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+                adapter.Kind = AdapterKind::Virtual;
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_CPU:
+                adapter.Kind = AdapterKind::Cpu;
+                break;
+            default:
+                adapter.Kind = AdapterKind::None;
+                break;
+            }
         }
 
         return ResultCode::Success;
@@ -146,38 +173,9 @@ namespace UN
         Reset();
     }
 
-    std::vector<AdapterInfo> VulkanDeviceFactory::EnumerateAdapters()
+    ArraySlice<const AdapterInfo> VulkanDeviceFactory::EnumerateAdapters()
     {
-        std::vector<AdapterInfo> result;
-        result.reserve(m_PhysicalDevices.size());
-        for (USize i = 0; i < m_PhysicalDevices.size(); ++i)
-        {
-            auto& adapter = result.emplace_back();
-            adapter.Id    = static_cast<Int32>(i);
-
-            memcpy(adapter.Name, m_PhysicalDeviceProperties[i].deviceName, std::min(256u, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE));
-
-            switch (m_PhysicalDeviceProperties[i].deviceType)
-            {
-            case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-                adapter.Kind = AdapterKind::Integrated;
-                break;
-            case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-                adapter.Kind = AdapterKind::Discrete;
-                break;
-            case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-                adapter.Kind = AdapterKind::Virtual;
-                break;
-            case VK_PHYSICAL_DEVICE_TYPE_CPU:
-                adapter.Kind = AdapterKind::Cpu;
-                break;
-            default:
-                adapter.Kind = AdapterKind::None;
-                break;
-            }
-        }
-
-        return result;
+        return m_Adapters;
     }
 
     BackendKind VulkanDeviceFactory::GetBackendKind() const

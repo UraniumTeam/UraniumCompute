@@ -3,8 +3,8 @@
 #include <UnCompute/Acceleration/IDeviceFactory.h>
 #include <UnCompute/Backend/IDeviceObject.h>
 #include <UnCompute/Containers/ArraySlice.h>
+#include <UnCompute/Containers/HeapArray.h>
 #include <UnCompute/VulkanBackend/VulkanInclude.h>
-#include <vector>
 
 namespace UN
 {
@@ -13,8 +13,10 @@ namespace UN
     {
         VkInstance m_Instance;
         VkDebugReportCallbackEXT m_Debug;
-        std::vector<VkPhysicalDevice> m_PhysicalDevices;
-        std::vector<VkPhysicalDeviceProperties> m_PhysicalDeviceProperties;
+
+        HeapArray<AdapterInfo> m_Adapters;
+        HeapArray<VkPhysicalDevice> m_PhysicalDevices;
+        HeapArray<VkPhysicalDeviceProperties> m_PhysicalDeviceProperties;
 
     public:
         ~VulkanDeviceFactory() override;
@@ -23,7 +25,7 @@ namespace UN
         ResultCode Init(const DeviceFactoryDesc& desc) override;
         void Reset() override;
 
-        std::vector<AdapterInfo> EnumerateAdapters() override;
+        ArraySlice<const AdapterInfo> EnumerateAdapters() override;
 
         [[nodiscard]] inline ArraySlice<const VkPhysicalDevice> GetVulkanAdapters() const
         {
