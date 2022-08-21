@@ -1,14 +1,14 @@
 #include <UnCompute/Memory/Memory.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
-#include <UnCompute/VulkanBackend/VulkanInstance.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <algorithm>
 
 namespace UN
 {
     constexpr auto RequiredDeviceExtensions = std::array<const char*, 0>{};
 
-    VulkanComputeDevice::VulkanComputeDevice(VulkanInstance* pInstance)
-        : m_pInstance(pInstance)
+    VulkanComputeDevice::VulkanComputeDevice(VulkanDeviceFactory* pInstance)
+        : m_pFactory(pInstance)
     {
     }
 
@@ -78,8 +78,8 @@ namespace UN
 
     ResultCode VulkanComputeDevice::Init(const ComputeDeviceDesc& desc)
     {
-        m_NativeAdapter        = m_pInstance->GetVulkanAdapters()[desc.AdapterId];
-        auto adapterProperties = m_pInstance->GetVulkanAdapterProperties()[desc.AdapterId];
+        m_NativeAdapter        = m_pFactory->GetVulkanAdapters()[desc.AdapterId];
+        auto adapterProperties = m_pFactory->GetVulkanAdapterProperties()[desc.AdapterId];
 
         FindQueueFamilies();
 
@@ -148,9 +148,9 @@ namespace UN
         ResetInternal();
     }
 
-    ResultCode VulkanComputeDevice::Create(VulkanInstance* pInstance, VulkanComputeDevice** ppDevice)
+    ResultCode VulkanComputeDevice::Create(VulkanDeviceFactory* pFactory, VulkanComputeDevice** ppDevice)
     {
-        *ppDevice = AllocateObject<VulkanComputeDevice>(pInstance);
+        *ppDevice = AllocateObject<VulkanComputeDevice>(pFactory);
         (*ppDevice)->AddRef();
         return ResultCode::Success;
     }

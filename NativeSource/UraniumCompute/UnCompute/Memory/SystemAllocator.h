@@ -21,4 +21,19 @@ namespace UN
     };
 
     inline SystemAllocator SystemAllocator::m_Instance;
+
+    inline void* SystemAllocator::Allocate(USize size, USize alignment)
+    {
+        return UN_ALIGNED_MALLOC(size, alignment);
+    }
+
+    inline void SystemAllocator::Deallocate(void* pointer)
+    {
+        return UN_ALIGNED_FREE(pointer);
+    }
+
+    inline const char* SystemAllocator::GetName() const
+    {
+        return "System allocator";
+    }
 } // namespace UN

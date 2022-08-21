@@ -1,6 +1,5 @@
 set(SRC
     UnCompute/Acceleration/DeviceFactory.cpp
-    UnCompute/Acceleration/DeviceFactory.h
     UnCompute/Base/Base.h
     UnCompute/Base/CompilerTraits.h
     UnCompute/Base/Platform.h
@@ -13,23 +12,24 @@ set(SRC
     UnCompute/Memory/IAllocator.h
     UnCompute/Memory/Ptr.h
     UnCompute/Memory/Memory.h
-    UnCompute/Memory/SystemAllocator.cpp
     UnCompute/Memory/SystemAllocator.h
     UnCompute/Base/ResultCode.h
     UnCompute/Acceleration/IDeviceFactory.h
     UnCompute/VulkanBackend/VulkanComputeDevice.cpp
     UnCompute/VulkanBackend/VulkanComputeDevice.h
-    UnCompute/VulkanBackend/VulkanInstance.cpp
-    UnCompute/VulkanBackend/VulkanInstance.h
+    UnCompute/VulkanBackend/VulkanDeviceFactory.cpp
+    UnCompute/VulkanBackend/VulkanDeviceFactory.h
     UnCompute/VulkanBackend/VulkanInclude.h
     UnCompute/Acceleration/AdapterInfo.h
     UnCompute/Backend/DeviceObjectBase.h
     UnCompute/Base/Logger.h
     UnCompute/Containers/ArraySlice.h
     UnCompute/Containers/HeapArray.h
-    UnCompute/Base/Flags.h)
+    UnCompute/Base/Flags.h
+    UnCompute/Utils/DynamicLibrary.h
+)
 
-add_library(UnCompute STATIC ${SRC})
+add_library(UnCompute SHARED ${SRC})
 
 un_configure_target(UnCompute)
 un_enable_sse_for_target(UnCompute)
