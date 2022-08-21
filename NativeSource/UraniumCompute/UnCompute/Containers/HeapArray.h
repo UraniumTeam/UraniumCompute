@@ -14,7 +14,7 @@ namespace UN
         inline void AllocateStorage(USize count)
         {
             void* pData = m_pAllocator->Allocate(count * sizeof(T), alignof(T));
-            m_Storage = ArraySlice<T>(static_cast<T*>(pData), count);
+            m_Storage   = ArraySlice<T>(static_cast<T*>(pData), count);
         }
 
         inline void AllocateStorage(USize count, const T& value)
@@ -65,19 +65,10 @@ namespace UN
             other.m_Storage = {};
         }
 
-//        //! \brief Create an array.
-//        //!
-//        //! \param data - An array slice to copy the data from.
-//        inline HeapArray(const ArraySlice<T>& data) // NOLINT(google-explicit-constructor)
-//        {
-//            AllocateStorage(data.Length());
-//            data.CopyDataTo(m_Storage);
-//        }
-
         //! \brief Create an array.
         //!
         //! \param data - An array slice to copy the data from.
-        inline HeapArray(const ArraySlice<const T>& data) // NOLINT(google-explicit-constructor)
+        inline explicit HeapArray(const ArraySlice<const T>& data)
             : m_pAllocator(SystemAllocator::Get())
         {
             AllocateStorage(data.Length());
@@ -246,6 +237,14 @@ namespace UN
             return m_Storage.CopyDataTo(destination);
         }
 
+        //! \brief Create a heap array by copying data from another container.
+        //!
+        //! \param arraySlice - An ArraySlice with the data to be copied.
+        [[nodiscard]] inline static HeapArray<T> CopyFrom(const ArraySlice<const T>& arraySlice)
+        {
+            return HeapArray<T>(arraySlice);
+        }
+
         [[nodiscard]] inline const T* begin() const
         {
             return m_Storage.begin();
@@ -256,7 +255,12 @@ namespace UN
             return m_Storage.end();
         }
 
-        inline explicit operator ArraySlice<T>() const // NOLINT(google-explicit-constructor)
+        inline operator ArraySlice<const T>() const // NOLINT(google-explicit-constructor)
+        {
+            return m_Storage;
+        }
+
+        inline operator ArraySlice<T>() // NOLINT(google-explicit-constructor)
         {
             return m_Storage;
         }
