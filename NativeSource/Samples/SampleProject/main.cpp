@@ -17,6 +17,11 @@ int main()
     UN_VerifyResult(pFactory->Init(deviceFactoryDesc), "Couldn't initialize Vulkan factory");
 
     auto adapters = pFactory->EnumerateAdapters();
+    for (const AdapterInfo& adapter : adapters)
+    {
+        UNLOG_Info("Adapter #{}: {}", adapter.Id, adapter.Name);
+    }
+
     Ptr<IComputeDevice> pDevice;
     UN_VerifyResult(pFactory->CreateDevice(&pDevice), "Couldn't create Vulkan device");
 

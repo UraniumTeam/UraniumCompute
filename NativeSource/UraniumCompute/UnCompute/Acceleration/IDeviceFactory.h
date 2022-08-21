@@ -2,7 +2,7 @@
 #include <UnCompute/Acceleration/AdapterInfo.h>
 #include <UnCompute/Memory/Object.h>
 #include <UnCompute/Utils/DynamicLibrary.h>
-#include <vector>
+#include <UnCompute/Containers/ArraySlice.h>
 
 namespace UN
 {
@@ -46,7 +46,7 @@ namespace UN
         [[nodiscard]] virtual BackendKind GetBackendKind() const = 0;
 
         //! \brief Get all adapters supported by the specified backend.
-        [[nodiscard]] virtual std::vector<AdapterInfo> EnumerateAdapters() = 0;
+        [[nodiscard]] virtual ArraySlice<const AdapterInfo> EnumerateAdapters() = 0;
 
         //! \brief Create a compute device.
         //!
