@@ -69,29 +69,26 @@ namespace UN
     //! \param pCreateDeviceFactoryProc - A pointer in memory where the function pointer will be written.
     //!
     //! \return ResultCode::Success or an error code.
-    inline ResultCode LoadCreateDeviceFactoryProc(CreateDeviceFactoryProc* pCreateDeviceFactoryProc)
+    inline ResultCode LoadCreateDeviceFactoryProc(DynamicLibrary** ppLibrary, CreateDeviceFactoryProc* pCreateDeviceFactoryProc)
     {
         // TODO: this function requires us to add DynamicLibrary.h include here which requires to include windows.h
         // and it's not desired. We can possibly create another STATIC library in the future dedicated for
         // DynamicLibrary class to avoid including platform headers.
 
-        ResultCode resultCode;
-        Ptr<DynamicLibrary> pLibrary;
-
-        resultCode = DynamicLibrary::Create(&pLibrary);
+        auto resultCode = DynamicLibrary::Create(ppLibrary);
         if (!UN_Succeeded(resultCode))
         {
             return ResultCode::Fail;
         }
 
-        resultCode = pLibrary->Init(UraniumComputeDllName);
+        resultCode = (*ppLibrary)->Init(UraniumComputeDllName);
         if (!UN_Succeeded(resultCode))
         {
             UN_Error(false, "Couldn't load {} library", UraniumComputeDllName);
             return ResultCode::Fail;
         }
 
-        resultCode = pLibrary->GetFunction(CreateDeviceFactoryProcName, pCreateDeviceFactoryProc);
+        resultCode = (*ppLibrary)->GetFunction(CreateDeviceFactoryProcName, pCreateDeviceFactoryProc);
         if (!UN_Succeeded(resultCode))
         {
             UN_Error(false,
