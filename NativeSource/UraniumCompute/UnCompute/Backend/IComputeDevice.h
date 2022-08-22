@@ -39,6 +39,9 @@ namespace UN
 
     UN_ENUM_OPERATORS(HardwareQueueKindFlags);
 
+    class IBuffer;
+    class IDeviceMemory;
+
     //! \brief Interface for all backend-specific compute devices.
     //!
     //! Compute device is an object that allows users to create data buffers, synchronization primitives and other objects
@@ -58,5 +61,9 @@ namespace UN
 
         //! \brief Reset the object to uninitialized state.
         virtual void Reset() = 0;
+
+        virtual ResultCode CreateBuffer(IBuffer** ppBuffer) = 0;
+
+        virtual ResultCode CreateMemory(IDeviceMemory** ppMemory) = 0;
     };
 } // namespace UN
