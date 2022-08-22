@@ -51,8 +51,8 @@
 
 //! \brief Verify that ResultCode succeeded, will use UN_Fail() to stop the program in debug and release builds.
 //!
-//! \see UN_Succeeded
-#define UN_VerifyResult(expr, ...) UN_Verify(UN_Succeeded(expr), __VA_ARGS__)
+//! \see UN::Succeeded
+#define UN_VerifyResult(expr, ...) UN_Verify(::UN::Succeeded(expr), __VA_ARGS__)
 
 //! \brief Verify and expression and log a warning, works in release builds too.
 #define UN_VerifyWarning(expr, ...)                                                                                              \
