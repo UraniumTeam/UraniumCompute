@@ -1,6 +1,8 @@
+#include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/Memory/Memory.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <algorithm>
 
 namespace UN
@@ -164,5 +166,17 @@ namespace UN
     {
         UNLOG_Debug("Destroyed Vulkan device");
         vkDestroyDevice(m_NativeDevice, nullptr);
+    }
+
+    ResultCode VulkanComputeDevice::CreateBuffer(IBuffer** ppBuffer)
+    {
+        VulkanBuffer::Create(this, ppBuffer);
+        return ResultCode::Success;
+    }
+
+    ResultCode VulkanComputeDevice::CreateMemory(IDeviceMemory** ppMemory)
+    {
+        VulkanDeviceMemory::Create(this, ppMemory);
+        return ResultCode::Fail;
     }
 } // namespace UN

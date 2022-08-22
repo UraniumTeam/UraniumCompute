@@ -46,6 +46,14 @@ namespace UN
         ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;
 
+        [[nodiscard]] inline VkDevice GetNativeDevice() const
+        {
+            return m_NativeDevice;
+        }
+
+        ResultCode CreateBuffer(IBuffer** ppBuffer) override;
+        ResultCode CreateMemory(IDeviceMemory** ppMemory) override;
+
         static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };
 } // namespace UN

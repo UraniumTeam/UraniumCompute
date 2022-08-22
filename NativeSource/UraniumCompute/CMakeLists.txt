@@ -33,7 +33,7 @@ set(SRC
     UnCompute/Backend/DeviceMemoryBase.cpp
     UnCompute/Backend/BufferBase.cpp
     UnCompute/Backend/BufferBase.h
-)
+    UnCompute/VulkanBackend/VulkanBuffer.cpp UnCompute/VulkanBackend/VulkanBuffer.h UnCompute/VulkanBackend/VulkanDeviceMemory.cpp UnCompute/VulkanBackend/VulkanDeviceMemory.h)
 
 add_library(UnCompute SHARED ${SRC})
 
