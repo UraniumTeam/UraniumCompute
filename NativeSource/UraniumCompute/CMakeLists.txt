@@ -27,6 +27,12 @@ set(SRC
     UnCompute/Containers/HeapArray.h
     UnCompute/Base/Flags.h
     UnCompute/Utils/DynamicLibrary.h
+    UnCompute/Backend/IBuffer.h
+    UnCompute/Backend/IDeviceMemory.h
+    UnCompute/Backend/DeviceMemoryBase.h
+    UnCompute/Backend/DeviceMemoryBase.cpp
+    UnCompute/Backend/BufferBase.cpp
+    UnCompute/Backend/BufferBase.h
 )
 
 add_library(UnCompute SHARED ${SRC})
