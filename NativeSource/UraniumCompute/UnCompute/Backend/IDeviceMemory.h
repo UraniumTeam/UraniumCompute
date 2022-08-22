@@ -128,7 +128,16 @@ namespace UN
 
         inline ~DeviceMemorySlice()
         {
-            Unmap();
+            if (m_pMemory)
+            {
+                Unmap();
+            }
+        }
+
+        //! \brief Get the underlying device memory object.
+        [[nodiscard]] inline IDeviceMemory* GetDeviceMemory() const
+        {
+            return m_pMemory;
         }
 
         //! \brief Get slice offset in bytes.
