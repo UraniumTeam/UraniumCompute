@@ -35,8 +35,6 @@ namespace UN
 
         void ResetInternal();
         void FindQueueFamilies();
-        ResultCode FindMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, UInt32& memoryType);
-
     public:
         using DescriptorType = ComputeDeviceDesc;
 
@@ -45,6 +43,8 @@ namespace UN
 
         ResultCode Init(const ComputeDeviceDesc& desc) override;
         void Reset() override;
+
+        ResultCode FindMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, UInt32& memoryType);
 
         [[nodiscard]] inline VkDevice GetNativeDevice() const
         {

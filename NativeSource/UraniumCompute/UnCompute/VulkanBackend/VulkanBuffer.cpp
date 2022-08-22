@@ -11,6 +11,12 @@ namespace UN
 
     ResultCode VulkanBuffer::BindMemory(const DeviceMemorySlice& deviceMemory)
     {
+        if (!deviceMemory.IsCompatible(this))
+        {
+            UN_Error(false, "Incompatible memory");
+            return ResultCode::Fail;
+        }
+
         m_Memory      = deviceMemory;
         m_MemoryOwner = un_verify_cast<VulkanDeviceMemory*>(m_Memory.GetDeviceMemory());
         auto vkMemory = m_MemoryOwner->GetNativeMemory();
@@ -24,6 +30,7 @@ namespace UN
         if (m_NativeBuffer != VK_NULL_HANDLE)
         {
             vkDestroyBuffer(m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeBuffer, nullptr);
+            m_NativeBuffer = VK_NULL_HANDLE;
         }
     }
 
@@ -44,5 +51,10 @@ namespace UN
 
         vkGetBufferMemoryRequirements(vkDevice, m_NativeBuffer, &m_MemoryRequirements);
         return ResultCode::Success;
+    }
+
+    VulkanBuffer::~VulkanBuffer()
+    {
+        Reset();
     }
 } // namespace UN

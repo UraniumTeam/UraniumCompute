@@ -19,28 +19,20 @@ namespace UN
     //! \brief Device memory descriptor.
     struct DeviceMemoryDesc
     {
-        const char* Name = nullptr;                     //! \brief Device memory debug name.
-        UInt64 Size      = 0;                           //! \brief Memory size in bytes.
-        ArraySlice<const IDeviceObject* const> Objects; //! \brief Resource objects that the memory must be compatible with.
+        const char* Name = nullptr;                     //!< Device memory debug name.
+        UInt64 Size      = 0;                           //!< Memory size in bytes.
+        ArraySlice<const IDeviceObject* const> Objects; //!< Resource objects that the memory must be compatible with.
+        MemoryKindFlags Flags;                          //!< Memory kind flags.
 
         inline DeviceMemoryDesc() = default;
 
-        inline DeviceMemoryDesc(const char* name, UInt64 size, ArraySlice<const IDeviceObject* const> objects)
+        inline DeviceMemoryDesc(const char* name, MemoryKindFlags flags, UInt64 size,
+                                ArraySlice<const IDeviceObject* const> objects)
             : Name(name)
             , Size(size)
             , Objects(objects)
+            , Flags(flags)
         {
-        }
-
-        //! \brief Create a DeviceMemoryDesc compatible with a buffer.
-        //!
-        //! \param name    - Memory object debug name.
-        //! \param pBuffer - The buffer object.
-        //!
-        //! \return The created device memory descriptor.
-        inline static DeviceMemoryDesc CreateForBuffer(const char* name, const IBuffer* const pBuffer)
-        {
-            return DeviceMemoryDesc(name, pBuffer->GetDesc().Size, { pBuffer });
         }
     };
 
@@ -66,11 +58,12 @@ namespace UN
         //!
         //! \param byteOffset - Byte offset of the memory to map.
         //! \param byteSize   - Size of the part of the memory to map.
+        //! \param ppData     - A pointer to the memory where the pointer to the mapped memory will be written.
         //!
-        //! \note This function is only valid to use if the memory was allocated using MemoryKindFlags::HostAccessible.
+        //! \note This function is only valid to use if the memory was allocated with MemoryKindFlags::HostAccessible flag.
         //!
-        //! \return The pointer to the mapped memory.
-        virtual void* Map(UInt64 byteOffset, UInt64 byteSize) = 0;
+        //! \return ResultCode::Success or an error node.
+        virtual ResultCode Map(UInt64 byteOffset, UInt64 byteSize, void** ppData) = 0;
 
         //! \brief Unmap the mapped memory.
         //!
@@ -87,7 +80,7 @@ namespace UN
         //! \param sizeLimit - Maximum size of memory in bytes allowed for the object to occupy.
         //!
         //! \return True if the memory is compatible.
-        virtual bool IsCompatible(IDeviceObject* pObject, UInt64 sizeLimit) = 0;
+        [[nodiscard]] virtual bool IsCompatible(IDeviceObject* pObject, UInt64 sizeLimit) = 0;
 
         //! \brief Check if the memory is compatible with an object
         //!
@@ -98,7 +91,7 @@ namespace UN
         //! \param pObject - The object to check the memory for.
         //!
         //! \return True if the memory is compatible.
-        virtual bool IsCompatible(IDeviceObject* pObject) = 0;
+        [[nodiscard]] virtual bool IsCompatible(IDeviceObject* pObject) = 0;
     };
 
     //! \brief A slice of device memory.
@@ -154,10 +147,43 @@ namespace UN
 
         //! \brief Map the part of device memory represented by this slice.
         //!
+        //! \param ppData - A pointer to the memory where the pointer to the mapped memory will be written.
+        //!
+        //! \return ResultCode::Success or an error node.
+        [[nodiscard]] inline ResultCode Map(void** ppData) const
+        {
+            return m_pMemory->Map(m_ByteOffset, m_ByteSize, ppData);
+        }
+
+        //! \brief Map the part of device memory represented by this slice.
+        //!
         //! \return The pointer to the mapped memory.
         [[nodiscard]] inline void* Map() const
         {
-            return m_pMemory->Map(m_ByteOffset, m_ByteSize);
+            void* pResult;
+            if (Succeeded(m_pMemory->Map(m_ByteOffset, m_ByteSize, &pResult)))
+            {
+                return pResult;
+            }
+
+            UN_Error(false, "Couldn't map memory");
+            return nullptr;
+        }
+
+        //! \brief Map the part of device memory represented by this slice.
+        //!
+        //! \param byteOffset - Byte offset of the memory to map within this slice.
+        //! \param byteSize   - Size of the part of the memory to map.
+        //! \param ppData     - A pointer to the memory where the pointer to the mapped memory will be written.
+        //!
+        //! \return ResultCode::Success or an error node.
+        [[nodiscard]] inline ResultCode Map(UInt64 byteOffset, UInt64 byteSize, void** ppData) const
+        {
+            UN_Assert(byteSize == IDeviceMemory::WholeSize || byteSize <= m_pMemory->GetDesc().Size - byteOffset,
+                      "Invalid memory map size");
+
+            return m_pMemory->Map(
+                m_ByteOffset + byteOffset, std::min(byteSize, m_pMemory->GetDesc().Size - byteOffset - m_ByteOffset), ppData);
         }
 
         //! \brief Map the part of device memory represented by this slice.
@@ -170,8 +196,17 @@ namespace UN
         {
             UN_Assert(byteSize == IDeviceMemory::WholeSize || byteSize <= m_pMemory->GetDesc().Size - byteOffset,
                       "Invalid memory map size");
-            return m_pMemory->Map(m_ByteOffset + byteOffset,
-                                  std::min(byteSize, m_pMemory->GetDesc().Size - byteOffset - m_ByteOffset));
+
+            void* pResult;
+            if (Succeeded(m_pMemory->Map(m_ByteOffset + byteOffset,
+                                         std::min(byteSize, m_pMemory->GetDesc().Size - byteOffset - m_ByteOffset),
+                                         &pResult)))
+            {
+                return pResult;
+            }
+
+            UN_Error(false, "Couldn't map memory");
+            return nullptr;
         }
 
         //! \brief Unmap the mapped memory.
@@ -191,7 +226,7 @@ namespace UN
         //! \param pObject - The object to check the memory for.
         //!
         //! \return True if the memory is compatible.
-        inline bool IsCompatible(IDeviceObject* pObject)
+        [[nodiscard]] inline bool IsCompatible(IDeviceObject* pObject) const
         {
             return m_pMemory->IsCompatible(pObject, m_ByteSize);
         }
