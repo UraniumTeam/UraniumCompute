@@ -12,4 +12,10 @@ namespace UN
     constexpr auto RequiredInstanceExtensions = std::array{ VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
                                                             VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
                                                             VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME };
+
+    //! \brief Check if Vulkan result succeeded.
+    inline bool SucceededVulkan(VkResult result)
+    {
+        return result == VK_SUCCESS;
+    }
 } // namespace UN
