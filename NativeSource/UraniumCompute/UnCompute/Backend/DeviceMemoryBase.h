@@ -9,6 +9,11 @@ namespace UN
     protected:
         virtual ResultCode InitInternal(const DescriptorType& desc) = 0;
 
+        inline explicit DeviceMemoryBase(IComputeDevice* pDevice)
+            : DeviceObjectBase(pDevice)
+        {
+        }
+
     public:
         ResultCode Init(const DescriptorType& desc) final;
     };

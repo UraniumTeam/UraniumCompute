@@ -9,6 +9,11 @@ namespace UN
     protected:
         virtual ResultCode InitInternal(const BufferDesc& desc) = 0;
 
+        inline explicit BufferBase(IComputeDevice* pDevice)
+            : DeviceObjectBase(pDevice)
+        {
+        }
+
     public:
         ResultCode Init(const BufferDesc& desc) override;
     };
