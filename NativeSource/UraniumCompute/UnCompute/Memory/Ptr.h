@@ -197,6 +197,20 @@ namespace UN
             return m_pObject;
         }
 
+        //! \brief Get underlying raw pointer and cast it.
+        template<class TDest>
+        inline std::enable_if_t<std::is_base_of_v<TDest, T>, TDest*> As() const
+        {
+            return static_cast<TDest*>(Get());
+        }
+
+        //! \brief Get underlying raw pointer and cast it.
+        template<class TDest>
+        inline std::enable_if_t<std::is_base_of_v<T, TDest> && !std::is_same_v<T, TDest>, TDest*> As() const
+        {
+            return un_verify_cast<TDest*>(Get());
+        }
+
         inline Internal::PtrRef<Ptr<T>> operator&() // NOLINT
         {
             return Internal::PtrRef<Ptr<T>>(this);
@@ -286,5 +300,11 @@ namespace UN
     inline bool operator!=(const Ptr<T1>& lhs, const Ptr<T2>& rhs)
     {
         return !(lhs == rhs);
+    }
+
+    template<class TDest, class TSrc>
+    inline std::enable_if_t<std::is_base_of_v<TSrc, TDest>, Ptr<TDest>> un_verify_cast(const Ptr<TSrc>& pSourceObject)
+    {
+        return Ptr<TDest>(un_verify_cast<TDest*>(pSourceObject.Get()));
     }
 } // namespace UN
