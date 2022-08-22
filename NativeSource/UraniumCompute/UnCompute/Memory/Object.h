@@ -51,6 +51,16 @@ namespace UN
     {
         ReferenceCounter* m_RefCounter = nullptr;
 
+    protected:
+        template<class F>
+        inline UInt32 Release(F&& destroyCallback)
+        {
+            return m_RefCounter->ReleaseStrongRef([this, &destroyCallback] {
+                destroyCallback();
+                this->~Object();
+            });
+        }
+
     public:
         Object() = default;
 
@@ -71,9 +81,7 @@ namespace UN
         //! of itself (commits suicide) when the reference counter reaches zero.
         inline UInt32 Release() override
         {
-            return m_RefCounter->ReleaseStrongRef([this] {
-                this->~Object();
-            });
+            return Release([] {});
         }
 
         //! \brief Attach a reference counter to the object.
