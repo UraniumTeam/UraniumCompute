@@ -34,4 +34,16 @@ int main()
 
     BufferDesc bufferDesc("Test buffer", 1024);
     UN_VerifyResult(pBuffer->Init(bufferDesc), "Couldn't initialize buffer");
+
+    Ptr<IDeviceMemory> pMemory;
+    UN_VerifyResult(pDevice->CreateMemory(&pMemory), "Couldn't create device memory");
+
+    // TODO: we need a nicer API for this...
+    IDeviceObject* object = pBuffer.Get();
+    auto buffers          = ArraySlice<const IDeviceObject* const>(&object, 1);
+    auto memoryDesc = DeviceMemoryDesc("Test memory", MemoryKindFlags::HostAndDeviceAccessible, pBuffer->GetDesc().Size, buffers);
+    UN_VerifyResult(pMemory->Init(memoryDesc), "Couldn't initialize device memory");
+
+    auto memorySlice = DeviceMemorySlice(pMemory.Get());
+    UN_VerifyResult(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
 }

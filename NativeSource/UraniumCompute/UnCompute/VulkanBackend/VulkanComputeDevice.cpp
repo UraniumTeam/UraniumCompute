@@ -177,6 +177,6 @@ namespace UN
     ResultCode VulkanComputeDevice::CreateMemory(IDeviceMemory** ppMemory)
     {
         VulkanDeviceMemory::Create(this, ppMemory);
-        return ResultCode::Fail;
+        return ResultCode::Success;
     }
 } // namespace UN
