@@ -10,12 +10,13 @@ namespace UN
     //!
     //! This class holds number of references to the object and a pointer to the allocator that
     //! was used to allocate this object. It assumes the following memory layout:
-    //!
+    //! \code
     //!     +------------------+ <--- this pointer
     //!     | ReferenceCounter |
     //!     --------------------
     //!     |      Object      |
     //!     +------------------+
+    //! \endcode
     //!
     //! It will delete `this` assuming that a single block was used to allocate the object and the counter.\n
     //!
