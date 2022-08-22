@@ -11,7 +11,7 @@ namespace UN
     //!
     //! \code{.cpp}
     //!     using DescriptorType = ...;
-    //!     virtual const DescriptorType& GetDesc() const = 0;
+    //!     [[nodiscard]] virtual const DescriptorType& GetDesc() const = 0;
     //! \endcode
     template<class TInterface, std::enable_if_t<std::is_base_of_v<IDeviceObject, TInterface>, bool> = true>
     class DeviceObjectBase : public Object<TInterface>
@@ -22,15 +22,21 @@ namespace UN
     protected:
         Ptr<IComputeDevice> m_pDevice;
         DescriptorType m_Desc;
+        std::string m_Name;
 
         //! \brief Common device object initializer.
         //!
-        //! \param desc    - Object descriptor.
-        //! \param pDevice - Compute device this object was created on.
-        inline void Init(const DescriptorType& desc, IComputeDevice* pDevice)
+        //! \param name - Object debug name.
+        //! \param desc - Object descriptor.
+        inline void Init(std::string_view name, const DescriptorType& desc)
         {
-            m_pDevice = pDevice;
-            m_Desc    = desc;
+            m_Name = name;
+            m_Desc = desc;
+        }
+
+        inline explicit DeviceObjectBase(IComputeDevice* pDevice)
+            : m_pDevice(pDevice)
+        {
         }
 
     public:
@@ -42,6 +48,14 @@ namespace UN
         [[nodiscard]] inline IComputeDevice* GetDevice() const override
         {
             return m_pDevice.Get();
+        }
+
+        [[nodiscard]] inline UInt32 Release() override
+        {
+            Ptr<IComputeDevice> pDevice;
+            return Object<TInterface>::Release([this, &pDevice] {
+                pDevice = m_pDevice;
+            });
         }
     };
 } // namespace UN
