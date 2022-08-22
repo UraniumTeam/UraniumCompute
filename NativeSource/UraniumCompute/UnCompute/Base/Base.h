@@ -223,11 +223,20 @@ namespace UN
     //!
     //! \return The result pointer.
     template<class TDest, class TSrc>
-    inline std::enable_if_t<std::is_base_of_v<TSrc, TDest>, TDest*> un_verify_cast(TSrc* pSourceObject)
+    inline std::enable_if_t<
+        std::is_base_of_v<std::remove_pointer_t<TSrc>,
+                          std::remove_pointer_t<TDest>> && std::is_pointer_v<TSrc> && std::is_pointer_v<TDest>,
+        TDest>
+    un_verify_cast(TSrc pSourceObject)
     {
+        if constexpr (std::is_same_v<TSrc, TDest>)
+        {
+            return pSourceObject;
+        }
+
         if constexpr (ValidationEnabled) // NOLINT
         {
-            if (auto* result = dynamic_cast<TDest*>(pSourceObject))
+            if (auto* result = dynamic_cast<TDest>(pSourceObject))
             {
                 return result;
             }
@@ -235,6 +244,6 @@ namespace UN
             UN_Assert(false, "Verifying cast failed");
         }
 
-        return static_cast<TDest*>(pSourceObject);
+        return static_cast<TDest>(pSourceObject);
     }
 } // namespace UN
