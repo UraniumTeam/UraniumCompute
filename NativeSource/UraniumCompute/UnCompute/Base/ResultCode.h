@@ -18,6 +18,9 @@ namespace UN
         OutOfMemory       //!< Not enough memory to complete the operation.
     };
 
-    //! \brief Macro to check if an operation returned ResultCode::Success.
-#define UN_Succeeded(result) ((result) == ::UN::ResultCode::Success)
+    //! \brief Check if an operation returned ResultCode::Success.
+    inline bool Succeeded(ResultCode result)
+    {
+        return result == ::UN::ResultCode::Success;
+    }
 } // namespace UN
