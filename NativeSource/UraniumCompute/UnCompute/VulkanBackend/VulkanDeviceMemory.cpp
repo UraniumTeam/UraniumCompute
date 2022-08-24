@@ -25,6 +25,11 @@ namespace UN
 
     ResultCode VulkanDeviceMemory::Map(UInt64 byteOffset, UInt64 byteSize, void** ppData)
     {
+        if (m_Mapped)
+        {
+            Unmap();
+        }
+
         auto vkResult = vkMapMemory(
             m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeMemory, byteOffset, byteSize, VK_FLAGS_NONE, ppData);
         m_Mapped = Succeeded(vkResult);
@@ -41,6 +46,7 @@ namespace UN
         }
 
         vkUnmapMemory(m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeMemory);
+        m_Mapped = false;
     }
 
     bool VulkanDeviceMemory::IsCompatible(IDeviceObject* pObject, UInt64 sizeLimit)
