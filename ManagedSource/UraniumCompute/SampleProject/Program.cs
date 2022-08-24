@@ -8,6 +8,6 @@ internal static class Program
     public static void Main()
     {
         using var factory = DeviceFactory.Create(BackendKind.Vulkan);
-        var adapters = factory.Adapters;
+        factory.Init(new DeviceFactory.Desc("Test app")).ThrowOnError();
     }
 }

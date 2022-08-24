@@ -177,6 +177,8 @@ namespace UN
             vkDestroyInstance(m_Instance, VK_NULL_HANDLE);
             m_Instance = VK_NULL_HANDLE;
         }
+
+        UNLOG_Debug("Destroyed Vulkan instance");
     }
 
     VulkanDeviceFactory::~VulkanDeviceFactory()
