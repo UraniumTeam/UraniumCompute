@@ -27,9 +27,10 @@ namespace UN
     {
         auto vkResult = vkMapMemory(
             m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeMemory, byteOffset, byteSize, VK_FLAGS_NONE, ppData);
-        m_Mapped = SucceededVulkan(vkResult);
+        m_Mapped = Succeeded(vkResult);
+        UN_Error(m_Mapped, "Couldn't map Vulkan memory, vkMapMemory returned {}", vkResult);
 
-        return SucceededVulkan(vkResult) ? ResultCode::Success : ResultCode::Fail;
+        return VulkanConvert(vkResult);
     }
 
     void VulkanDeviceMemory::Unmap()
@@ -94,7 +95,11 @@ namespace UN
         UN_VerifyResult(vkDevice->FindMemoryType(typeBits, properties, m_MemoryTypeIndex), "Couldn't find device memory type");
         info.memoryTypeIndex = m_MemoryTypeIndex;
 
-        vkAllocateMemory(vkDevice->GetNativeDevice(), &info, VK_NULL_HANDLE, &m_NativeMemory);
+        if (auto vkResult = vkAllocateMemory(vkDevice->GetNativeDevice(), &info, nullptr, &m_NativeMemory); !Succeeded(vkResult))
+        {
+            UN_Error(false, "Couldn't allocate Vulkan device memory");
+            return VulkanConvert(vkResult);
+        }
 
         return ResultCode::Success;
     }

@@ -43,10 +43,10 @@ namespace UN
             | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
         auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
-        if (!SucceededVulkan(vkCreateBuffer(vkDevice, &bufferCI, VK_NULL_HANDLE, &m_NativeBuffer)))
+        if (auto vkResult = vkCreateBuffer(vkDevice, &bufferCI, VK_NULL_HANDLE, &m_NativeBuffer); !Succeeded(vkResult))
         {
-            UN_Error(false, "Couldn't create Vulkan buffer");
-            return ResultCode::Fail;
+            UN_Error(false, "Couldn't create Vulkan buffer, vkCreateBuffer returned {}", vkResult);
+            return VulkanConvert(vkResult);
         }
 
         vkGetBufferMemoryRequirements(vkDevice, m_NativeBuffer, &m_MemoryRequirements);

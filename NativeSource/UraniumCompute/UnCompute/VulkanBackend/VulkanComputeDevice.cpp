@@ -1,5 +1,5 @@
-#include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/Memory/Memory.h>
+#include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
@@ -92,18 +92,18 @@ namespace UN
         availableExt.resize(availableExtCount);
         vkEnumerateDeviceExtensionProperties(m_NativeAdapter, nullptr, &availableExtCount, availableExt.data());
 
-        // We do not use any device extensions yet, and the compiler complains about unreachable code here,
-        // so lets comment this out for now...
+        for (auto& ext : RequiredDeviceExtensions)
+        {
+            bool found = std::any_of(availableExt.begin(), availableExt.end(), [ext](const VkExtensionProperties& props) {
+                return std::string_view(ext) == props.extensionName;
+            });
 
-        // for (auto& ext : RequiredDeviceExtensions)
-        // {
-        //     bool found = std::any_of(availableExt.begin(), availableExt.end(), [ext](const VkExtensionProperties& props) {
-        //         return std::string_view(ext) == props.extensionName;
-        //     });
-        //
-        //     UN_Error(found, "Vulkan device extension {} was not found", ext);
-        //     return ResultCode::Fail;
-        // }
+            if (!found)
+            {
+                UN_Error(false, "Vulkan device extension {} was not found", ext);
+                return ResultCode::Fail;
+            }
+        }
 
         constexpr Float32 queuePriority = 1.0f;
         std::vector<VkDeviceQueueCreateInfo> queuesCI{};
@@ -127,7 +127,11 @@ namespace UN
         deviceCI.enabledExtensionCount   = static_cast<UInt32>(RequiredDeviceExtensions.size());
         deviceCI.ppEnabledExtensionNames = RequiredDeviceExtensions.data();
 
-        vkCreateDevice(m_NativeAdapter, &deviceCI, VK_NULL_HANDLE, &m_NativeDevice);
+        if (auto vkResult = vkCreateDevice(m_NativeAdapter, &deviceCI, nullptr, &m_NativeDevice); !Succeeded(vkResult))
+        {
+            UN_Error(false, "Couldn't create a Vulkan device, vkCreateDevice returned {}", vkResult);
+            return VulkanConvert(vkResult);
+        }
 
         // TODO: this is not suitable for applications that use multiple VkDevice objects
         // Ok for now, but it is possible that someday we will use more than one device in our scheduler.
@@ -138,7 +142,14 @@ namespace UN
             VkCommandPoolCreateInfo poolCI{};
             poolCI.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             poolCI.queueFamilyIndex = queue.FamilyIndex;
-            vkCreateCommandPool(m_NativeDevice, &poolCI, VK_NULL_HANDLE, &queue.CmdPool);
+            if (auto vkResult = vkCreateCommandPool(m_NativeDevice, &poolCI, nullptr, &queue.CmdPool); !Succeeded(vkResult))
+            {
+                UN_Error(false,
+                         "Couldn't create a command pool for queue family index {}, vkCreateCommandPool returned {}",
+                         queue.FamilyIndex,
+                         vkResult);
+                return VulkanConvert(vkResult);
+            }
         }
 
         UNLOG_Debug("Successfully created Vulkan device on {}", adapterProperties.deviceName);
