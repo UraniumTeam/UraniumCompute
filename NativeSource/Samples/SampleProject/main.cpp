@@ -2,6 +2,7 @@
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
 #include <UnCompute/Memory/Memory.h>
+#include <iostream>
 
 using namespace UN;
 
@@ -32,7 +33,9 @@ int main()
     Ptr<IBuffer> pBuffer;
     UN_VerifyResult(pDevice->CreateBuffer(&pBuffer), "Couldn't create buffer");
 
-    BufferDesc bufferDesc("Test buffer", 1024);
+    constexpr UInt64 bufferSize = 128 * 1024 * 1024;
+
+    BufferDesc bufferDesc("Test buffer", bufferSize * sizeof(float));
     UN_VerifyResult(pBuffer->Init(bufferDesc), "Couldn't initialize buffer");
 
     Ptr<IDeviceMemory> pMemory;
@@ -42,8 +45,29 @@ int main()
     IDeviceObject* object = pBuffer.Get();
     auto buffers          = ArraySlice<const IDeviceObject* const>(&object, 1);
     auto memoryDesc = DeviceMemoryDesc("Test memory", MemoryKindFlags::HostAndDeviceAccessible, pBuffer->GetDesc().Size, buffers);
-    UN_VerifyResult(pMemory->Init(memoryDesc), "Couldn't initialize device memory");
+
+    if (auto result = pMemory->Init(memoryDesc); !Succeeded(result))
+    {
+        UN_Error(false, "Couldn't allocate {} bytes of device memory, IDeviceMemory::Init returned {}", memoryDesc.Size, result);
+        return 1;
+    }
+
+    UNLOG_Info("Allocated {} bytes of device memory", MemorySize64(bufferSize * sizeof(float)));
 
     auto memorySlice = DeviceMemorySlice(pMemory.Get());
     UN_VerifyResult(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
+
+    auto* pData = static_cast<float*>(memorySlice.Map());
+    for (UInt64 i = 0; i < bufferSize; ++i)
+    {
+        pData[i] = static_cast<float>(i);
+    }
+
+    std::cout << "Data in the buffer: ";
+    for (UInt64 i = 0; i < 16; ++i)
+    {
+        std::cout << pData[i] << " ";
+    }
+
+    std::cout << "..." << std::endl;
 }
