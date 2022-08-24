@@ -25,6 +25,17 @@
 #endif
 
 #include <spdlog/spdlog.h>
+#include <string_view>
+
+template<>
+struct fmt::formatter<UN::ResultCode> : fmt::formatter<std::string_view>
+{
+    template<typename FormatContext>
+    auto format(const UN::ResultCode& result, FormatContext& ctx) const -> decltype(ctx.out())
+    {
+        return fmt::format_to(ctx.out(), "{}", UN::ResultToString(result));
+    }
+};
 
 //! \brief Format and log a message.
 //!

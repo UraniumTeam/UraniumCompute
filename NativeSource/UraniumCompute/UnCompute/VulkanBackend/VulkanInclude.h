@@ -59,6 +59,8 @@ namespace UN
     {
         switch (result)
         {
+        case VK_SUCCESS:
+            return ResultCode::Success;
         case VK_TIMEOUT:
             return ResultCode::Timeout;
         case VK_ERROR_OUT_OF_HOST_MEMORY:
@@ -69,11 +71,14 @@ namespace UN
             return ResultCode::Fail;
         }
     }
-
-    template<typename TStream>
-    inline TStream& operator<<(TStream& stream, const VkResult& result)
-    {
-        stream << VulkanResultToString(result);
-        return stream;
-    }
 } // namespace UN
+
+template<>
+struct fmt::formatter<VkResult> : fmt::formatter<std::string_view>
+{
+    template<typename FormatContext>
+    auto format(const VkResult& result, FormatContext& ctx) const -> decltype(ctx.out())
+    {
+        return fmt::format_to(ctx.out(), "{}", UN::VulkanResultToString(result));
+    }
+};

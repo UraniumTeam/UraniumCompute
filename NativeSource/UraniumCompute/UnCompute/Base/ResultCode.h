@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <cstdint>
 
 namespace UN
@@ -22,5 +23,25 @@ namespace UN
     inline bool Succeeded(ResultCode result)
     {
         return result == ::UN::ResultCode::Success;
+    }
+
+    inline const char* ResultToString(ResultCode result)
+    {
+        switch (result)
+        {
+            // clang-format off
+        case ResultCode::Success: return "ResultCode::Success";
+        case ResultCode::Fail: return "ResultCode::Fail";
+        case ResultCode::Abort: return "ResultCode::Abort";
+        case ResultCode::NotImplemented: return "ResultCode::NotImplemented";
+        case ResultCode::InvalidArguments: return "ResultCode::InvalidArguments";
+        case ResultCode::AccessDenied: return "ResultCode::AccessDenied";
+        case ResultCode::Timeout: return "ResultCode::Timeout";
+        case ResultCode::OutOfMemory: return "ResultCode::OutOfMemory";
+            // clang-format on
+        default:
+            assert(false && "ResultCode was unknown");
+            return "ResultCode::<Unknown>";
+        }
     }
 } // namespace UN
