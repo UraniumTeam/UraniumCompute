@@ -20,8 +20,14 @@ namespace UN
         m_Memory      = deviceMemory;
         m_MemoryOwner = un_verify_cast<VulkanDeviceMemory*>(m_Memory.GetDeviceMemory());
         auto vkMemory = m_MemoryOwner->GetNativeMemory();
-        vkBindBufferMemory(
-            m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeBuffer, vkMemory, deviceMemory.GetByteOffset());
+        if (auto vkResult = vkBindBufferMemory(
+                m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeBuffer, vkMemory, deviceMemory.GetByteOffset());
+            !Succeeded(vkResult))
+        {
+            UN_Error(false, "Couldn't bind Vulkan memory to buffer, vkBindBufferMemory returned {}", vkResult);
+            return VulkanConvert(vkResult);
+        }
+
         return ResultCode::Success;
     }
 
