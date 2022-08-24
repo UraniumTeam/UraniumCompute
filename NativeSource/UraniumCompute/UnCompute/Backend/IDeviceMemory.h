@@ -3,7 +3,6 @@
 #include <UnCompute/Base/Flags.h>
 #include <UnCompute/Containers/ArraySlice.h>
 #include <limits>
-#include <optional>
 
 namespace UN
 {
@@ -296,6 +295,21 @@ namespace UN
             return m_Map;
         }
 
+        //! \brief Map the device memory slice.
+        //!
+        //! The function returns an instance of MemoryMapHelper that can be invalid if the memory
+        //! map operation did not succeed. Check it like this:
+        //!
+        //! \code{.cpp}
+        //! if (auto mapHelper = MemoryMapHelper<float>::Map(...))
+        //! {
+        //!     // Use mapHelper here...
+        //! }
+        //! \endcode
+        //!
+        //! \param memorySlice - The device memory slice to map.
+        //!
+        //! \return An instance of MemoryMapHelper.
         inline static MemoryMapHelper Map(const DeviceMemorySlice& memorySlice)
         {
             void* map;
@@ -308,6 +322,23 @@ namespace UN
             return {};
         }
 
+        //! \brief Map the device memory.
+        //!
+        //! The function returns an instance of MemoryMapHelper that can be invalid if the memory
+        //! map operation did not succeed. Check it like this:
+        //!
+        //! \code{.cpp}
+        //! if (auto mapHelper = MemoryMapHelper<float>::Map(...))
+        //! {
+        //!     // Use mapHelper here...
+        //! }
+        //! \endcode
+        //!
+        //! \param pMemory    - The device memory to map.
+        //! \param byteOffset - Byte offset of the memory to map.
+        //! \param byteSize   - Size of the part of the memory to map.
+        //!
+        //! \return An instance of MemoryMapHelper.
         inline static MemoryMapHelper Map(IDeviceMemory* pMemory, UInt64 byteOffset = 0,
                                           UInt64 byteSize = IDeviceMemory::WholeSize)
         {

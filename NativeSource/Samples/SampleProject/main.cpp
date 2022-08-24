@@ -72,4 +72,8 @@ int main()
 
         std::cout << "..." << std::endl;
     }
+    else
+    {
+        UN_Error(false, "Couldn't map memory");
+    }
 }
