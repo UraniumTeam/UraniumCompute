@@ -176,6 +176,12 @@ namespace UN
     void VulkanComputeDevice::ResetInternal()
     {
         UNLOG_Debug("Destroyed Vulkan device");
+
+        for (auto& family : m_QueueFamilies)
+        {
+            vkDestroyCommandPool(m_NativeDevice, family.CmdPool, nullptr);
+        }
+
         vkDestroyDevice(m_NativeDevice, nullptr);
     }
 
