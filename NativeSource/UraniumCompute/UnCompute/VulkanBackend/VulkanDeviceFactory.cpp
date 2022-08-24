@@ -7,8 +7,7 @@
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
                                                           VkDebugReportObjectTypeEXT /* objectType */, UN::UInt64 /* object */,
                                                           size_t /* location */, UN::Int32 /* messageCode */,
-                                                          const char* /* pLayerPrefix */, const char* pMessage,
-                                                          void* /* pUserData */)
+                                                          const char* pLayerPrefix, const char* pMessage, void* /* pUserData */)
 {
     constexpr static auto ignoredMessages = std::array{ "" };
 
@@ -24,20 +23,20 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
     switch (flags)
     {
     case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
-        UNLOG_Info("[Vulkan validation]: {}", message);
+        UNLOG_Info("[{}]: {}", message, pLayerPrefix);
         break;
     case VK_DEBUG_REPORT_WARNING_BIT_EXT:
     case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
-        UNLOG_Warning("[Vulkan validation]: {}", message);
+        UNLOG_Warning("[{}]: {}", message, pLayerPrefix);
         break;
     case VK_DEBUG_REPORT_ERROR_BIT_EXT:
-        UNLOG_Error("[Vulkan validation]: {}", message);
+        UNLOG_Error("[{}]: {}", message, pLayerPrefix);
         break;
     case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
-        UNLOG_Debug("[Vulkan validation]: {}", message);
+        UNLOG_Debug("[{}]: {}", message, pLayerPrefix);
         break;
     default:
-        UNLOG_Warning("[Vulkan validation]: {}", message);
+        UNLOG_Warning("[{}]: {}", message, pLayerPrefix);
         break;
     }
 
@@ -97,8 +96,14 @@ namespace UN
         instanceCI.enabledExtensionCount   = static_cast<UInt32>(RequiredInstanceExtensions.size());
         instanceCI.ppEnabledExtensionNames = RequiredInstanceExtensions.data();
 
-        vkCreateInstance(&instanceCI, VK_NULL_HANDLE, &m_Instance);
+        if (auto vkResult = vkCreateInstance(&instanceCI, VK_NULL_HANDLE, &m_Instance); !Succeeded(vkResult))
+        {
+            UN_Error(false, "Couldn't create Vulkan instance, vkCreateInstance returned {}", vkResult);
+            return VulkanConvert(vkResult);
+        }
+
         volkLoadInstance(m_Instance);
+
 #if UN_DEBUG
         VkDebugReportCallbackCreateInfoEXT debugCI{};
         debugCI.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -107,7 +112,13 @@ namespace UN
         debugCI.flags |= VK_DEBUG_REPORT_ERROR_BIT_EXT;
         debugCI.flags |= VK_DEBUG_REPORT_DEBUG_BIT_EXT;
         debugCI.pfnCallback = &DebugReportCallback;
-        vkCreateDebugReportCallbackEXT(m_Instance, &debugCI, VK_NULL_HANDLE, &m_Debug);
+
+        if (auto vkResult = vkCreateDebugReportCallbackEXT(m_Instance, &debugCI, VK_NULL_HANDLE, &m_Debug); !Succeeded(vkResult))
+        {
+            UN_Error(false, "Couldn't create Vulkan debug report callback, vkCreateDebugReportCallbackEXT returned {}", vkResult);
+            return VulkanConvert(vkResult);
+        }
+
 #endif
         UNLOG_Info("Vulkan instance created successfully");
 
