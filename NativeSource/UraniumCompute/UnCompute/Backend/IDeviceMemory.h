@@ -161,13 +161,13 @@ namespace UN
         [[nodiscard]] inline void* Map() const
         {
             void* pResult;
-            if (Succeeded(m_pMemory->Map(m_ByteOffset, m_ByteSize, &pResult)))
+            if (auto result = m_pMemory->Map(m_ByteOffset, m_ByteSize, &pResult); !Succeeded(result))
             {
-                return pResult;
+                UN_Error(false, "Couldn't map memory, IDeviceMemory::Map returned {}", result);
+                return nullptr;
             }
 
-            UN_Error(false, "Couldn't map memory");
-            return nullptr;
+            return pResult;
         }
 
         //! \brief Map the part of device memory represented by this slice.
