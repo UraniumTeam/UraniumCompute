@@ -29,23 +29,50 @@ namespace UN
     using USize = size_t;    //!< Unsigned integer with the size of a pointer on the current platform.
     using SSize = ptrdiff_t; //!< Signed integer with the size of a pointer on the current platform.
 
-    //! \brief C#-compatible type aliases
-    //! @{
-    using CsSByte = Int8;
-    using CsShort = Int16;
-    using CsInt   = Int32;
-    using CsLong  = Int64;
-
-    using CsByte   = UInt8;
-    using CsUShort = UInt16;
-    using CsUInt   = UInt32;
-    using CsULong  = UInt64;
-    //! @}
-
     inline constexpr struct
     {
         int Major = 0, Minor = 1, Patch = 0;
     } UnComputeVersion; //!< The version of the library.
+
+    //! \brief Stores memory size in bytes, this is useful to format human-readable memory sizes.
+    template<class T, class = std::enable_if_t<std::is_integral_v<T>, void>>
+    class MemorySizeImpl
+    {
+        T m_SizeInBytes = 0;
+
+    public:
+        inline MemorySizeImpl() = default;
+
+        inline explicit MemorySizeImpl(T sizeInBytes)
+            : m_SizeInBytes(sizeInBytes)
+        {
+        }
+
+        template<class T1>
+        inline MemorySizeImpl& operator=(const MemorySizeImpl<T1>& other)
+        {
+            m_SizeInBytes = static_cast<T>(other.m_SizeInBytes);
+        }
+
+        inline MemorySizeImpl& operator=(const MemorySizeImpl& other)     = default;
+        inline MemorySizeImpl& operator=(MemorySizeImpl&& other) noexcept = default;
+
+        inline MemorySizeImpl& operator=(const T& other)
+        {
+            m_SizeInBytes = other;
+            return *this;
+        }
+
+        //! \brief Get memory size in bytes.
+        inline T GetBytes() const
+        {
+            return m_SizeInBytes;
+        }
+    };
+
+    using MemorySize   = MemorySizeImpl<USize>;
+    using MemorySize32 = MemorySizeImpl<UInt32>;
+    using MemorySize64 = MemorySizeImpl<UInt64>;
 
     //! \internal
     namespace Internal
@@ -247,3 +274,23 @@ namespace UN
         return static_cast<TDest>(pSourceObject);
     }
 } // namespace UN
+
+template<class T>
+struct fmt::formatter<UN::MemorySizeImpl<T>> : fmt::formatter<std::string_view>
+{
+    template<typename FormatContext>
+    auto format(const UN::MemorySizeImpl<T>& size, FormatContext& ctx) const -> decltype(ctx.out())
+    {
+        UN::Int32 i = 0;
+        auto bytes  = static_cast<UN::Float64>(size.GetBytes());
+
+        const char* units[] = { "B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        while (bytes > 1024)
+        {
+            bytes /= 1024;
+            i++;
+        }
+
+        return fmt::format_to(ctx.out(), "{:.2f}{}", bytes, units[i]);
+    }
+};
