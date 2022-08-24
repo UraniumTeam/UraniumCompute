@@ -9,7 +9,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT 
                                                           size_t /* location */, UN::Int32 /* messageCode */,
                                                           const char* pLayerPrefix, const char* pMessage, void* /* pUserData */)
 {
-    constexpr static auto ignoredMessages = std::array{ "" };
+    constexpr static auto ignoredMessages = std::array<const char*, 0>{};
 
     std::string_view message = pMessage;
     for (auto& msg : ignoredMessages)
