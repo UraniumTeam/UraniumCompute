@@ -15,7 +15,7 @@ namespace UN
 
         inline void AllocateStorage(USize count)
         {
-            void* pData = m_pAllocator->Allocate(count * sizeof(T), alignof(T));
+            void* pData = m_pAllocator->Allocate(count * sizeof(T), std::max(static_cast<USize>(16), alignof(T)));
             m_Storage   = ArraySlice<T>(static_cast<T*>(pData), count);
         }
 

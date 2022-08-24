@@ -13,6 +13,9 @@ namespace UN
         T* m_pBegin = nullptr;
         T* m_pEnd   = nullptr;
 
+        template<class T1>
+        friend class ArraySlice;
+
         template<class TCont>
         using AddConst = std::conditional_t<std::is_const_v<T>, const TCont, TCont>;
 
@@ -206,6 +209,15 @@ namespace UN
             }
 
             return size;
+        }
+
+        template<class T1>
+        inline ArraySlice<T1> ReinterpretAs() const
+        {
+            ArraySlice<T1> result;
+            result.m_pBegin = reinterpret_cast<T1*>(m_pBegin);
+            result.m_pEnd   = reinterpret_cast<T1*>(m_pEnd);
+            return result;
         }
 
         [[nodiscard]] inline const T* begin() const noexcept

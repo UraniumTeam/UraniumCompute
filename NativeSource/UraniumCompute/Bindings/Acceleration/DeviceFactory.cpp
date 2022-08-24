@@ -22,11 +22,11 @@ namespace UN
             return SELF->GetBackendKind();
         }
 
-        UN_DLL_EXPORT void IDeviceFactory_EnumerateAdapters(IObject* self, HeapArray<AdapterInfo>* pAdapters)
+        UN_DLL_EXPORT void IDeviceFactory_EnumerateAdapters(IObject* self, HeapArray<Int8>* pAdapters)
         {
             auto adapters = SELF->EnumerateAdapters();
             pAdapters->Resize(adapters.Length());
-            adapters.CopyDataTo(*pAdapters);
+            adapters.ReinterpretAs<const Int8>().CopyDataTo(*pAdapters);
         }
 
         UN_DLL_EXPORT ResultCode IDeviceFactory_CreateDevice(IObject* self, IComputeDevice** ppDevice)

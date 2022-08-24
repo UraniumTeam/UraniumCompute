@@ -56,7 +56,7 @@ namespace UN
         virtual ResultCode CreateDevice(IComputeDevice** ppDevice) = 0;
     };
 
-    inline constexpr const char* CreateDeviceFactoryProcName = "CreateDeviceFactory";
+    inline constexpr const char* CreateDeviceFactoryProcName = "CreateDeviceFactoryImpl";
     inline constexpr const char* UraniumComputeDllName       = "UnCompute";
 
     extern "C"
