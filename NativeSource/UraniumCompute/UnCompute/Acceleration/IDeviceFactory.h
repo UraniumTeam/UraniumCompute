@@ -19,7 +19,7 @@ namespace UN
     {
         const char* ApplicationName; //!< Name of the application.
 
-        inline DeviceFactoryDesc(const char* applicationName)
+        inline explicit DeviceFactoryDesc(const char* applicationName)
             : ApplicationName(applicationName)
         {
         }
