@@ -57,17 +57,19 @@ int main()
     auto memorySlice = DeviceMemorySlice(pMemory.Get());
     UN_VerifyResult(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
 
-    auto* pData = static_cast<float*>(memorySlice.Map());
-    for (UInt64 i = 0; i < bufferSize; ++i)
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice))
     {
-        pData[i] = static_cast<float>(i);
-    }
+        for (UInt64 i = 0; i < data.Length(); ++i)
+        {
+            data[i] = static_cast<float>(i);
+        }
 
-    std::cout << "Data in the buffer: ";
-    for (UInt64 i = 0; i < 16; ++i)
-    {
-        std::cout << pData[i] << " ";
-    }
+        std::cout << "Data in the buffer: ";
+        for (UInt64 i = 0; i < 16; ++i)
+        {
+            std::cout << data[i] << " ";
+        }
 
-    std::cout << "..." << std::endl;
+        std::cout << "..." << std::endl;
+    }
 }

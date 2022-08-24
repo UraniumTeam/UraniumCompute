@@ -3,6 +3,7 @@
 #include <UnCompute/Base/Flags.h>
 #include <UnCompute/Containers/ArraySlice.h>
 #include <limits>
+#include <optional>
 
 namespace UN
 {
@@ -119,14 +120,6 @@ namespace UN
                       "Invalid memory slice size");
         }
 
-        inline ~DeviceMemorySlice()
-        {
-            if (m_pMemory)
-            {
-                Unmap();
-            }
-        }
-
         //! \brief Get the underlying device memory object.
         [[nodiscard]] inline IDeviceMemory* GetDeviceMemory() const
         {
@@ -229,6 +222,96 @@ namespace UN
         [[nodiscard]] inline bool IsCompatible(IDeviceObject* pObject) const
         {
             return m_pMemory->IsCompatible(pObject, m_ByteSize);
+        }
+    };
+
+    //! \brief Helper class for memory mapping, implements indexing operators and bound checking.
+    template<class T>
+    class MemoryMapHelper
+    {
+        DeviceMemorySlice m_MemorySlice;
+        T* m_Map = nullptr;
+
+        inline MemoryMapHelper() = default;
+
+        inline explicit MemoryMapHelper(const DeviceMemorySlice& memorySlice, T* map)
+            : m_MemorySlice(memorySlice)
+            , m_Map(map)
+        {
+        }
+
+    public:
+        inline MemoryMapHelper(MemoryMapHelper&& other) noexcept
+            : m_MemorySlice(other.m_MemorySlice)
+            , m_Map(other.m_Map)
+        {
+            other.m_MemorySlice = {};
+            other.m_Map         = nullptr;
+        }
+
+        inline ~MemoryMapHelper()
+        {
+            if (m_Map)
+            {
+                m_MemorySlice.Unmap();
+            }
+        }
+
+        inline T& operator[](USize index)
+        {
+            UN_Assert(index * sizeof(T) < m_MemorySlice.GetByteSize(), "Index out of range in MemoryMapHelper");
+            return m_Map[index];
+        }
+
+        //! \brief Get size of the mapped data as a number of elements of type T.
+        [[nodiscard]] inline UInt64 Length() const
+        {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
+            return m_MemorySlice.GetByteSize() / sizeof(T);
+        }
+
+        //! \brief Get size of the mapped data in bytes.
+        [[nodiscard]] inline UInt64 ByteSize() const
+        {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
+            return m_MemorySlice.GetByteSize();
+        }
+
+        //! \brief Check if an instance of the class is in valid state.
+        [[nodiscard]] inline bool IsValid() const
+        {
+            return m_Map;
+        }
+
+        //! \brief Check if an instance of the class is in valid state.
+        inline explicit operator bool() const
+        {
+            return IsValid();
+        }
+
+        //! \brief Get a pointer to the mapped memory.
+        [[nodiscard]] inline T* Data() const
+        {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
+            return m_Map;
+        }
+
+        inline static MemoryMapHelper Map(const DeviceMemorySlice& memorySlice)
+        {
+            void* map;
+            auto result = memorySlice.Map(&map);
+            if (Succeeded(result))
+            {
+                return MemoryMapHelper(memorySlice, static_cast<T*>(map));
+            }
+
+            return {};
+        }
+
+        inline static MemoryMapHelper Map(IDeviceMemory* pMemory, UInt64 byteOffset = 0,
+                                          UInt64 byteSize = IDeviceMemory::WholeSize)
+        {
+            return Map(DeviceMemorySlice(pMemory, byteOffset, byteSize));
         }
     };
 } // namespace UN
