@@ -77,10 +77,14 @@ namespace UN
             return ResultCode::InvalidArguments;
         }
 
+        UInt64 objectSize = 0;
+        UInt64 alignment  = 1;
         for (const auto* object : desc.Objects)
         {
             auto* buffer = un_verify_cast<const VulkanBuffer*>(object);
             typeBits &= buffer->GetMemoryRequirements().memoryTypeBits;
+            objectSize += buffer->GetMemoryRequirements().size;
+            alignment = std::max(alignment, buffer->GetMemoryRequirements().alignment);
         }
 
         if (typeBits == 0)
@@ -89,15 +93,17 @@ namespace UN
             return ResultCode::InvalidArguments;
         }
 
+        UN_Warning(objectSize <= desc.Size, "DeviceMemoryDesc::Size was not enough to allocate all of DeviceMemoryDesc::Objects");
+
         VkMemoryAllocateInfo info{};
         info.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        info.allocationSize = desc.Size;
+        info.allocationSize = std::max(desc.Size, objectSize);
         UN_VerifyResult(vkDevice->FindMemoryType(typeBits, properties, m_MemoryTypeIndex), "Couldn't find device memory type");
         info.memoryTypeIndex = m_MemoryTypeIndex;
 
         if (auto vkResult = vkAllocateMemory(vkDevice->GetNativeDevice(), &info, nullptr, &m_NativeMemory); !Succeeded(vkResult))
         {
-            UN_Error(false, "Couldn't allocate Vulkan device memory");
+            UN_Error(false, "Couldn't allocate Vulkan device memory, vkAllocateMemory returned {}", vkResult);
             return VulkanConvert(vkResult);
         }
 
