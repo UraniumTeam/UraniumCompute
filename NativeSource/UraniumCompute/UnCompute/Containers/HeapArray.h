@@ -8,6 +8,8 @@ namespace UN
     template<class T>
     class HeapArray final
     {
+        static_assert(!std::is_const_v<T>);
+
         ArraySlice<T> m_Storage{};
         IAllocator* m_pAllocator{};
 

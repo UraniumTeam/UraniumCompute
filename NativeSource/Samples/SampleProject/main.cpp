@@ -52,7 +52,7 @@ int main()
         return 1;
     }
 
-    UNLOG_Info("Allocated {} bytes of device memory", MemorySize64(bufferSize * sizeof(float)));
+    UNLOG_Info("Allocated {} of device memory", MemorySize64(bufferSize * sizeof(float)));
 
     auto memorySlice = DeviceMemorySlice(pMemory.Get());
     UN_VerifyResult(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");

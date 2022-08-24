@@ -1,39 +1,52 @@
 set(SRC
+    UnCompute/Acceleration/AdapterInfo.h
     UnCompute/Acceleration/DeviceFactory.cpp
+    UnCompute/Acceleration/IDeviceFactory.h
+
+    UnCompute/Backend/BufferBase.cpp
+    UnCompute/Backend/BufferBase.h
+    UnCompute/Backend/DeviceMemoryBase.cpp
+    UnCompute/Backend/DeviceMemoryBase.h
+    UnCompute/Backend/DeviceObjectBase.h
+    UnCompute/Backend/IBuffer.h
+    UnCompute/Backend/IComputeDevice.h
+    UnCompute/Backend/IDeviceMemory.h
+    UnCompute/Backend/IDeviceObject.h
+
     UnCompute/Base/Base.h
     UnCompute/Base/CompilerTraits.h
+    UnCompute/Base/Flags.h
+    UnCompute/Base/Logger.h
     UnCompute/Base/Platform.h
     UnCompute/Base/PlatformInclude.h
     UnCompute/Base/PlatformTraits.h
-    UnCompute/Backend/IComputeDevice.h
-    UnCompute/Backend/IDeviceObject.h
-    UnCompute/Memory/Object.h
-    UnCompute/Memory/ReferenceCounter.h
-    UnCompute/Memory/IAllocator.h
-    UnCompute/Memory/Ptr.h
-    UnCompute/Memory/Memory.h
-    UnCompute/Memory/SystemAllocator.h
     UnCompute/Base/ResultCode.h
-    UnCompute/Acceleration/IDeviceFactory.h
+
+    UnCompute/Containers/ArraySlice.h
+    UnCompute/Containers/HeapArray.h
+
+    UnCompute/Memory/IAllocator.h
+    UnCompute/Memory/Memory.h
+    UnCompute/Memory/Object.h
+    UnCompute/Memory/Ptr.h
+    UnCompute/Memory/ReferenceCounter.h
+    UnCompute/Memory/SystemAllocator.h
+
+    UnCompute/Utils/DynamicLibrary.h
+
+    UnCompute/VulkanBackend/VulkanBuffer.cpp
+    UnCompute/VulkanBackend/VulkanBuffer.h
     UnCompute/VulkanBackend/VulkanComputeDevice.cpp
     UnCompute/VulkanBackend/VulkanComputeDevice.h
     UnCompute/VulkanBackend/VulkanDeviceFactory.cpp
     UnCompute/VulkanBackend/VulkanDeviceFactory.h
+    UnCompute/VulkanBackend/VulkanDeviceMemory.cpp
+    UnCompute/VulkanBackend/VulkanDeviceMemory.h
     UnCompute/VulkanBackend/VulkanInclude.h
-    UnCompute/Acceleration/AdapterInfo.h
-    UnCompute/Backend/DeviceObjectBase.h
-    UnCompute/Base/Logger.h
-    UnCompute/Containers/ArraySlice.h
-    UnCompute/Containers/HeapArray.h
-    UnCompute/Base/Flags.h
-    UnCompute/Utils/DynamicLibrary.h
-    UnCompute/Backend/IBuffer.h
-    UnCompute/Backend/IDeviceMemory.h
-    UnCompute/Backend/DeviceMemoryBase.h
-    UnCompute/Backend/DeviceMemoryBase.cpp
-    UnCompute/Backend/BufferBase.cpp
-    UnCompute/Backend/BufferBase.h
-    UnCompute/VulkanBackend/VulkanBuffer.cpp UnCompute/VulkanBackend/VulkanBuffer.h UnCompute/VulkanBackend/VulkanDeviceMemory.cpp UnCompute/VulkanBackend/VulkanDeviceMemory.h)
+
+    Bindings/Acceleration/DeviceFactory.cpp
+    Bindings/Memory/Object.cpp
+)
 
 add_library(UnCompute SHARED ${SRC})
 
@@ -49,4 +62,3 @@ get_property("TARGET_SOURCE_FILES" TARGET UnCompute PROPERTY SOURCES)
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${TARGET_SOURCE_FILES})
 
 add_subdirectory(Tests)
-# add_subdirectory(Bindings)
