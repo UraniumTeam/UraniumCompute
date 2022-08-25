@@ -15,6 +15,12 @@ namespace UN
 
         inline void AllocateStorage(USize count)
         {
+            if (m_pAllocator == nullptr)
+            {
+                // This is required because in C# the default constructor will only set all pointers to null.
+                m_pAllocator = SystemAllocator::Get();
+            }
+
             void* pData = m_pAllocator->Allocate(count * sizeof(T), std::max(static_cast<USize>(16), alignof(T)));
             m_Storage   = ArraySlice<T>(static_cast<T*>(pData), count);
         }
@@ -46,10 +52,7 @@ namespace UN
 
     public:
         //! \brief Create an empty array
-        inline HeapArray()
-            : m_pAllocator(SystemAllocator::Get())
-        {
-        }
+        inline HeapArray() = default;
 
         //! \brief Copy constructor.
         inline HeapArray(const HeapArray& other)

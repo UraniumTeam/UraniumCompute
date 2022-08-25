@@ -7,12 +7,12 @@ namespace UN
 
     extern "C"
     {
-        UN_DLL_EXPORT void HeapArray_CreateEmpty(Array* pArray)
+        UN_DLL_EXPORT void HeapArray_Destroy(Array* self)
         {
-            new (pArray) Array();
+            self->Reset();
         }
 
-        UN_DLL_EXPORT void HeapArray_CreateWithSize(Array* pArray, UInt64 size)
+        UN_DLL_EXPORT void HeapArray_CreateWithSize(UInt64 size, Array* pArray)
         {
             new (pArray) Array(size);
         }
@@ -27,4 +27,4 @@ namespace UN
             return self->CopyDataTo(*arraySlice);
         }
     }
-}
+} // namespace UN
