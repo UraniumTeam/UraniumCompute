@@ -46,7 +46,7 @@ set(SRC
 
     Bindings/Acceleration/DeviceFactory.cpp
     Bindings/Memory/Object.cpp
-    Bindings/Containers/HeapArray.cpp)
+    Bindings/Containers/HeapArray.cpp Bindings/Backend/ComputeDevice.cpp)
 
 add_library(UnCompute SHARED ${SRC})
 
