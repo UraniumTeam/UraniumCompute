@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Memory;
 
@@ -10,20 +11,20 @@ public sealed class ComputeDevice : UnObject
     {
     }
 
-    public ResultCode Init(in Desc desc)
+    public void Init(in Desc desc)
     {
-        return IComputeDevice_Init(Handle, in desc);
+        IComputeDevice_Init(Handle, in desc).ThrowOnError("Couldn't initialize Compute device");
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public readonly record struct Desc(int AdapterId);
-    
+
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_Init(IntPtr self, in Desc desc);
-    
+
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_CreateBuffer(IntPtr self, out IntPtr buffer);
-    
+
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_CreateMemory(IntPtr self, out IntPtr buffer);
 }

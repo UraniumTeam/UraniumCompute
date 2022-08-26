@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using UraniumCompute.Backend;
 using UraniumCompute.Containers;
 using UraniumCompute.Memory;
@@ -49,9 +50,9 @@ public sealed class DeviceFactory : UnObject
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     public readonly record struct Desc(string ApplicationName);
 
-    public ResultCode Init(in Desc desc)
+    public void Init(in Desc desc)
     {
-        return IDeviceFactory_Init(Handle, in desc);
+        IDeviceFactory_Init(Handle, in desc).ThrowOnError("Couldn't initialize Device factory");
     }
 
     public ComputeDevice CreateDevice()
