@@ -1,13 +1,28 @@
 ﻿using System.Runtime.InteropServices;
 using UraniumCompute.Backend;
+using UraniumCompute.Containers;
 using UraniumCompute.Memory;
 
 namespace UraniumCompute.Acceleration;
 
-public class DeviceFactory : UnObject
+public sealed class DeviceFactory : UnObject
 {
     public BackendKind BackendKind { get; }
-    public IReadOnlyCollection<AdapterInfo> Adapters { get; } = Array.Empty<AdapterInfo>();
+
+    public ReadOnlySpan<AdapterInfo> Adapters
+    {
+        get
+        {
+            if (!adapters.Any())
+            {
+                IDeviceFactory_EnumerateAdapters(Handle, out adapters);
+            }
+
+            return adapters[..];
+        }
+    }
+
+    private NativeArray<AdapterInfo> adapters;
 
     private DeviceFactory(IntPtr handle, BackendKind backendKind)
         : base(handle)
@@ -39,9 +54,31 @@ public class DeviceFactory : UnObject
         return IDeviceFactory_Init(Handle, in desc);
     }
 
+    public ComputeDevice CreateDevice()
+    {
+        return CreateDevice(out var device) switch
+        {
+            ResultCode.Success => device!,
+            var resultCode => throw new ErrorResultException("Couldn't create Device", resultCode)
+        };
+    }
+
+    public ResultCode CreateDevice(out ComputeDevice? computeDevice)
+    {
+        var resultCode = IDeviceFactory_CreateDevice(Handle, out var device);
+        computeDevice = resultCode == ResultCode.Success ? new ComputeDevice(device) : null;
+        return resultCode;
+    }
+
     [DllImport("UnCompute")]
     private static extern ResultCode CreateDeviceFactory(BackendKind backendKind, out IntPtr deviceFactory);
 
     [DllImport("UnCompute")]
     private static extern ResultCode IDeviceFactory_Init(IntPtr handle, in Desc desc);
+
+    [DllImport("UnCompute")]
+    private static extern void IDeviceFactory_EnumerateAdapters(IntPtr handle, out NativeArray<AdapterInfo> adapters);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IDeviceFactory_CreateDevice(IntPtr self, out IntPtr device);
 }
