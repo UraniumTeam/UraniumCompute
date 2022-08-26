@@ -1,9 +1,8 @@
 ﻿namespace UraniumCompute.Acceleration;
 
 /// <summary>
-/// Represents a general result of a function call within the library.
-///
-/// Different functions may have their own result codes, but this enum should be enough for a general case.
+///     Represents a general result of a function call within the library.
+///     Different functions may have their own result codes, but this enum should be enough for a general case.
 /// </summary>
 public enum ResultCode : uint
 {

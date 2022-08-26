@@ -2,13 +2,25 @@
 
 namespace UraniumCompute.Memory;
 
+/// <summary>
+///     Base of all objects in the library. Should not be derived by the user code.
+/// </summary>
 public abstract class UnObject : IDisposable
 {
+    /// <summary>
+    ///     A pointer to the native object.
+    /// </summary>
     public IntPtr Handle { get; private set; }
 
     protected UnObject(IntPtr handle)
     {
         Handle = handle;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
     private void ReleaseUnmanagedResources()
@@ -25,20 +37,14 @@ public abstract class UnObject : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    ~UnObject()
-    {
-        Dispose(false);
-    }
-    
     [DllImport("UnCompute")]
     private static extern uint IObject_AddRef(IntPtr self);
 
     [DllImport("UnCompute")]
     private static extern uint IObject_Release(IntPtr self);
+
+    ~UnObject()
+    {
+        Dispose(false);
+    }
 }
