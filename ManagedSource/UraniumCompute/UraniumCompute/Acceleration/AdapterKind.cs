@@ -1,5 +1,7 @@
 ﻿namespace UraniumCompute.Acceleration;
 
+/// <summary>
+/// </summary>
 public enum AdapterKind
 {
     None,

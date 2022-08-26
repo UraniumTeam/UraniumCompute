@@ -1,15 +1,23 @@
-﻿using System.Diagnostics.Contracts;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using UraniumCompute.Backend;
 using UraniumCompute.Containers;
 using UraniumCompute.Memory;
 
 namespace UraniumCompute.Acceleration;
 
+/// <summary>
+///     This class is used to create backend-specific compute devices and related objects.
+/// </summary>
 public sealed class DeviceFactory : UnObject
 {
+    /// <summary>
+    ///     Kind of backend for the compute devices created by this factory.
+    /// </summary>
     public BackendKind BackendKind { get; }
 
+    /// <summary>
+    ///     All adapters supported by the specified backend.
+    /// </summary>
     public ReadOnlySpan<AdapterInfo> Adapters
     {
         get
@@ -31,6 +39,12 @@ public sealed class DeviceFactory : UnObject
         BackendKind = backendKind;
     }
 
+    /// <summary>
+    ///     Create device factory.
+    /// </summary>
+    /// <param name="backendKind">Kind of backend that the created factory will create objects for.</param>
+    /// <returns>The created device factory.</returns>
+    /// <exception cref="ErrorResultException">Unmanaged function returned an error code.</exception>
     public static DeviceFactory Create(BackendKind backendKind)
     {
         return Create(backendKind, out var deviceFactory) switch
@@ -40,6 +54,12 @@ public sealed class DeviceFactory : UnObject
         };
     }
 
+    /// <summary>
+    ///     Create device factory.
+    /// </summary>
+    /// <param name="backendKind">Kind of backend that the created factory will create objects for.</param>
+    /// <param name="deviceFactory">The created device factory.</param>
+    /// <returns>The <see cref="ResultCode" /> of the operation.</returns>
     public static ResultCode Create(BackendKind backendKind, out DeviceFactory? deviceFactory)
     {
         var resultCode = CreateDeviceFactory(backendKind, out var handle);
@@ -47,14 +67,20 @@ public sealed class DeviceFactory : UnObject
         return resultCode;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    public readonly record struct Desc(string ApplicationName);
-
+    /// <summary>
+    ///     Initialize device factory.
+    /// </summary>
+    /// <param name="desc">The device factory descriptor.</param>
     public void Init(in Desc desc)
     {
         IDeviceFactory_Init(Handle, in desc).ThrowOnError("Couldn't initialize Device factory");
     }
 
+    /// <summary>
+    ///     Create compute device.
+    /// </summary>
+    /// <returns>The created device</returns>
+    /// <exception cref="ErrorResultException">Unmanaged function returned an error code.</exception>
     public ComputeDevice CreateDevice()
     {
         return CreateDevice(out var device) switch
@@ -64,6 +90,11 @@ public sealed class DeviceFactory : UnObject
         };
     }
 
+    /// <summary>
+    ///     Create compute device.
+    /// </summary>
+    /// <param name="computeDevice">The created device.</param>
+    /// <returns>The <see cref="ResultCode" /> of the operation.</returns>
     public ResultCode CreateDevice(out ComputeDevice? computeDevice)
     {
         var resultCode = IDeviceFactory_CreateDevice(Handle, out var device);
@@ -82,4 +113,11 @@ public sealed class DeviceFactory : UnObject
 
     [DllImport("UnCompute")]
     private static extern ResultCode IDeviceFactory_CreateDevice(IntPtr self, out IntPtr device);
+
+    /// <summary>
+    ///     Device factory descriptor.
+    /// </summary>
+    /// <param name="ApplicationName">Name of the user application.</param>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public readonly record struct Desc(string ApplicationName);
 }

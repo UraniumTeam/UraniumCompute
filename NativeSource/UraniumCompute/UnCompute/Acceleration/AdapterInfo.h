@@ -13,7 +13,7 @@ namespace UN
         Cpu
     };
 
-    //! \brief Information about an adapter.
+    //! \brief Description of backend's hardware adapter.
     struct AdapterInfo
     {
         UInt32 Id;        //!< Adapter ID, used to create a compute device on it.
