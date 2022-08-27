@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using UraniumCompute.Acceleration;
 using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
@@ -29,13 +28,13 @@ public abstract class DeviceObject : UnObject
 
     private ComputeDevice? device;
 
+    protected DeviceObject(IntPtr handle) : base(handle)
+    {
+    }
+
     public void Reset()
     {
         IDeviceObject_Reset(Handle);
-    }
-
-    protected DeviceObject(IntPtr handle) : base(handle)
-    {
     }
 
     [DllImport("UnCompute")]

@@ -19,6 +19,8 @@ public struct NativeArray<T> : IReadOnlyList<T>, IDisposable
     /// </summary>
     public readonly unsafe long LongCount => native.Storage.Length() / sizeof(T);
 
+    internal unsafe IntPtr NativePointer => (IntPtr)native.Storage.pBegin;
+
     /// <summary>
     ///     Get or set an element of array by index.
     /// </summary>
@@ -30,8 +32,6 @@ public struct NativeArray<T> : IReadOnlyList<T>, IDisposable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => GetElementAt(index) = value;
     }
-
-    internal unsafe IntPtr NativePointer => (IntPtr)native.Storage.pBegin;
 
     private NativeArrayBase native;
 
