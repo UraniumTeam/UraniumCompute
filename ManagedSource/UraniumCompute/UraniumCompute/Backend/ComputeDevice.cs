@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Memory;
 
@@ -12,8 +14,11 @@ namespace UraniumCompute.Backend;
 /// and other higher-level objects.
 public sealed class ComputeDevice : UnObject
 {
+    private static readonly Dictionary<IntPtr, ComputeDevice> devices = new();
+
     internal ComputeDevice(IntPtr handle) : base(handle)
     {
+        devices[handle] = this;
     }
 
     /// <summary>
@@ -26,6 +31,36 @@ public sealed class ComputeDevice : UnObject
         IComputeDevice_Init(Handle, in desc).ThrowOnError("Couldn't initialize Compute device");
     }
 
+    public DeviceMemory CreateMemory()
+    {
+        return IComputeDevice_CreateMemory(Handle, out var memory) switch
+        {
+            ResultCode.Success => new DeviceMemory(memory),
+            var resultCode => throw new ErrorResultException("Couldn't create device memory", resultCode)
+        };
+    }
+
+    public Buffer CreateBuffer()
+    {
+        return IComputeDevice_CreateBuffer(Handle, out var buffer) switch
+        {
+            ResultCode.Success => new Buffer(buffer),
+            var resultCode => throw new ErrorResultException("Couldn't create buffer", resultCode)
+        };
+    }
+
+    [Pure]
+    internal static bool TryGetDevice(IntPtr handle, [MaybeNullWhen(false)] out ComputeDevice device)
+    {
+        return devices.TryGetValue(handle, out device);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        devices.Remove(Handle);
+        base.Dispose(disposing);
+    }
+
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_Init(IntPtr self, in Desc desc);
 
@@ -33,7 +68,7 @@ public sealed class ComputeDevice : UnObject
     private static extern ResultCode IComputeDevice_CreateBuffer(IntPtr self, out IntPtr buffer);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateMemory(IntPtr self, out IntPtr buffer);
+    private static extern ResultCode IComputeDevice_CreateMemory(IntPtr self, out IntPtr memory);
 
     /// <summary>
     ///     Compute device descriptor.
