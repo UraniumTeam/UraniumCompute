@@ -21,7 +21,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     {
     }
 
-    public unsafe void Init(in Desc desc)
+    public void Init(in Desc desc)
     {
         var objects = desc.Objects.ToArray();
         Init(desc.Name, desc.Size, objects, desc.Flags);

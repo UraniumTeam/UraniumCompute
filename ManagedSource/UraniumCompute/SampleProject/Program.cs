@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
-using UraniumCompute.Memory;
 using Buffer = UraniumCompute.Backend.Buffer;
 
 namespace SampleProject;
@@ -26,7 +25,7 @@ internal static class Program
 
         using var memory = buffer.AllocateMemory("Memory", MemoryKindFlags.HostAndDeviceAccessible);
         buffer.BindMemory(new DeviceMemorySlice(memory));
-        
+
         Console.WriteLine(buffer.DebugName);
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace UraniumCompute.Backend;
 
 /// <summary>
-/// Device memory kind flags.
+///     Device memory kind flags.
 /// </summary>
 public enum MemoryKindFlags
 {
