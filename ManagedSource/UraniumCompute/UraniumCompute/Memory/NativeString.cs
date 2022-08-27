@@ -7,14 +7,16 @@ namespace UraniumCompute.Memory;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct NativeString
 {
-    private readonly IntPtr nativePointer;
+    private readonly unsafe byte* nativePointer;
     private static readonly List<MemoryPage> charData = new();
 
-    private unsafe NativeString(IntPtr nativePointer, byte[] data)
+    private unsafe NativeString(byte* nativePointer, char* data, int length)
     {
-        var length = data.Length;
-        new Span<byte>(data).CopyTo(new Span<byte>((void*)nativePointer, length));
         this.nativePointer = nativePointer;
+        for (var i = 0; i < length; ++i)
+        {
+            nativePointer[i] = (byte)data[i];
+        }
     }
 
     public static implicit operator NativeString(string s)
@@ -22,44 +24,49 @@ public readonly struct NativeString
         return CreateStatic(s);
     }
 
-    public override unsafe string ToString()
+    public unsafe ReadOnlySpan<byte> AsSpan()
     {
-        var pointer = (byte*)nativePointer;
-        var index = 0;
-        for (;; ++index)
+        for (var i = 0;; ++i)
         {
-            if (pointer[index] == 0)
+            if (nativePointer[i] == 0)
             {
-                break;
+                return new ReadOnlySpan<byte>(nativePointer, i);
             }
         }
-
-        return Encoding.ASCII.GetString(pointer, index);
     }
 
-    public static NativeString CreateStatic(string s)
+    public override string ToString()
     {
-        var chars = s.ToCharArray();
-        var bytes = new byte[chars.Length + 1];
-        for (var i = 0; i < chars.Length; ++i)
-        {
-            bytes[i] = unchecked((byte)chars[i]);
-        }
+        return Encoding.ASCII.GetString(AsSpan());
+    }
 
+    public static unsafe NativeString CreateStatic(string s)
+    {
+        var length = s.Length;
+        fixed (char* chars = s)
+        {
+            var bytes = AllocateBytes(length + 1);
+            bytes[length] = 0;
+            return new NativeString(bytes, chars, length);
+        }
+    }
+
+    private static unsafe byte* AllocateBytes(long length)
+    {
         foreach (var memoryPage in charData)
         {
-            var ptr = memoryPage.Allocate(bytes.Length);
-            if (ptr != IntPtr.Zero)
+            var ptr = memoryPage.Allocate(length);
+            if (ptr != null)
             {
-                return new NativeString(ptr, bytes);
+                return ptr;
             }
         }
 
-        charData.Add(new MemoryPage(charData.LastOrDefault()?.Array.LongCount * 2 ?? bytes.Length));
-        return new NativeString(charData.Last().Allocate(bytes.Length), bytes);
+        charData.Add(new MemoryPage(charData.LastOrDefault()?.Array.LongCount * 2 ?? length));
+        return charData.Last().Allocate(length);
     }
 
-    private class MemoryPage
+    private unsafe class MemoryPage
     {
         public NativeArray<byte> Array;
         private long usedBytes;
@@ -70,15 +77,15 @@ public readonly struct NativeString
             usedBytes = 0;
         }
 
-        public IntPtr Allocate(long size)
+        public byte* Allocate(long size)
         {
             if (Array.Count - usedBytes < size)
             {
-                return IntPtr.Zero;
+                return null;
             }
 
             usedBytes += size;
-            return Array.NativePointer + (int)(usedBytes - size);
+            return (byte*)Array.NativePointer + (usedBytes - size);
         }
     }
 }
