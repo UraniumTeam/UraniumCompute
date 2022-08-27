@@ -31,6 +31,8 @@ public struct NativeArray<T> : IReadOnlyList<T>, IDisposable
         set => GetElementAt(index) = value;
     }
 
+    internal unsafe IntPtr NativePointer => (IntPtr)native.Storage.pBegin;
+
     private NativeArrayBase native;
 
     /// <summary>
