@@ -31,6 +31,9 @@ namespace UN
     public:
         ~IDeviceObject() override = default;
 
+        //! \brief Get debug name of the object.
+        [[nodiscard]] virtual std::string_view GetDebugName() const = 0;
+
         //! \brief Reset the object to uninitialized state.
         virtual void Reset() = 0;
 
