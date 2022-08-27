@@ -45,6 +45,11 @@ namespace UN
             return m_Desc;
         }
 
+        [[nodiscard]] inline std::string_view GetDebugName() const override
+        {
+            return m_Name;
+        }
+
         [[nodiscard]] inline IComputeDevice* GetDevice() const override
         {
             return m_pDevice.Get();
