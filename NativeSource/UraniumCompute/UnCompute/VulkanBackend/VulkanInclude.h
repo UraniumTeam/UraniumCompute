@@ -13,6 +13,8 @@ namespace UN
                                                             VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
                                                             VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME };
 
+    constexpr auto DescriptorTypeMaxValue = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT + 1;
+
     //! \brief Check if Vulkan result succeeded.
     inline bool Succeeded(VkResult result)
     {

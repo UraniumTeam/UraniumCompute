@@ -41,7 +41,7 @@ namespace UN
         explicit VulkanComputeDevice(VulkanDeviceFactory* pInstance);
         ~VulkanComputeDevice() override;
 
-        ResultCode Init(const ComputeDeviceDesc& desc) override;
+        ResultCode Init(const DescriptorType& desc) override;
         void Reset() override;
 
         ResultCode FindMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, UInt32& memoryType);
