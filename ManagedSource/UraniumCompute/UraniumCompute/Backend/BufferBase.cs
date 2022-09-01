@@ -4,7 +4,7 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
-public sealed class Buffer : DeviceObject<Buffer.Desc>
+public class BufferBase : DeviceObject<BufferBase.Desc>
 {
     public override Desc Descriptor
     {
@@ -15,7 +15,9 @@ public sealed class Buffer : DeviceObject<Buffer.Desc>
         }
     }
 
-    internal Buffer(IntPtr handle) : base(handle)
+    public DeviceMemorySlice BoundMemory { get; private set; }
+
+    internal BufferBase(IntPtr handle) : base(handle)
     {
     }
 
@@ -24,11 +26,11 @@ public sealed class Buffer : DeviceObject<Buffer.Desc>
         IBuffer_Init(Handle, in desc).ThrowOnError("Couldn't initialize buffer");
     }
 
-    public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, long overrideSize = -1)
+    public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong overrideSize = ulong.MaxValue)
     {
         Span<IntPtr> handle = stackalloc IntPtr[1];
         handle[0] = Handle;
-        var memorySize = overrideSize == -1 ? Descriptor.Size : overrideSize;
+        var memorySize = overrideSize == ulong.MaxValue ? Descriptor.Size : overrideSize;
         var memory = Device.CreateMemory();
         memory.Init(memoryDebugName, memorySize, handle, flags);
         return memory;
@@ -42,6 +44,7 @@ public sealed class Buffer : DeviceObject<Buffer.Desc>
 
     public ResultCode TryBindMemory(in DeviceMemorySlice memorySlice)
     {
+        BoundMemory = memorySlice;
         var sliceNative = new DeviceMemorySliceNative(memorySlice.Memory.Handle, memorySlice.Offset, memorySlice.Size);
         return IBuffer_BindMemory(Handle, sliceNative);
     }
@@ -56,7 +59,7 @@ public sealed class Buffer : DeviceObject<Buffer.Desc>
     private static extern ResultCode IBuffer_BindMemory(IntPtr self, in DeviceMemorySliceNative slice);
 
     [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DeviceMemorySliceNative(IntPtr Memory, long Offset, long Size);
+    private readonly record struct DeviceMemorySliceNative(IntPtr Memory, ulong Offset, ulong Size);
 
     /// <summary>
     ///     Buffer descriptor.
@@ -64,5 +67,5 @@ public sealed class Buffer : DeviceObject<Buffer.Desc>
     /// <param name="Name">Debug name of the object.</param>
     /// <param name="Size">Size of the buffer.</param>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct Desc(NativeString Name, long Size);
+    public readonly record struct Desc(NativeString Name, ulong Size);
 }

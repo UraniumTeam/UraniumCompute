@@ -12,7 +12,7 @@ namespace UraniumCompute.Backend;
 /// 
 /// Compute devices are a part of UraniumCompute low-level API and should not be used directly together with job graphs
 /// and other higher-level objects.
-public sealed class ComputeDevice : UnObject
+public sealed class ComputeDevice : NativeObject
 {
     private static readonly Dictionary<IntPtr, ComputeDevice> devices = new();
 
@@ -40,11 +40,12 @@ public sealed class ComputeDevice : UnObject
         };
     }
 
-    public Buffer CreateBuffer()
+    public Buffer<T> CreateBuffer<T>()
+        where T : unmanaged
     {
         return IComputeDevice_CreateBuffer(Handle, out var buffer) switch
         {
-            ResultCode.Success => new Buffer(buffer),
+            ResultCode.Success => new Buffer<T>(buffer),
             var resultCode => throw new ErrorResultException("Couldn't create buffer", resultCode)
         };
     }
