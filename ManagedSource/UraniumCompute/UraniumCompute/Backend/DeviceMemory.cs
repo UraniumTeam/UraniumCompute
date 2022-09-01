@@ -7,6 +7,8 @@ namespace UraniumCompute.Backend;
 
 public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
 {
+    public const ulong WholeSize = ulong.MaxValue;
+
     public override unsafe Desc Descriptor
     {
         get
@@ -27,7 +29,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         Init(desc.Name, desc.Size, objects, desc.Flags);
     }
 
-    public unsafe void Init(NativeString name, long size, ReadOnlySpan<IntPtr> objects, MemoryKindFlags flags)
+    public unsafe void Init(NativeString name, ulong size, ReadOnlySpan<IntPtr> objects, MemoryKindFlags flags)
     {
         fixed (IntPtr* p = objects)
         {
@@ -41,16 +43,17 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         }
     }
 
-    public unsafe void* Map(long byteOffset = 0, long byteSize = long.MaxValue)
+    internal unsafe void* MapImpl(ulong byteOffset = 0, ulong byteSize = WholeSize)
     {
         IDeviceMemory_Map(Handle, byteOffset, byteSize, out var data).ThrowOnError("Couldn't map device memory");
         return (void*)data;
     }
 
-    public unsafe T* Map<T>(long byteOffset = 0, long byteSize = long.MaxValue)
+    public unsafe MemoryMapHelper<T> Map<T>(ulong byteOffset = 0, ulong byteSize = WholeSize)
         where T : unmanaged
     {
-        return (T*)Map(byteOffset, byteSize);
+        var ptr = (T*)MapImpl(byteOffset, byteSize);
+        return new MemoryMapHelper<T>(this, byteOffset, byteSize, ptr);
     }
 
     public void Unmap()
@@ -70,7 +73,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     private static extern void IDeviceMemory_GetDesc(IntPtr self, out DescNative desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceMemory_Map(IntPtr self, long byteOffset, long byteSize, out IntPtr data);
+    private static extern ResultCode IDeviceMemory_Map(IntPtr self, ulong byteOffset, ulong byteSize, out IntPtr data);
 
     [DllImport("UnCompute")]
     private static extern void IDeviceMemory_Unmap(IntPtr self);
@@ -79,7 +82,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     private static extern bool IDeviceMemory_IsCompatible(IntPtr self, IntPtr deviceObject);
 
     [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DescNative(NativeString Name, long Size, ArraySliceBase Objects, MemoryKindFlags Flags);
+    private readonly record struct DescNative(NativeString Name, ulong Size, ArraySliceBase Objects, MemoryKindFlags Flags);
 
-    public readonly record struct Desc(NativeString Name, long Size, IEnumerable<IntPtr> Objects, MemoryKindFlags Flags);
+    public readonly record struct Desc(NativeString Name, ulong Size, IEnumerable<IntPtr> Objects, MemoryKindFlags Flags);
 }

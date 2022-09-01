@@ -3,7 +3,7 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
-public abstract class DeviceObject : UnObject
+public abstract class DeviceObject : NativeObject
 {
     public ComputeDevice Device
     {

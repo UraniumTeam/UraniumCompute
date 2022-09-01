@@ -8,7 +8,7 @@ namespace UraniumCompute.Acceleration;
 /// <summary>
 ///     This class is used to create backend-specific compute devices and related objects.
 /// </summary>
-public sealed class DeviceFactory : UnObject
+public sealed class DeviceFactory : NativeObject
 {
     /// <summary>
     ///     Kind of backend for the compute devices created by this factory.
