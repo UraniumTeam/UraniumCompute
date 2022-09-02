@@ -1,8 +1,8 @@
-#include <UnCompute/Backend/DeviceMemoryBase.h>
+#include <UnCompute/Backend/FenceBase.h>
 
 namespace UN
 {
-    ResultCode DeviceMemoryBase::Init(const IDeviceMemory::DescriptorType& desc)
+    ResultCode FenceBase::Init(const FenceDesc& desc)
     {
         DeviceObjectBase::Init(desc.Name, desc);
         return InitInternal(desc);

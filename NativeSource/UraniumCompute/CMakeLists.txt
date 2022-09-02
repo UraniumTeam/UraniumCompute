@@ -51,7 +51,7 @@ set(SRC
     Bindings/Backend/Buffer.cpp
     Bindings/Backend/DeviceMemory.cpp
     Bindings/Backend/DeviceObject.cpp
-    UnCompute/VulkanBackend/VulkanDescriptorAllocator.cpp UnCompute/VulkanBackend/VulkanDescriptorAllocator.h)
+    UnCompute/VulkanBackend/VulkanDescriptorAllocator.cpp UnCompute/VulkanBackend/VulkanDescriptorAllocator.h UnCompute/Backend/ICommandList.h UnCompute/Backend/CommandListBase.cpp UnCompute/Backend/CommandListBase.h UnCompute/Backend/IFence.h UnCompute/Backend/FenceBase.cpp UnCompute/Backend/FenceBase.h UnCompute/VulkanBackend/VulkanFence.cpp UnCompute/VulkanBackend/VulkanFence.h)
 
 add_library(UnCompute SHARED ${SRC})
 
