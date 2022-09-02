@@ -44,6 +44,30 @@ namespace UN
     {
         T* m_pObject;
 
+        template<class T1, class = void>
+        struct IsComplete : std::false_type
+        {
+        };
+
+        template<class T1>
+        struct IsComplete<T1, decltype(void(sizeof(T1)))> : std::true_type
+        {
+        };
+
+        template<class TBase, class TDerived, bool>
+        struct IsBaseOf : std::true_type
+        {
+        };
+
+        // NOTE: Check for completeness of the type is here to allow pointers that hold forward-declared classes
+        template<class TBase, class TDerived>
+        struct IsBaseOf<TBase, TDerived, true> : std::is_base_of<TBase, TDerived>
+        {
+        };
+
+        static_assert(IsBaseOf<IObject, T, IsComplete<T>::value>::value,
+                      "The template parameter in Ptr<T> must be a class or an interface derived from IObject");
+
         template<class T1>
         friend class Ptr;
 
