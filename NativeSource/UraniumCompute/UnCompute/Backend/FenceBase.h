@@ -15,6 +15,6 @@ namespace UN
         }
 
     public:
-        ResultCode Init(const FenceDesc& desc) override;
+        ResultCode Init(const DescriptorType& desc) override;
     };
 } // namespace UN

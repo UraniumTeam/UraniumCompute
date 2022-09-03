@@ -96,6 +96,7 @@ namespace UN
 
         ResultCode CreateBuffer(IBuffer** ppBuffer) override;
         ResultCode CreateMemory(IDeviceMemory** ppMemory) override;
+        ResultCode CreateFence(IFence** ppFence) override;
 
         static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };

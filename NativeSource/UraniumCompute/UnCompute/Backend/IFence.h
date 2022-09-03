@@ -1,5 +1,6 @@
 #pragma once
 #include <UnCompute/Backend/IDeviceObject.h>
+#include <chrono>
 
 namespace UN
 {
@@ -15,6 +16,14 @@ namespace UN
     {
         const char* Name        = nullptr;           //!< Fence debug name.
         FenceState InitialState = FenceState::Reset; //!< Initial fence state.
+
+        inline FenceDesc() = default;
+
+        inline FenceDesc(const char* name, FenceState initialState = FenceState::Reset)
+            : Name(name)
+            , InitialState(initialState)
+        {
+        }
     };
 
     //! \brief An interface for fences - synchronization primitives that can be either signaled or reset.
@@ -31,6 +40,17 @@ namespace UN
         virtual ResultCode SignalOnCpu() = 0;
 
         //! \brief Wait for the fence to signal.
+        //!
+        //! \param timeout - Waiting timeout in nanoseconds.
+        //!
+        //! \return ResultCode::Success, ResultCode::Timeout or an error code.
+        virtual ResultCode WaitOnCpu(std::chrono::nanoseconds timeout) = 0;
+
+        //! \brief Wait for the fence to signal.
+        //!
+        //! Same as WaitOnCpu(std::chrono::nanoseconds), but without a timeout.
+        //!
+        //! \return ResultCode::Success or an error code.
         virtual ResultCode WaitOnCpu() = 0;
 
         //! \brief Reset fence state.

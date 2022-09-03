@@ -3,6 +3,7 @@
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
+#include <UnCompute/VulkanBackend/VulkanFence.h>
 #include <algorithm>
 
 namespace UN
@@ -23,12 +24,6 @@ namespace UN
         };
 
         auto convertQueueFlags = [](VkQueueFlags flags) {
-            VkQueueFlags allBits = VK_QUEUE_TRANSFER_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT;
-            if (RemoveFlags(flags, allBits) > 0)
-            {
-                return HardwareQueueKindFlags::None;
-            }
-
             HardwareQueueKindFlags result{};
             if (AnyFlagsActive(flags, static_cast<VkQueueFlags>(VK_QUEUE_GRAPHICS_BIT)))
             {
@@ -194,6 +189,12 @@ namespace UN
     ResultCode VulkanComputeDevice::CreateMemory(IDeviceMemory** ppMemory)
     {
         VulkanDeviceMemory::Create(this, ppMemory);
+        return ResultCode::Success;
+    }
+
+    ResultCode VulkanComputeDevice::CreateFence(IFence** ppFence)
+    {
+        VulkanFence::Create(this, ppFence);
         return ResultCode::Success;
     }
 } // namespace UN
