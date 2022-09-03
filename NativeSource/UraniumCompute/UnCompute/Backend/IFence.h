@@ -28,10 +28,10 @@ namespace UN
         virtual ResultCode Init(const DescriptorType& desc) = 0;
 
         //! \brief Signal the fence on CPU.
-        virtual void SignalOnCpu() = 0;
+        virtual ResultCode SignalOnCpu() = 0;
 
         //! \brief Wait for the fence to signal.
-        virtual void WaitOnCpu() = 0;
+        virtual ResultCode WaitOnCpu() = 0;
 
         //! \brief Reset fence state.
         virtual void ResetState() = 0;
