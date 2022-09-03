@@ -25,15 +25,23 @@ namespace UN
         m_NativeFence = VK_NULL_HANDLE;
     }
 
-    void VulkanFence::SignalOnCpu()
+    ResultCode VulkanFence::SignalOnCpu()
     {
-        UN_Error(false, "Not implemented");
+        auto queue = m_pDevice.As<VulkanComputeDevice>()->GetDeviceQueue(HardwareQueueKindFlags::Compute);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        auto vkResult = vkQueueSubmit(queue, 1, &submitInfo, m_NativeFence);
+        UN_VerifyResult(vkResult, "Couldn't submit Vulkan queue to signal a fence");
+        return VulkanConvert(vkResult);
     }
 
-    void VulkanFence::WaitOnCpu()
+    ResultCode VulkanFence::WaitOnCpu()
     {
         auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
-        vkWaitForFences(vkDevice, 1, &m_NativeFence, false, 10'000'000'000);
+        auto vkResult = vkWaitForFences(vkDevice, 1, &m_NativeFence, false, 10'000'000'000);
+        return VulkanConvert(vkResult);
     }
 
     void VulkanFence::ResetState()

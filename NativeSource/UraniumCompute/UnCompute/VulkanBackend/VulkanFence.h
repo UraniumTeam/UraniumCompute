@@ -16,8 +16,8 @@ namespace UN
         ~VulkanFence() override;
 
         void Reset() override;
-        void SignalOnCpu() override;
-        void WaitOnCpu() override;
+        ResultCode SignalOnCpu() override;
+        ResultCode WaitOnCpu() override;
         void ResetState() override;
         FenceState GetState() override;
 
