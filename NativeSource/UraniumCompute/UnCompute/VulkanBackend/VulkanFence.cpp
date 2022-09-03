@@ -37,10 +37,10 @@ namespace UN
         return VulkanConvert(vkResult);
     }
 
-    ResultCode VulkanFence::WaitOnCpu()
+    ResultCode VulkanFence::WaitOnCpu(std::chrono::nanoseconds timeout)
     {
         auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
-        auto vkResult = vkWaitForFences(vkDevice, 1, &m_NativeFence, false, 10'000'000'000);
+        auto vkResult = vkWaitForFences(vkDevice, 1, &m_NativeFence, false, timeout.count());
         return VulkanConvert(vkResult);
     }
 

@@ -1,6 +1,7 @@
 #include <UnCompute/Acceleration/IDeviceFactory.h>
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
+#include <UnCompute/Backend/IFence.h>
 #include <UnCompute/Memory/Memory.h>
 #include <iostream>
 
@@ -72,4 +73,18 @@ int main()
     {
         UN_Error(false, "Couldn't map memory");
     }
+
+    using namespace std::chrono_literals;
+
+    Ptr<IFence> pFence;
+    UN_VerifyResultFatal(pDevice->CreateFence(&pFence), "Couldn't create a fence");
+
+    FenceDesc fenceDesc("Test fence");
+    UN_VerifyResultFatal(pFence->Init(fenceDesc), "Couldn't initialize a fence");
+    pFence->SignalOnCpu();
+    UNLOG_Info("WaitOnCpu() for \"{}\" returned {}", pFence->GetDebugName(), pFence->WaitOnCpu(10ms));
+    pFence->ResetState();
+    UNLOG_Info("WaitOnCpu() for \"{}\" returned {}", pFence->GetDebugName(), pFence->WaitOnCpu(10ms));
+    pFence->SignalOnCpu();
+    UNLOG_Info("WaitOnCpu() for \"{}\" returned {}", pFence->GetDebugName(), pFence->WaitOnCpu(10ms));
 }

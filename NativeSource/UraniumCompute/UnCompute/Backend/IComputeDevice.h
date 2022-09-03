@@ -39,6 +39,7 @@ namespace UN
 
     UN_ENUM_OPERATORS(HardwareQueueKindFlags);
 
+    class IFence;
     class IBuffer;
     class IDeviceMemory;
 
@@ -65,5 +66,7 @@ namespace UN
         virtual ResultCode CreateBuffer(IBuffer** ppBuffer) = 0;
 
         virtual ResultCode CreateMemory(IDeviceMemory** ppMemory) = 0;
+
+        virtual ResultCode CreateFence(IFence** ppFence) = 0;
     };
 } // namespace UN
