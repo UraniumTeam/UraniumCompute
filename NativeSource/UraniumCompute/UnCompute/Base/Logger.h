@@ -63,9 +63,17 @@ struct fmt::formatter<UN::ResultCode> : fmt::formatter<std::string_view>
 //! \brief Verify that ResultCode succeeded, will use UN_Fail() to stop the program in debug and release builds.
 //!
 //! \see UN::Succeeded
-#define UN_VerifyResult(expr, ...) UN_Verify(::UN::Succeeded(expr), __VA_ARGS__)
+#define UN_VerifyResultFatal(expr, ...)                                                                                        \
+    do                                                                                                                           \
+    {                                                                                                                            \
+        if (auto resultCode = (expr); !::UN::Succeeded(resultCode))                                                              \
+        {                                                                                                                        \
+            UN_Verify(false, "[Result was {}]: {}", resultCode, ::fmt::format(__VA_ARGS__));                                     \
+        }                                                                                                                        \
+    }                                                                                                                            \
+    while (false)
 
-//! \brief Verify and expression and log a warning, works in release builds too.
+//! \brief Verify expression and log a warning, works in release builds too.
 #define UN_VerifyWarning(expr, ...)                                                                                              \
     do                                                                                                                           \
     {                                                                                                                            \
@@ -76,13 +84,26 @@ struct fmt::formatter<UN::ResultCode> : fmt::formatter<std::string_view>
     }                                                                                                                            \
     while (false)
 
-//! \brief Verify and expression and log an error, works in release builds too.
+//! \brief Verify expression and log an error, works in release builds too.
 #define UN_VerifyError(expr, ...)                                                                                                \
     do                                                                                                                           \
     {                                                                                                                            \
         if (!(expr))                                                                                                             \
         {                                                                                                                        \
             UNLOG_Error(__VA_ARGS__);                                                                                            \
+        }                                                                                                                        \
+    }                                                                                                                            \
+    while (false)
+
+//! \brief Verify that ResultCode succeeded and log an error, works in release builds too.
+//!
+//! \see UN::Succeeded
+#define UN_VerifyResult(expr, ...)                                                                                               \
+    do                                                                                                                           \
+    {                                                                                                                            \
+        if (auto resultCode = (expr); !::UN::Succeeded(resultCode))                                                              \
+        {                                                                                                                        \
+            UN_VerifyError(false, "[Result was {}]: {}", resultCode, ::fmt::format(__VA_ARGS__));                                \
         }                                                                                                                        \
     }                                                                                                                            \
     while (false)
