@@ -35,6 +35,7 @@ namespace UN
 
         void ResetInternal();
         void FindQueueFamilies();
+
     public:
         using DescriptorType = ComputeDeviceDesc;
 
@@ -43,6 +44,48 @@ namespace UN
 
         ResultCode Init(const DescriptorType& desc) override;
         void Reset() override;
+
+        inline VkCommandPool GetCommandPool(HardwareQueueKindFlags flags)
+        {
+            for (auto& queue : m_QueueFamilies)
+            {
+                if (AllFlagsActive(queue.KindFlags, flags))
+                {
+                    return queue.CmdPool;
+                }
+            }
+
+            UN_Verify(false, "Couldn't find command pool");
+            return VK_NULL_HANDLE;
+        }
+
+        inline UInt32 GetQueueFamilyIndex(HardwareQueueKindFlags flags)
+        {
+            for (auto& queue : m_QueueFamilies)
+            {
+                if (AllFlagsActive(queue.KindFlags, flags))
+                {
+                    return queue.FamilyIndex;
+                }
+            }
+
+            UN_Verify(false, "Couldn't find queue family");
+            return std::numeric_limits<UInt32>::max();
+        }
+
+        inline VkQueue GetDeviceQueue(UInt32 queueFamilyIndex, UInt32 queueIndex)
+        {
+            VkQueue queue;
+            vkGetDeviceQueue(m_NativeDevice, queueFamilyIndex, queueIndex, &queue);
+            return queue;
+        }
+
+        inline VkQueue GetDeviceQueue(HardwareQueueKindFlags flags)
+        {
+            VkQueue queue;
+            vkGetDeviceQueue(m_NativeDevice, GetQueueFamilyIndex(flags), 0, &queue);
+            return queue;
+        }
 
         ResultCode FindMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, UInt32& memoryType);
 
