@@ -24,21 +24,21 @@ namespace UN
 
         auto convertQueueFlags = [](VkQueueFlags flags) {
             VkQueueFlags allBits = VK_QUEUE_TRANSFER_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT;
-            if (FlagsRemove(flags, allBits) > 0)
+            if (RemoveFlags(flags, allBits) > 0)
             {
                 return HardwareQueueKindFlags::None;
             }
 
             HardwareQueueKindFlags result{};
-            if (FlagsAny(flags, static_cast<VkQueueFlags>(VK_QUEUE_GRAPHICS_BIT)))
+            if (AnyFlagsActive(flags, static_cast<VkQueueFlags>(VK_QUEUE_GRAPHICS_BIT)))
             {
                 result |= HardwareQueueKindFlags::GraphicsBit;
             }
-            if (FlagsAny(flags, static_cast<VkQueueFlags>(VK_QUEUE_COMPUTE_BIT)))
+            if (AnyFlagsActive(flags, static_cast<VkQueueFlags>(VK_QUEUE_COMPUTE_BIT)))
             {
                 result |= HardwareQueueKindFlags::ComputeBit;
             }
-            if (FlagsAny(flags, static_cast<VkQueueFlags>(VK_QUEUE_TRANSFER_BIT)))
+            if (AnyFlagsActive(flags, static_cast<VkQueueFlags>(VK_QUEUE_TRANSFER_BIT)))
             {
                 result |= HardwareQueueKindFlags::TransferBit;
             }
