@@ -12,11 +12,11 @@ int main()
     Ptr<IDeviceFactory> pFactory;
 
     CreateDeviceFactoryProc CreateDeviceFactory;
-    UN_VerifyResult(LoadCreateDeviceFactoryProc(&pLibrary, &CreateDeviceFactory), "Couldn't load DLL");
-    UN_VerifyResult(CreateDeviceFactory(BackendKind::Vulkan, &pFactory), "Couldn't create device factory");
+    UN_VerifyResultFatal(LoadCreateDeviceFactoryProc(&pLibrary, &CreateDeviceFactory), "Couldn't load DLL");
+    UN_VerifyResultFatal(CreateDeviceFactory(BackendKind::Vulkan, &pFactory), "Couldn't create device factory");
 
     DeviceFactoryDesc deviceFactoryDesc("Test application");
-    UN_VerifyResult(pFactory->Init(deviceFactoryDesc), "Couldn't initialize device factory");
+    UN_VerifyResultFatal(pFactory->Init(deviceFactoryDesc), "Couldn't initialize device factory");
 
     auto adapters = pFactory->EnumerateAdapters();
     for (const AdapterInfo& adapter : adapters)
@@ -25,37 +25,33 @@ int main()
     }
 
     Ptr<IComputeDevice> pDevice;
-    UN_VerifyResult(pFactory->CreateDevice(&pDevice), "Couldn't create device");
+    UN_VerifyResultFatal(pFactory->CreateDevice(&pDevice), "Couldn't create device");
 
     ComputeDeviceDesc deviceDesc(adapters[0].Id);
-    UN_VerifyResult(pDevice->Init(deviceDesc), "Couldn't initialize device");
+    UN_VerifyResultFatal(pDevice->Init(deviceDesc), "Couldn't initialize device");
 
     Ptr<IBuffer> pBuffer;
-    UN_VerifyResult(pDevice->CreateBuffer(&pBuffer), "Couldn't create buffer");
+    UN_VerifyResultFatal(pDevice->CreateBuffer(&pBuffer), "Couldn't create buffer");
 
     constexpr UInt64 bufferSize = 128 * 1024 * 1024;
 
     BufferDesc bufferDesc("Test buffer", bufferSize * sizeof(float));
-    UN_VerifyResult(pBuffer->Init(bufferDesc), "Couldn't initialize buffer");
+    UN_VerifyResultFatal(pBuffer->Init(bufferDesc), "Couldn't initialize buffer");
 
     Ptr<IDeviceMemory> pMemory;
-    UN_VerifyResult(pDevice->CreateMemory(&pMemory), "Couldn't create device memory");
+    UN_VerifyResultFatal(pDevice->CreateMemory(&pMemory), "Couldn't create device memory");
 
     // TODO: we need a nicer API for this...
     IDeviceObject* object = pBuffer.Get();
     auto buffers          = ArraySlice<const IDeviceObject* const>(&object, 1);
     auto memoryDesc = DeviceMemoryDesc("Test memory", MemoryKindFlags::HostAndDeviceAccessible, pBuffer->GetDesc().Size, buffers);
 
-    if (auto result = pMemory->Init(memoryDesc); !Succeeded(result))
-    {
-        UN_Error(false, "Couldn't allocate {} bytes of device memory, IDeviceMemory::Init returned {}", memoryDesc.Size, result);
-        return 1;
-    }
+    UN_VerifyResultFatal(pMemory->Init(memoryDesc), "Couldn't allocate {} bytes of device memory", MemorySize64(memoryDesc.Size));
 
     UNLOG_Info("Allocated {} of device memory", MemorySize64(bufferSize * sizeof(float)));
 
     auto memorySlice = DeviceMemorySlice(pMemory.Get());
-    UN_VerifyResult(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
+    UN_VerifyResultFatal(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
 
     if (auto data = MemoryMapHelper<float>::Map(memorySlice))
     {
