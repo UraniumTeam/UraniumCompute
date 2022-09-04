@@ -97,6 +97,7 @@ namespace UN
         info.pCommandBuffers    = &m_CommandBuffer;
         info.commandBufferCount = 1;
 
+        m_pFence->ResetState();
         VkFence vkFence = m_pFence.As<VulkanFence>()->GetNativeFence();
         return VulkanConvert(vkQueueSubmit(m_Queue, 1, &info, vkFence));
     }
