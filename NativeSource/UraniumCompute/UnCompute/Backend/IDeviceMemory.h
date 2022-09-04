@@ -19,15 +19,14 @@ namespace UN
     //! \brief Device memory descriptor.
     struct DeviceMemoryDesc
     {
-        const char* Name = nullptr;                     //!< Device memory debug name.
-        UInt64 Size      = 0;                           //!< Memory size in bytes.
-        ArraySlice<const IDeviceObject* const> Objects; //!< Resource objects that the memory must be compatible with.
-        MemoryKindFlags Flags;                          //!< Memory kind flags.
+        const char* Name = nullptr;               //!< Device memory debug name.
+        UInt64 Size      = 0;                     //!< Memory size in bytes.
+        ArraySlice<IDeviceObject*> Objects; //!< Resource objects that the memory must be compatible with.
+        MemoryKindFlags Flags;                    //!< Memory kind flags.
 
         inline DeviceMemoryDesc() = default;
 
-        inline DeviceMemoryDesc(const char* name, MemoryKindFlags flags, UInt64 size,
-                                ArraySlice<const IDeviceObject* const> objects)
+        inline DeviceMemoryDesc(const char* name, MemoryKindFlags flags, UInt64 size, ArraySlice<IDeviceObject*> objects)
             : Name(name)
             , Size(size)
             , Objects(objects)

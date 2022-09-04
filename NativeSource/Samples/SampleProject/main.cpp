@@ -1,4 +1,5 @@
 #include <UnCompute/Acceleration/IDeviceFactory.h>
+#include <UnCompute/Backend/ICommandList.h>
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
 #include <UnCompute/Backend/IFence.h>
@@ -31,30 +32,37 @@ int main()
     ComputeDeviceDesc deviceDesc(adapters[0].Id);
     UN_VerifyResultFatal(pDevice->Init(deviceDesc), "Couldn't initialize device");
 
-    Ptr<IBuffer> pBuffer;
-    UN_VerifyResultFatal(pDevice->CreateBuffer(&pBuffer), "Couldn't create buffer");
+    Ptr<IBuffer> pBuffer1, pBuffer2;
+    UN_VerifyResultFatal(pDevice->CreateBuffer(&pBuffer1), "Couldn't create buffer");
+    UN_VerifyResultFatal(pDevice->CreateBuffer(&pBuffer2), "Couldn't create buffer");
 
-    constexpr UInt64 bufferSize = 128 * 1024 * 1024;
+    constexpr UInt64 bufferElementCount = 1024 * 1024;
+    constexpr UInt64 bufferSize         = bufferElementCount * sizeof(float);
+    constexpr UInt64 memorySize         = bufferSize * 2;
 
-    BufferDesc bufferDesc("Test buffer", bufferSize * sizeof(float));
-    UN_VerifyResultFatal(pBuffer->Init(bufferDesc), "Couldn't initialize buffer");
+    BufferDesc bufferDesc("Test buffer", bufferSize);
+    UN_VerifyResultFatal(pBuffer1->Init(bufferDesc), "Couldn't initialize buffer");
+    UN_VerifyResultFatal(pBuffer2->Init(bufferDesc), "Couldn't initialize buffer");
 
     Ptr<IDeviceMemory> pMemory;
     UN_VerifyResultFatal(pDevice->CreateMemory(&pMemory), "Couldn't create device memory");
 
     // TODO: we need a nicer API for this...
-    IDeviceObject* object = pBuffer.Get();
-    auto buffers          = ArraySlice<const IDeviceObject* const>(&object, 1);
-    auto memoryDesc = DeviceMemoryDesc("Test memory", MemoryKindFlags::HostAndDeviceAccessible, pBuffer->GetDesc().Size, buffers);
+    IDeviceObject* objects[] = { pBuffer1.Get(), pBuffer2.Get() };
+    auto memoryDesc          = DeviceMemoryDesc(
+        "Test memory", MemoryKindFlags::HostAndDeviceAccessible, memorySize, ArraySlice<IDeviceObject*>(objects));
 
     UN_VerifyResultFatal(pMemory->Init(memoryDesc), "Couldn't allocate {} bytes of device memory", MemorySize64(memoryDesc.Size));
 
-    UNLOG_Info("Allocated {} of device memory", MemorySize64(bufferSize * sizeof(float)));
+    UNLOG_Info("Allocated {} of device memory", MemorySize64(memorySize));
 
-    auto memorySlice = DeviceMemorySlice(pMemory.Get());
-    UN_VerifyResultFatal(pBuffer->BindMemory(memorySlice), "Couldn't bind device memory to the buffer");
+    auto memorySlice1 = DeviceMemorySlice(pMemory.Get(), 0, bufferSize);
+    UN_VerifyResultFatal(pBuffer1->BindMemory(memorySlice1), "Couldn't bind device memory to the buffer");
 
-    if (auto data = MemoryMapHelper<float>::Map(memorySlice))
+    auto memorySlice2 = DeviceMemorySlice(pMemory.Get(), bufferSize, bufferSize);
+    UN_VerifyResultFatal(pBuffer2->BindMemory(memorySlice2), "Couldn't bind device memory to the buffer");
+
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice1))
     {
         for (UInt64 i = 0; i < data.Length(); ++i)
         {
@@ -87,4 +95,63 @@ int main()
     UNLOG_Info("WaitOnCpu() for \"{}\" returned {}", pFence->GetDebugName(), pFence->WaitOnCpu(10ms));
     pFence->SignalOnCpu();
     UNLOG_Info("WaitOnCpu() for \"{}\" returned {}", pFence->GetDebugName(), pFence->WaitOnCpu(10ms));
+
+    Ptr<ICommandList> pCommandList;
+    UN_VerifyResultFatal(pDevice->CreateCommandList(&pCommandList), "Couldn't create a command list");
+
+    UNLOG_Info(pCommandList->GetState());
+
+    CommandListDesc commandListDesc("Test command list", HardwareQueueKindFlags::Compute);
+    UN_VerifyResultFatal(pCommandList->Init(commandListDesc), "Couldn't initialize a command list");
+
+    UNLOG_Info(pCommandList->GetState());
+
+    if (auto builder = pCommandList->Begin())
+    {
+        UNLOG_Info(pCommandList->GetState());
+        BufferCopyRegion copyRegion(bufferSize);
+        builder.Copy(pBuffer1.Get(), pBuffer2.Get(), copyRegion);
+    }
+    else
+    {
+        UN_Error(false, "Couldn't begin command list recording");
+    }
+
+    UNLOG_Info(pCommandList->GetState());
+
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice2))
+    {
+        std::cout << "Data in the buffer before copy: ";
+        for (UInt64 i = 0; i < 16; ++i)
+        {
+            std::cout << data[i] << " ";
+        }
+
+        std::cout << "..." << std::endl;
+    }
+    else
+    {
+        UN_Error(false, "Couldn't map memory");
+    }
+
+    UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
+    UNLOG_Info(pCommandList->GetState());
+    Ptr<IFence> pWaitFence = pCommandList->GetFence();
+    UN_VerifyResultFatal(pWaitFence->WaitOnCpu(1s), "Command list fence timeout");
+    UNLOG_Info(pCommandList->GetState());
+
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice2))
+    {
+        std::cout << "Data in the copied buffer: ";
+        for (UInt64 i = 0; i < 16; ++i)
+        {
+            std::cout << data[i] << " ";
+        }
+
+        std::cout << "..." << std::endl;
+    }
+    else
+    {
+        UN_Error(false, "Couldn't map memory");
+    }
 }

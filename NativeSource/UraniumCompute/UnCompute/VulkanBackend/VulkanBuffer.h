@@ -25,6 +25,11 @@ namespace UN
         ResultCode BindMemory(const DeviceMemorySlice& deviceMemory) override;
         void Reset() override;
 
+        [[nodiscard]] inline VkBuffer GetNativeBuffer() const
+        {
+            return m_NativeBuffer;
+        }
+
         [[nodiscard]] inline const VkMemoryRequirements& GetMemoryRequirements() const
         {
             return m_MemoryRequirements;
