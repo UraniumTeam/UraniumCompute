@@ -14,6 +14,7 @@ namespace UN
         Abort,            //!< Operation aborted.
         NotImplemented,   //!< Operation not implemented.
         InvalidArguments, //!< One or more arguments were invalid.
+        InvalidOperation, //!< The operation was invalid.
         AccessDenied,     //!< General access denied error occurred.
         Timeout,          //!< Operation timed out.
         OutOfMemory       //!< Not enough memory to complete the operation.
@@ -35,6 +36,7 @@ namespace UN
         case ResultCode::Abort: return "ResultCode::Abort";
         case ResultCode::NotImplemented: return "ResultCode::NotImplemented";
         case ResultCode::InvalidArguments: return "ResultCode::InvalidArguments";
+        case ResultCode::InvalidOperation: return "ResultCode::InvalidOperation";
         case ResultCode::AccessDenied: return "ResultCode::AccessDenied";
         case ResultCode::Timeout: return "ResultCode::Timeout";
         case ResultCode::OutOfMemory: return "ResultCode::OutOfMemory";

@@ -45,11 +45,11 @@ namespace UN
         ResultCode Init(const DescriptorType& desc) override;
         void Reset() override;
 
-        inline VkCommandPool GetCommandPool(HardwareQueueKindFlags flags)
+        inline VkCommandPool GetCommandPool(UInt32 queueFamilyIndex)
         {
             for (auto& queue : m_QueueFamilies)
             {
-                if (AllFlagsActive(queue.KindFlags, flags))
+                if (queue.FamilyIndex == queueFamilyIndex)
                 {
                     return queue.CmdPool;
                 }
@@ -97,6 +97,7 @@ namespace UN
         ResultCode CreateBuffer(IBuffer** ppBuffer) override;
         ResultCode CreateMemory(IDeviceMemory** ppMemory) override;
         ResultCode CreateFence(IFence** ppFence) override;
+        ResultCode CreateCommandList(ICommandList** ppCommandList) override;
 
         static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };

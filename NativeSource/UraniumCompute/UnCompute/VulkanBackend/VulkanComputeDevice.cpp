@@ -1,5 +1,6 @@
 #include <UnCompute/Memory/Memory.h>
 #include <UnCompute/VulkanBackend/VulkanBuffer.h>
+#include <UnCompute/VulkanBackend/VulkanCommandList.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
@@ -195,6 +196,12 @@ namespace UN
     ResultCode VulkanComputeDevice::CreateFence(IFence** ppFence)
     {
         VulkanFence::Create(this, ppFence);
+        return ResultCode::Success;
+    }
+
+    ResultCode VulkanComputeDevice::CreateCommandList(ICommandList** ppCommandList)
+    {
+        VulkanCommandList::Create(this, ppCommandList);
         return ResultCode::Success;
     }
 } // namespace UN

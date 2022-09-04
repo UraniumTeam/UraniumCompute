@@ -1,6 +1,6 @@
 #pragma once
+#include <UnCompute/Backend/BaseTypes.h>
 #include <UnCompute/Backend/IDeviceObject.h>
-#include <UnCompute/Base/Flags.h>
 #include <UnCompute/Memory/Ptr.h>
 
 namespace UN
@@ -15,6 +15,23 @@ namespace UN
         Invalid
     };
 
+    inline const char* CommandListStateToString(CommandListState state)
+    {
+        switch (state)
+        {
+            // clang-format off
+        case CommandListState::Initial: return "CommandListState::Initial";
+        case CommandListState::Recording: return "CommandListState::Recording";
+        case CommandListState::Executable: return "CommandListState::Executable";
+        case CommandListState::Pending: return "CommandListState::Pending";
+        case CommandListState::Invalid: return "CommandListState::Invalid";
+            // clang-format on
+        default:
+            assert(false && "CommandListState was unknown");
+            return "CommandListState::<Unknown>";
+        }
+    }
+
     //! \brief Command list allocation flags.
     enum class CommandListFlags
     {
@@ -27,13 +44,16 @@ namespace UN
     //! \brief Command list descriptor.
     struct CommandListDesc
     {
-        const char* Name       = nullptr;                //!< Command list debug name.
-        CommandListFlags Flags = CommandListFlags::None; //!< Command list flags.
+        const char* Name                      = nullptr;                         //!< Command list debug name.
+        HardwareQueueKindFlags QueueKindFlags = HardwareQueueKindFlags::Compute; //!< Command queue kind flags.
+        CommandListFlags Flags                = CommandListFlags::None;          //!< Command list flags.
 
         inline CommandListDesc() = default;
 
-        inline CommandListDesc(const char* name, CommandListFlags flags)
+        inline CommandListDesc(const char* name, HardwareQueueKindFlags queueKindFlags,
+                               CommandListFlags flags = CommandListFlags::None)
             : Name(name)
+            , QueueKindFlags(queueKindFlags)
             , Flags(flags)
         {
         }
@@ -42,9 +62,9 @@ namespace UN
     //! \brief Region for buffer copy command.
     struct BufferCopyRegion
     {
-        UInt64 Size;         //!< Size of the copy region.
-        UInt32 SourceOffset; //!< Offset in the source buffer.
-        UInt32 DestOffset;   //!< Offset in the destination buffer.
+        UInt64 Size         = 0; //!< Size of the copy region.
+        UInt32 SourceOffset = 0; //!< Offset in the source buffer.
+        UInt32 DestOffset   = 0; //!< Offset in the destination buffer.
 
         inline BufferCopyRegion() = default;
 
@@ -74,12 +94,15 @@ namespace UN
 
     public:
         explicit CommandListBuilder(ICommandList* pCommandList);
+        ~CommandListBuilder();
 
         //! \brief Set the command list state to CommandListState::Executable.
         void End();
 
         //! \brief Copy
         void Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region);
+
+        explicit operator bool();
     };
 
     //! \brief An interface for command lists that record commands to be executed by the backend.
@@ -118,7 +141,6 @@ namespace UN
     inline CommandListBuilder::CommandListBuilder(ICommandList* pCommandList)
         : m_pCommandList(pCommandList)
     {
-        UN_Assert(m_pCommandList->GetState() == CommandListState::Initial, "The command list must be in initial state");
     }
 
     inline void CommandListBuilder::End()
@@ -131,4 +153,24 @@ namespace UN
     {
         m_pCommandList->CmdCopy(pSource, pDestination, region);
     }
+
+    inline CommandListBuilder::operator bool()
+    {
+        return m_pCommandList != nullptr;
+    }
+
+    inline CommandListBuilder::~CommandListBuilder()
+    {
+        End();
+    }
 } // namespace UN
+
+template<>
+struct fmt::formatter<UN::CommandListState> : fmt::formatter<std::string_view>
+{
+    template<typename FormatContext>
+    auto format(const UN::CommandListState& state, FormatContext& ctx) const -> decltype(ctx.out())
+    {
+        return fmt::format_to(ctx.out(), "{}", UN::CommandListStateToString(state));
+    }
+};
