@@ -1,5 +1,4 @@
 ﻿using UraniumCompute.Backend;
-using UraniumCompute.Utils;
 
 namespace UraniumCompute.Acceleration;
 

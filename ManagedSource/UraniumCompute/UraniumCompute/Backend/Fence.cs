@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Memory;
 
@@ -38,6 +37,10 @@ public sealed class Fence : DeviceObject<Fence.Desc>
         }
     }
 
+    internal Fence(IntPtr handle) : base(handle)
+    {
+    }
+
     public override void Init(in Desc desc)
     {
         IFence_Init(Handle, in desc);
@@ -66,10 +69,6 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     public ResultCode WaitOnCpu(in TimeSpan timeout)
     {
         return IFence_WaitOnCpu_Timeout(Handle, (ulong)(timeout.TotalMilliseconds * 1_000_000));
-    }
-
-    internal Fence(IntPtr handle) : base(handle)
-    {
     }
 
     [DllImport("UnCompute")]
