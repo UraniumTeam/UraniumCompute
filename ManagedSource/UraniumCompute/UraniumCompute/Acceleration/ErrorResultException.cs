@@ -1,7 +1,7 @@
 ﻿namespace UraniumCompute.Acceleration;
 
 /// <summary>
-///     Indicates that the unmanaged returned a <see cref="ResultCode" /> other than Success.
+///     Indicates that an unmanaged function returned a <see cref="ResultCode" /> other than Success.
 /// </summary>
 public class ErrorResultException : Exception
 {

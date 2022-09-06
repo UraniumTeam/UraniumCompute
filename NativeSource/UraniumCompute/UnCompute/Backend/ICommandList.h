@@ -90,7 +90,7 @@ namespace UN
     //! \brief Command list builder, used for device command recording.
     class CommandListBuilder
     {
-        Ptr<ICommandList> m_pCommandList;
+        ICommandList* m_pCommandList;
 
     public:
         explicit CommandListBuilder(ICommandList* pCommandList);
@@ -146,7 +146,7 @@ namespace UN
     inline void CommandListBuilder::End()
     {
         m_pCommandList->End();
-        m_pCommandList.Reset();
+        m_pCommandList = nullptr;
     }
 
     inline void CommandListBuilder::Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region)

@@ -57,5 +57,11 @@ internal static class Program
         }
 
         Console.WriteLine(buffer.DebugName);
+
+        using var fence = device.CreateFence();
+        fence.Init(new Fence.Desc("Test fence", FenceState.Reset));
+
+        fence.SignalOnCpu();
+        fence.WaitOnCpu(TimeSpan.FromMilliseconds(1)).ThrowOnError();
     }
 }

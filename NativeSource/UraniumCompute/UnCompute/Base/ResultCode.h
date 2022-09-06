@@ -13,8 +13,8 @@ namespace UN
         Fail,             //!< Operation failed.
         Abort,            //!< Operation aborted.
         NotImplemented,   //!< Operation not implemented.
+        InvalidOperation, //!< Operation was invalid.
         InvalidArguments, //!< One or more arguments were invalid.
-        InvalidOperation, //!< The operation was invalid.
         AccessDenied,     //!< General access denied error occurred.
         Timeout,          //!< Operation timed out.
         OutOfMemory       //!< Not enough memory to complete the operation.

@@ -19,7 +19,7 @@ namespace UN
 
         inline FenceDesc() = default;
 
-        inline FenceDesc(const char* name, FenceState initialState = FenceState::Reset)
+        inline explicit FenceDesc(const char* name, FenceState initialState = FenceState::Reset)
             : Name(name)
             , InitialState(initialState)
         {
