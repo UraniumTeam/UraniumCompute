@@ -59,6 +59,15 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    public CommandList CreateCommandList()
+    {
+        return IComputeDevice_CreateCommandList(Handle, out var commandList) switch
+        {
+            ResultCode.Success => new CommandList(commandList),
+            var resultCode => throw new ErrorResultException("Couldn't create command list", resultCode)
+        };
+    }
+
     [Pure]
     internal static bool TryGetDevice(IntPtr handle, [MaybeNullWhen(false)] out ComputeDevice device)
     {
@@ -82,6 +91,9 @@ public sealed class ComputeDevice : NativeObject
 
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_CreateFence(IntPtr self, out IntPtr fence);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IComputeDevice_CreateCommandList(IntPtr self, out IntPtr commandList);
 
     /// <summary>
     ///     Compute device descriptor.
