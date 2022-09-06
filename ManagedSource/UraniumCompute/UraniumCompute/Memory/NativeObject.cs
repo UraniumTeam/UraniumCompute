@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using UraniumCompute.Utils;
 
 namespace UraniumCompute.Memory;
 
@@ -16,6 +17,11 @@ public abstract class NativeObject : IDisposable
     protected NativeObject(IntPtr handle)
     {
         Handle = handle;
+    }
+
+    public override string ToString()
+    {
+        return $"{{ {GetType().GetCSharpName()}: {nameof(NativeObject)} at 0x{Handle:x} }}";
     }
 
     public void Dispose()

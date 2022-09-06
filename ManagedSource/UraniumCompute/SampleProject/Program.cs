@@ -21,13 +21,13 @@ internal static class Program
         device.Init(new ComputeDevice.Desc(factory.Adapters[0].Id));
 
         using var buffer = device.CreateBuffer<float>();
-        buffer.Init(new BufferBase.Desc("Buffer", 1024));
+        buffer.Init(new BufferBase.Desc("Test Buffer", 1024));
 
-        using var memory = buffer.AllocateMemory("Memory", MemoryKindFlags.HostAndDeviceAccessible);
-        buffer.BindMemory(new DeviceMemorySlice(memory));
+        using var hostMemory = buffer.AllocateMemory("Host Memory", MemoryKindFlags.HostAndDeviceAccessible);
+        buffer.BindMemory(new DeviceMemorySlice(hostMemory));
 
         // Unsafe memory access through the device memory interface directly:
-        using (var map = memory.Map<int>())
+        using (var map = hostMemory.Map<int>())
         {
             for (var i = 0; i < map.Count; i++)
             {
@@ -35,7 +35,7 @@ internal static class Program
             }
         }
 
-        using (var map = memory.Map<long>())
+        using (var map = hostMemory.Map<long>())
         {
             Trace.Assert(map[0] == (long)uint.MaxValue + 2);
             Console.WriteLine($"Buffer memory: {string.Join(", ", map.Take(8))}...");
@@ -56,7 +56,7 @@ internal static class Program
             Console.WriteLine($"Buffer memory: {string.Join(", ", map.Take(8))}...");
         }
 
-        Console.WriteLine(buffer.DebugName);
+        Console.WriteLine($"{device}, {buffer}, {hostMemory}");
 
         using var fence = device.CreateFence();
         fence.Init(new Fence.Desc("Test fence", FenceState.Reset));
