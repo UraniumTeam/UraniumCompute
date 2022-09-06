@@ -18,6 +18,9 @@ public enum ResultCode : uint
     /// Operation not implemented.
     NotImplemented,
 
+    /// Operation was invalid.
+    InvalidOperation,
+
     /// One or more arguments were invalid.
     InvalidArguments,
 

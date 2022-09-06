@@ -50,6 +50,15 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    public Fence CreateFence()
+    {
+        return IComputeDevice_CreateFence(Handle, out var fence) switch
+        {
+            ResultCode.Success => new Fence(fence),
+            var resultCode => throw new ErrorResultException("Couldn't create fence", resultCode)
+        };
+    }
+
     [Pure]
     internal static bool TryGetDevice(IntPtr handle, [MaybeNullWhen(false)] out ComputeDevice device)
     {
@@ -70,6 +79,9 @@ public sealed class ComputeDevice : NativeObject
 
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_CreateMemory(IntPtr self, out IntPtr memory);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IComputeDevice_CreateFence(IntPtr self, out IntPtr fence);
 
     /// <summary>
     ///     Compute device descriptor.

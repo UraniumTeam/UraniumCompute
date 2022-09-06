@@ -61,7 +61,7 @@ set(SRC
     UnCompute/VulkanBackend/VulkanFence.cpp
     UnCompute/VulkanBackend/VulkanFence.h
     UnCompute/VulkanBackend/VulkanInclude.h
-    UnCompute/VulkanBackend/VulkanCommandList.cpp UnCompute/VulkanBackend/VulkanCommandList.h UnCompute/Backend/BaseTypes.h)
+    UnCompute/VulkanBackend/VulkanCommandList.cpp UnCompute/VulkanBackend/VulkanCommandList.h UnCompute/Backend/BaseTypes.h Bindings/Backend/Fence.cpp Bindings/Backend/CommandList.cpp)
 
 add_library(UnCompute SHARED ${SRC})
 

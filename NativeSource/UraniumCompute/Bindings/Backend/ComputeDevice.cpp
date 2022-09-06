@@ -18,5 +18,15 @@ namespace UN
         {
             return self->CreateMemory(ppMemory);
         }
+
+        UN_DLL_EXPORT ResultCode IComputeDevice_CreateFence(IComputeDevice* self, IFence** ppFence)
+        {
+            return self->CreateFence(ppFence);
+        }
+
+        UN_DLL_EXPORT ResultCode IComputeDevice_CreateCommandList(IComputeDevice* self, ICommandList** ppCommandList)
+        {
+            return self->CreateCommandList(ppCommandList);
+        }
     }
 } // namespace UN
