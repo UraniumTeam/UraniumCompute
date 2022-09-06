@@ -57,9 +57,9 @@ public abstract class DeviceObject<TDesc> : DeviceObject
 {
     public abstract TDesc Descriptor { get; }
 
-    public abstract void Init(in TDesc desc);
-
     protected DeviceObject(IntPtr handle) : base(handle)
     {
     }
+
+    public abstract void Init(in TDesc desc);
 }

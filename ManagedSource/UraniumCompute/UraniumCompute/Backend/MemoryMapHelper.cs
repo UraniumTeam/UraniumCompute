@@ -6,10 +6,20 @@ namespace UraniumCompute.Backend;
 public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
     where T : unmanaged
 {
+    public static readonly unsafe ulong ElementSize = (ulong)sizeof(T);
+
+    public int Count => (int)LongCount;
+
+    public ulong LongCount => memorySlice.Size / ElementSize;
+
+    public T this[int index]
+    {
+        get => GetElementAt(index);
+        set => GetElementAt(index) = value;
+    }
+
     private readonly DeviceMemorySlice memorySlice;
     private readonly unsafe T* mapPointer;
-
-    public static readonly unsafe ulong ElementSize = (ulong)sizeof(T);
 
     internal unsafe MemoryMapHelper(in DeviceMemorySlice slice, T* map)
     {
@@ -38,16 +48,6 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
-    }
-
-    public int Count => (int)LongCount;
-
-    public ulong LongCount => memorySlice.Size / ElementSize;
-
-    public T this[int index]
-    {
-        get => GetElementAt(index);
-        set => GetElementAt(index) = value;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

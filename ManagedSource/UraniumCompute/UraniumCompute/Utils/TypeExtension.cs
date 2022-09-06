@@ -18,18 +18,6 @@ public static class TypeExtension
         [nameof(String)] = "string"
     };
 
-    private static string AddNamespace(Type type, string name, bool addNamespace)
-    {
-        return addNamespace ? $"{type.Namespace}.{name}" : name;
-    }
-
-    private static string GetNonGenericTypeName(Type type, bool addNamespace)
-    {
-        return CSharpTypeAliases.TryGetValue(type.Name, out var alias)
-            ? alias
-            : AddNamespace(type, type.Name, addNamespace);
-    }
-
     public static string GetCSharpName(this Type type, bool addNamespace = false)
     {
         if (!type.IsGenericType)
@@ -40,5 +28,17 @@ public static class TypeExtension
         var name = type.Name;
         var generics = string.Join(", ", type.GetGenericArguments().Select(t => t.GetCSharpName()));
         return AddNamespace(type, $"{name[..name.IndexOf('`')]}<{generics}>", addNamespace);
+    }
+
+    private static string AddNamespace(Type type, string name, bool addNamespace)
+    {
+        return addNamespace ? $"{type.Namespace}.{name}" : name;
+    }
+
+    private static string GetNonGenericTypeName(Type type, bool addNamespace)
+    {
+        return CSharpTypeAliases.TryGetValue(type.Name, out var alias)
+            ? alias
+            : AddNamespace(type, type.Name, addNamespace);
     }
 }
