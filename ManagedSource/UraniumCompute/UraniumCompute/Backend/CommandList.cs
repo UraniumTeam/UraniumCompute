@@ -4,6 +4,9 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
+/// <summary>
+///     Command lists record commands to be executed by the backend.
+/// </summary>
 public sealed class CommandList : DeviceObject<CommandList.Desc>
 {
     public override Desc Descriptor
@@ -15,8 +18,15 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         }
     }
 
+    /// <summary>
+    ///     Get command list state.
+    /// </summary>
     public CommandListState State => ICommandList_GetState(Handle);
 
+    /// <summary>
+    ///     The fence that is signaled after submit operation is complete.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The command list was uninitialized</exception>
     public Fence CompletionFence => fence ?? throw new InvalidOperationException("The command list was uninitialized");
 
     private Fence? fence;
@@ -32,16 +42,26 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         fence = new Fence(fenceHandle);
     }
 
+    /// <summary>
+    ///     Set the command list state to the Recording state.
+    /// </summary>
+    /// <returns>Command list builder object.</returns>
     public Builder Begin()
     {
         return new Builder(Handle);
     }
 
+    /// <summary>
+    ///     Set the command list state to the Initial state.
+    /// </summary>
     public void ResetState()
     {
         ICommandList_ResetState(Handle);
     }
 
+    /// <summary>
+    ///     Submit the command list and set the state to the Pending state.
+    /// </summary>
     public void Submit()
     {
         ICommandList_Submit(Handle).ThrowOnError("Couldn't submit command list for execution");
@@ -74,6 +94,9 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         private readonly IntPtr commandListHandle;
     }
 
+    /// <summary>
+    ///     Command list builder that is used to record device commands.
+    /// </summary>
     public sealed class Builder : IDisposable
     {
         private NativeBuilder builder;
@@ -86,6 +109,13 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
             }
         }
 
+        /// <summary>
+        ///     Copy a region of the source buffer to the destination buffer.
+        /// </summary>
+        /// <param name="source">Source buffer.</param>
+        /// <param name="destination">Destination buffer.</param>
+        /// <typeparam name="T">Type of the elements stored in the buffers.</typeparam>
+        /// <exception cref="InvalidOperationException">Source and destination sizes where not equal.</exception>
         public void Copy<T>(Buffer<T> source, Buffer<T> destination)
             where T : unmanaged
         {
@@ -97,17 +127,33 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
             CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, new BufferCopyRegion(source.Descriptor.Size));
         }
 
+        /// <summary>
+        ///     Copy a region of the source buffer to the destination buffer.
+        /// </summary>
+        /// <param name="source">Source buffer.</param>
+        /// <param name="destination">Destination buffer.</param>
+        /// <param name="region">Copy region.</param>
+        /// <typeparam name="T">Type of the elements stored in the buffers.</typeparam>
         public void Copy<T>(Buffer<T> source, Buffer<T> destination, in BufferCopyRegion region)
             where T : unmanaged
         {
             CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, in region);
         }
 
+        /// <summary>
+        ///     A not type-safe version of buffer copy command (<see cref="Copy{T}(Buffer{T},Buffer{T})" />).
+        /// </summary>
+        /// <param name="source">Source buffer.</param>
+        /// <param name="destination">Destination buffer.</param>
+        /// <param name="region">Copy region.</param>
         public void CopyUnsafe(BufferBase source, BufferBase destination, in BufferCopyRegion region)
         {
             CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, in region);
         }
 
+        /// <summary>
+        ///     Set the command list state to Executable and end command recording.
+        /// </summary>
         public void Dispose()
         {
             CommandListBuilder_End(ref builder);

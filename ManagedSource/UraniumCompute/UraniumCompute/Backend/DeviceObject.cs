@@ -6,6 +6,10 @@ namespace UraniumCompute.Backend;
 
 public abstract class DeviceObject : NativeObject
 {
+    /// <summary>
+    ///     The device this object was created on.
+    /// </summary>
+    /// <exception cref="Exception">Device of this object was not registered</exception>
     public ComputeDevice Device
     {
         get
@@ -17,6 +21,7 @@ public abstract class DeviceObject : NativeObject
 
             if (!ComputeDevice.TryGetDevice(IDeviceObject_GetDevice(Handle), out var d))
             {
+                // TODO: create an exception type for this
                 throw new Exception("Device of this object was not registered");
             }
 
@@ -25,6 +30,9 @@ public abstract class DeviceObject : NativeObject
         }
     }
 
+    /// <summary>
+    ///     Object's debug name.
+    /// </summary>
     public NativeString DebugName => IDeviceObject_GetDebugName(Handle);
 
     private ComputeDevice? device;
@@ -33,6 +41,9 @@ public abstract class DeviceObject : NativeObject
     {
     }
 
+    /// <summary>
+    ///     Reset the object to uninitialized state.
+    /// </summary>
     public void Reset()
     {
         IDeviceObject_Reset(Handle);
@@ -61,5 +72,9 @@ public abstract class DeviceObject<TDesc> : DeviceObject
     {
     }
 
+    /// <summary>
+    ///     Initialize the device object.
+    /// </summary>
+    /// <param name="desc">Device object descriptor.</param>
     public abstract void Init(in TDesc desc);
 }

@@ -8,6 +8,8 @@ public enum CommandListFlags
 {
     None = 0,
 
-    /// The command list will be invalid after the first call to submit.
+    /// <summary>
+    ///     The command list will be invalid after the first call to submit.
+    /// </summary>
     OneTimeSubmit = 1 << 0
 }
