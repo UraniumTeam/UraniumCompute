@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using UraniumCompute.Memory;
+using UraniumCompute.Utils;
 
 namespace UraniumCompute.Backend;
 
@@ -35,6 +36,11 @@ public abstract class DeviceObject : NativeObject
     public void Reset()
     {
         IDeviceObject_Reset(Handle);
+    }
+
+    public override string ToString()
+    {
+        return $"{{ {GetType().GetCSharpName()} named \"{DebugName}\": {nameof(DeviceObject)} at 0x{Handle:x} }}";
     }
 
     [DllImport("UnCompute")]
