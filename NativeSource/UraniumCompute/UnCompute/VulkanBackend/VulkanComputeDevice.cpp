@@ -138,6 +138,7 @@ namespace UN
             VkCommandPoolCreateInfo poolCI{};
             poolCI.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             poolCI.queueFamilyIndex = queue.FamilyIndex;
+            poolCI.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             if (auto vkResult = vkCreateCommandPool(m_NativeDevice, &poolCI, nullptr, &queue.CmdPool); !Succeeded(vkResult))
             {
                 UN_Error(false,

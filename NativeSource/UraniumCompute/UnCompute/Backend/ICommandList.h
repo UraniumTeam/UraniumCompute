@@ -96,6 +96,19 @@ namespace UN
         explicit CommandListBuilder(ICommandList* pCommandList);
         ~CommandListBuilder();
 
+        inline CommandListBuilder(CommandListBuilder&& other) noexcept
+            : m_pCommandList(other.m_pCommandList)
+        {
+            other.m_pCommandList = nullptr;
+        }
+
+        inline CommandListBuilder& operator=(CommandListBuilder&& other)
+        {
+            m_pCommandList       = other.m_pCommandList;
+            other.m_pCommandList = nullptr;
+            return *this;
+        }
+
         //! \brief Set the command list state to CommandListState::Executable.
         void End();
 
@@ -145,8 +158,11 @@ namespace UN
 
     inline void CommandListBuilder::End()
     {
-        m_pCommandList->End();
-        m_pCommandList = nullptr;
+        if (m_pCommandList)
+        {
+            m_pCommandList->End();
+            m_pCommandList = nullptr;
+        }
     }
 
     inline void CommandListBuilder::Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region)

@@ -18,7 +18,7 @@ namespace UN
             if (m_pFence->GetState() == FenceState::Signaled)
             {
                 m_State = AnyFlagsActive(m_Desc.Flags, CommandListFlags::OneTimeSubmit) ? CommandListState::Invalid
-                                                                                        : CommandListState::Initial;
+                                                                                        : CommandListState::Executable;
             }
         }
 
