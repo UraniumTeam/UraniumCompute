@@ -5,15 +5,23 @@
 /// </summary>
 public enum MemoryKindFlags
 {
-    /// Invalid or unspecified value.
+    /// <summary>
+    ///     Invalid or unspecified value.
+    /// </summary>
     None = 0,
 
-    /// Host (CPU) accessible memory.
+    /// <summary>
+    ///     Host (CPU) accessible memory.
+    /// </summary>
     HostAccessible = 1 << 0,
 
-    /// Device (GPU for accelerated backends) accessible memory.
+    /// <summary>
+    ///     Device (GPU for accelerated backends) accessible memory.
+    /// </summary>
     DeviceAccessible = 1 << 1,
 
-    /// Memory accessible for both the device and the host.
+    /// <summary>
+    ///     Memory accessible for both the device and the host.
+    /// </summary>
     HostAndDeviceAccessible = HostAccessible | DeviceAccessible
 }

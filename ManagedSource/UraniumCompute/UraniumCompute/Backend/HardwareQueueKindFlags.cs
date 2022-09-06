@@ -6,24 +6,38 @@
 [Flags]
 public enum HardwareQueueKindFlags
 {
-    /// Invalid or unspecified value.
+    /// <summary>
+    ///     Invalid or unspecified value.
+    /// </summary>
     None = 0,
 
-    /// Queue that supports graphics operations.
+    /// <summary>
+    ///     Queue that supports graphics operations.
+    /// </summary>
     GraphicsBit = 1 << 0,
 
-    /// Queue that supports compute operations.
+    /// <summary>
+    ///     Queue that supports compute operations.
+    /// </summary>
     ComputeBit = 1 << 1,
 
-    /// Queue that supports copy operations.
+    /// <summary>
+    ///     Queue that supports copy operations.
+    /// </summary>
     TransferBit = 1 << 2,
 
-    /// Queue for graphics + compute + copy operations.
+    /// <summary>
+    ///     Queue for graphics + compute + copy operations.
+    /// </summary>
     Graphics = GraphicsBit | ComputeBit | TransferBit,
 
-    /// Queue for compute + copy operations.
+    /// <summary>
+    ///     Queue for compute + copy operations.
+    /// </summary>
     Compute = ComputeBit | TransferBit,
 
-    /// Queue for copy operations.
+    /// <summary>
+    ///     Queue for copy operations.
+    /// </summary>
     Transfer = TransferBit
 }

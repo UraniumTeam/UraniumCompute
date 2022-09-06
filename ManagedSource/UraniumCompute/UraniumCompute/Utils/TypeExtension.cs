@@ -18,6 +18,12 @@ public static class TypeExtension
         [nameof(String)] = "string"
     };
 
+    /// <summary>
+    ///     Get human-readable type name.
+    /// </summary>
+    /// <param name="type">Type to get the name of.</param>
+    /// <param name="addNamespace">True if the namespace needs to be added to the result.</param>
+    /// <returns>The name of the type.</returns>
     public static string GetCSharpName(this Type type, bool addNamespace = false)
     {
         if (!type.IsGenericType)

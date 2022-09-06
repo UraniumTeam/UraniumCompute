@@ -6,30 +6,48 @@
 /// </summary>
 public enum ResultCode : uint
 {
-    /// Operation succeeded.
+    /// <summary>
+    ///     Operation succeeded.
+    /// </summary>
     Success,
 
-    /// Operation failed.
+    /// <summary>
+    ///     Operation failed.
+    /// </summary>
     Fail,
 
-    /// Operation aborted.
+    /// <summary>
+    ///     Operation aborted.
+    /// </summary>
     Abort,
 
-    /// Operation not implemented.
+    /// <summary>
+    ///     Operation not implemented.
+    /// </summary>
     NotImplemented,
 
-    /// Operation was invalid.
+    /// <summary>
+    ///     Operation was invalid.
+    /// </summary>
     InvalidOperation,
 
-    /// One or more arguments were invalid.
+    /// <summary>
+    ///     One or more arguments were invalid.
+    /// </summary>
     InvalidArguments,
 
-    /// General access denied error occurred.
+    /// <summary>
+    ///     General access denied error occurred.
+    /// </summary>
     AccessDenied,
 
-    /// Operation timed out.
+    /// <summary>
+    ///     Operation timed out.
+    /// </summary>
     Timeout,
 
-    /// Not enough memory to complete the operation.
+    /// <summary>
+    ///     Not enough memory to complete the operation.
+    /// </summary>
     OutOfMemory
 }

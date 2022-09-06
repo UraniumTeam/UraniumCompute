@@ -4,6 +4,9 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
+/// <summary>
+///     Encapsulates backend-specific buffers that store the data on the device.
+/// </summary>
 public class BufferBase : DeviceObject<BufferBase.Desc>
 {
     public override Desc Descriptor
@@ -15,6 +18,9 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
         }
     }
 
+    /// <summary>
+    ///     The memory bound to this buffer.
+    /// </summary>
     public DeviceMemorySlice BoundMemory { get; private set; }
 
     internal BufferBase(IntPtr handle) : base(handle)
@@ -26,6 +32,13 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
         IBuffer_Init(Handle, in desc).ThrowOnError("Couldn't initialize buffer");
     }
 
+    /// <summary>
+    ///     Allocate memory compatible with this buffer.
+    /// </summary>
+    /// <param name="memoryDebugName">Debug name that will be set to the allocated device memory.</param>
+    /// <param name="flags"><see cref="MemoryKindFlags" /> to allocate the memory with.</param>
+    /// <param name="overrideSize">Use the size that is not equal to the buffer's size.</param>
+    /// <returns>The allocated device memory.</returns>
     public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong overrideSize = ulong.MaxValue)
     {
         Span<IntPtr> handle = stackalloc IntPtr[1];
@@ -36,12 +49,22 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
         return memory;
     }
 
+    /// <summary>
+    ///     Bind device memory slice to this buffer.
+    /// </summary>
+    /// <param name="memorySlice">Memory slice to bind.</param>
     public void BindMemory(in DeviceMemorySlice memorySlice)
     {
         TryBindMemory(in memorySlice)
             .ThrowOnError("Couldn't bind memory to buffer");
     }
 
+    /// <summary>
+    ///     Try to bind device memory slice to this buffer or get the error code.
+    ///     Unlike <see cref="BindMemory" />, this function doesn't throw exceptions.
+    /// </summary>
+    /// <param name="memorySlice">Memory slice to bind.</param>
+    /// <returns>The <see cref="ResultCode" /> of the operation.</returns>
     public ResultCode TryBindMemory(in DeviceMemorySlice memorySlice)
     {
         BoundMemory = memorySlice;

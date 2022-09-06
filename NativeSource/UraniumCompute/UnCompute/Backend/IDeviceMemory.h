@@ -53,7 +53,7 @@ namespace UN
         //! \return ResultCode::Success or an error code.
         virtual ResultCode Init(const DescriptorType& desc) = 0;
 
-        //! \brief Map the device memory.
+        //! \brief Map the device memory to access it from the host.
         //!
         //! \param byteOffset - Byte offset of the memory to map.
         //! \param byteSize   - Size of the part of the memory to map.
@@ -72,7 +72,7 @@ namespace UN
         //! \brief Check if the memory is compatible with an object
         //!
         //! The implementation is backend-specific, it not only checks if the size of device memory is greater
-        //! or equal to the size of memory required by the object, but also check backend's memory type, e.g.
+        //! or equal to the size of memory required by the object, but also checks backend's memory type, e.g.
         //! Vulkan's memory type bits to be compatible.
         //!
         //! \param pObject   - The object to check the memory for.

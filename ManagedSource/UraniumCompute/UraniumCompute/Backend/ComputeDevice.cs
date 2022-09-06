@@ -31,6 +31,11 @@ public sealed class ComputeDevice : NativeObject
         IComputeDevice_Init(Handle, in desc).ThrowOnError("Couldn't initialize Compute device");
     }
 
+    /// <summary>
+    ///     Create <see cref="DeviceMemory" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
     public DeviceMemory CreateMemory()
     {
         return IComputeDevice_CreateMemory(Handle, out var memory) switch
@@ -40,6 +45,11 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    /// <summary>
+    ///     Create <see cref="Buffer{T}" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
     public Buffer<T> CreateBuffer<T>()
         where T : unmanaged
     {
@@ -50,6 +60,11 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    /// <summary>
+    ///     Create <see cref="Fence" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
     public Fence CreateFence()
     {
         return IComputeDevice_CreateFence(Handle, out var fence) switch
@@ -59,6 +74,11 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    /// <summary>
+    ///     Create <see cref="CommandList" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
     public CommandList CreateCommandList()
     {
         return IComputeDevice_CreateCommandList(Handle, out var commandList) switch

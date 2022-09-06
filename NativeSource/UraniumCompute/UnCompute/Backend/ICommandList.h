@@ -112,7 +112,11 @@ namespace UN
         //! \brief Set the command list state to CommandListState::Executable.
         void End();
 
-        //! \brief Copy
+        //! \brief Copy a region of the source buffer to the destination buffer.
+        //!
+        //! \param pSource      - Source buffer.
+        //! \param pDestination - Destination buffer.
+        //! \param region       - Copy region.
         void Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region);
 
         explicit operator bool();
