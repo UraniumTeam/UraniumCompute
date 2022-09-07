@@ -61,7 +61,13 @@ set(SRC
     UnCompute/VulkanBackend/VulkanFence.cpp
     UnCompute/VulkanBackend/VulkanFence.h
     UnCompute/VulkanBackend/VulkanInclude.h
-    UnCompute/VulkanBackend/VulkanCommandList.cpp UnCompute/VulkanBackend/VulkanCommandList.h UnCompute/Backend/BaseTypes.h Bindings/Backend/Fence.cpp Bindings/Backend/CommandList.cpp)
+    UnCompute/VulkanBackend/VulkanCommandList.cpp
+    UnCompute/VulkanBackend/VulkanCommandList.h
+    UnCompute/Backend/BaseTypes.h
+    Bindings/Backend/Fence.cpp
+    Bindings/Backend/CommandList.cpp
+    UnCompute/Compilation/IKernelCompiler.h
+    UnCompute/Compilation/KernelCompiler.cpp UnCompute/Compilation/KernelCompiler.h)
 
 add_library(UnCompute SHARED ${SRC})
 
@@ -71,7 +77,7 @@ un_enable_sse_for_target(UnCompute)
 target_include_directories(UnCompute PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set_target_properties(UnCompute PROPERTIES FOLDER "UraniumCompute")
-target_link_libraries(UnCompute volk spdlog)
+target_link_libraries(UnCompute volk spdlog dxc)
 
 get_property("TARGET_SOURCE_FILES" TARGET UnCompute PROPERTY SOURCES)
 source_group(TREE "${CMAKE_CURRENT_LIST_DIR}" FILES ${TARGET_SOURCE_FILES})
