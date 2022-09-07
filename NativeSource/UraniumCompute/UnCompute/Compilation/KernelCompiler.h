@@ -17,6 +17,6 @@ namespace UN
     private:
         [[nodiscard]] const DescriptorType& GetDesc() const override;
         ResultCode Init(const DescriptorType& desc) override;
-        ResultCode Compile(const KernelCompilerArgs& args, HeapArray<Int8>* pResult) override;
+        ResultCode Compile(const KernelCompilerArgs& args, HeapArray<Byte>* pResult) override;
     };
 } // namespace UN

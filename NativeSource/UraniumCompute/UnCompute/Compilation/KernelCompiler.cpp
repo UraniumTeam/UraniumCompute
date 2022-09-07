@@ -119,7 +119,7 @@ namespace UN
         return ResultCode::Success;
     }
 
-    ResultCode KernelCompiler::Compile(const KernelCompilerArgs& args, HeapArray<Int8>* pResult)
+    ResultCode KernelCompiler::Compile(const KernelCompilerArgs& args, HeapArray<Byte>* pResult)
     {
         DxcCreateInstanceProc createInstance;
         UN_VerifyResultFatal(m_DynamicLibrary->GetFunction("DxcCreateInstance", &createInstance),
@@ -205,8 +205,8 @@ namespace UN
         {
             CComPtr<IDxcBlob> pByteCode;
             UN_Verify(SUCCEEDED(compileResult->GetResult(&pByteCode)), "Couldn't get compilation result");
-            auto pBuffer = static_cast<Int8*>(pByteCode->GetBufferPointer());
-            *pResult     = HeapArray<Int8>::CopyFrom(ArraySlice(pBuffer, pBuffer + pByteCode->GetBufferSize()));
+            auto pBuffer = static_cast<Byte*>(pByteCode->GetBufferPointer());
+            *pResult     = HeapArray<Byte>::CopyFrom(ArraySlice(pBuffer, pBuffer + pByteCode->GetBufferSize()));
             return ResultCode::Success;
         }
         else
