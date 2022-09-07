@@ -166,16 +166,15 @@ int main()
                              "void main(uint3 globalInvocationID : SV_DispatchThreadID) {}";
 
     KernelCompilerArgs compilerArgs;
-    compilerArgs.SourceCode = ArraySlice(reinterpret_cast<const UInt8*>(sourceCode.c_str()),
-                                         reinterpret_cast<const UInt8*>(sourceCode.c_str() + sourceCode.size()));
+    compilerArgs.SourceCode = ArraySlice(un_byte_cast(sourceCode.c_str()), un_byte_cast(sourceCode.c_str() + sourceCode.size()));
 
-    HeapArray<Int8> bytecode;
+    HeapArray<Byte> bytecode;
     UN_VerifyResultFatal(pKernelCompiler->Compile(compilerArgs, &bytecode), "Couldn't compile compute kernel");
 
     std::cout << "Compiled bytecode: ";
     for (UInt64 i = 0; i < 16; ++i)
     {
-        std::cout << static_cast<Int32>(bytecode[i]) << " ";
+        std::cout << bytecode[i] << " ";
     }
 
     std::cout << "..." << std::endl;

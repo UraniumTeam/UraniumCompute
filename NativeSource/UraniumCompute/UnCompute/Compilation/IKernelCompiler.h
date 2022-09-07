@@ -1,4 +1,5 @@
 #pragma once
+#include <UnCompute/Base/Byte.h>
 #include <UnCompute/Containers/HeapArray.h>
 #include <UnCompute/Memory/Object.h>
 
@@ -54,7 +55,7 @@ namespace UN
     //! \brief Kernel compiler arguments that define a single compilation.
     struct KernelCompilerArgs
     {
-        ArraySlice<const UInt8> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
+        ArraySlice<const Byte> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
         TextEncoding SourceEncoding                 = TextEncoding::Ascii;            //!< Source code text encoding.
         CompilerOptimizationLevel OptimizationLevel = CompilerOptimizationLevel::Max; //!< Compiler optimization level.
         const char* EntryPoint                      = "main";                         //!< Compute shader entry point.
@@ -81,6 +82,6 @@ namespace UN
         //! \param pResult - A pointer to an array where the compiled bytecode will be written.
         //!
         //! \return ResultCode::Success or an error code.
-        virtual ResultCode Compile(const KernelCompilerArgs& args, HeapArray<Int8>* pResult) = 0;
+        virtual ResultCode Compile(const KernelCompilerArgs& args, HeapArray<Byte>* pResult) = 0;
     };
 } // namespace UN
