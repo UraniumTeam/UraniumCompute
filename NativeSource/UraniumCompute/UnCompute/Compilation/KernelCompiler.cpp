@@ -44,13 +44,13 @@ namespace UN
         switch (level)
         {
         case CompilerOptimizationLevel::None:
-            return L"O0";
+            return DXC_ARG_SKIP_OPTIMIZATIONS;
         case CompilerOptimizationLevel::O1:
-            return L"O1";
+            return DXC_ARG_OPTIMIZATION_LEVEL1;
         case CompilerOptimizationLevel::O2:
-            return L"O2";
+            return DXC_ARG_OPTIMIZATION_LEVEL2;
         case CompilerOptimizationLevel::O3:
-            return L"O3";
+            return DXC_ARG_OPTIMIZATION_LEVEL3;
         default:
             UN_Error(false, "Unknown CompilerOptimizationLevel::<{}>", static_cast<Int32>(level));
             return nullptr;
@@ -163,7 +163,7 @@ namespace UN
         if (m_Desc.TargetLang == KernelTargetLang::SpirV)
         {
             compileArgs.assign({ ConvertOptLevel(args.OptimizationLevel),
-                                 L"-Zpc",
+                                 DXC_ARG_PACK_MATRIX_COLUMN_MAJOR,
                                  L"-spirv",
                                  L"-fspv-target-env=vulkan1.1",
                                  L"-fspv-extension=KHR",
@@ -171,8 +171,7 @@ namespace UN
                                  L"-fspv-extension=SPV_GOOGLE_user_type",
                                  L"-fvk-use-dx-layout",
                                  L"-fspv-extension=SPV_EXT_descriptor_indexing",
-                                 L"-fspv-reflect",
-                                 L"-Od" });
+                                 L"-fspv-reflect" });
         }
 
         auto argsCount = static_cast<UInt32>(compileArgs.size());
@@ -218,7 +217,7 @@ namespace UN
                 UN_VerifyError(false, "Shader compilation failed: {}", errorString);
             }
 
-            return ResultCode::Fail;
+            return ConvertResult(result);
         }
     }
 } // namespace UN
