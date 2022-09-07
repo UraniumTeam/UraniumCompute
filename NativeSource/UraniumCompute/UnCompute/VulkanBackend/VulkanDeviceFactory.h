@@ -39,6 +39,7 @@ namespace UN
 
         [[nodiscard]] BackendKind GetBackendKind() const override;
         ResultCode CreateDevice(IComputeDevice** ppDevice) override;
+        ResultCode CreateKernelCompiler(IKernelCompiler** ppCompiler) override;
 
         static ResultCode Create(VulkanDeviceFactory** ppInstance);
     };

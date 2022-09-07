@@ -1,6 +1,7 @@
 #include <UnCompute/Memory/Memory.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
+#include <UnCompute/Compilation/KernelCompiler.h>
 #include <algorithm>
 #include <iostream>
 
@@ -208,6 +209,13 @@ namespace UN
     {
         *ppInstance = AllocateObject<VulkanDeviceFactory>();
         (*ppInstance)->AddRef();
+        return ResultCode::Success;
+    }
+
+    ResultCode VulkanDeviceFactory::CreateKernelCompiler(IKernelCompiler** ppCompiler)
+    {
+        *ppCompiler = AllocateObject<KernelCompiler>();
+        (*ppCompiler)->AddRef();
         return ResultCode::Success;
     }
 } // namespace UN
