@@ -67,7 +67,10 @@ set(SRC
     Bindings/Backend/Fence.cpp
     Bindings/Backend/CommandList.cpp
     UnCompute/Compilation/IKernelCompiler.h
-    UnCompute/Compilation/KernelCompiler.cpp UnCompute/Compilation/KernelCompiler.h)
+    UnCompute/Compilation/KernelCompiler.cpp
+    UnCompute/Compilation/KernelCompiler.h
+    UnCompute/Base/Byte.h
+)
 
 add_library(UnCompute SHARED ${SRC})
 
