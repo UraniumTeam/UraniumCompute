@@ -3,6 +3,7 @@
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
 #include <UnCompute/Backend/IFence.h>
+#include <UnCompute/Compilation/IKernelCompiler.h>
 #include <UnCompute/Memory/Memory.h>
 #include <iostream>
 
@@ -154,4 +155,28 @@ int main()
     {
         UN_Error(false, "Couldn't map memory");
     }
+
+    Ptr<IKernelCompiler> pKernelCompiler;
+    UN_VerifyResultFatal(pFactory->CreateKernelCompiler(&pKernelCompiler), "Couldn't create kernel compiler");
+
+    KernelCompilerDesc compilerDesc("Kernel compiler");
+    UN_VerifyResultFatal(pKernelCompiler->Init(compilerDesc), "Couldn't initialize kernel compiler");
+
+    std::string sourceCode = "[numthreads(1, 1, 1)]\n"
+                             "void main(uint3 globalInvocationID : SV_DispatchThreadID) {}";
+
+    KernelCompilerArgs compilerArgs;
+    compilerArgs.SourceCode = ArraySlice(reinterpret_cast<const UInt8*>(sourceCode.c_str()),
+                                         reinterpret_cast<const UInt8*>(sourceCode.c_str() + sourceCode.size()));
+
+    HeapArray<Int8> bytecode;
+    UN_VerifyResultFatal(pKernelCompiler->Compile(compilerArgs, &bytecode), "Couldn't compile compute kernel");
+
+    std::cout << "Compiled bytecode: ";
+    for (UInt64 i = 0; i < 16; ++i)
+    {
+        std::cout << static_cast<Int32>(bytecode[i]) << " ";
+    }
+
+    std::cout << "..." << std::endl;
 }
