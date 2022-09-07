@@ -147,6 +147,7 @@ TEST(Ptr, DerivedConstructor)
     Ptr<TestObject> p2 = p1;
     EXPECT_EQ(p2->GetValue(), 246);
     EXPECT_EQ(un_verify_cast<DerivedTestObject*>(p2.Get())->GetDerivedValue(), 123);
+    EXPECT_EQ(p2.As<DerivedTestObject>()->GetDerivedValue(), 123);
 
     EXPECT_REF_COUNT(p1, 2);
     EXPECT_REF_COUNT(p2, 2);
