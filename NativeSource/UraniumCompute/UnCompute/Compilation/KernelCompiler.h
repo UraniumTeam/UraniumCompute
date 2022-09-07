@@ -6,7 +6,7 @@ namespace UN
 {
     class DynamicLibrary;
 
-    class KernelCompiler final : Object<IKernelCompiler>
+    class KernelCompiler final : public Object<IKernelCompiler>
     {
         Ptr<DynamicLibrary> m_DynamicLibrary;
         DescriptorType m_Desc;
