@@ -22,6 +22,16 @@ namespace UN
         const char* Name            = nullptr;                 //!< Compiler debug name.
         KernelSourceLang SourceLang = KernelSourceLang::Hlsl;  //!< Source code language.
         KernelTargetLang TargetLang = KernelTargetLang::SpirV; //!< Target code language.
+
+        inline KernelCompilerDesc() = default;
+
+        inline explicit KernelCompilerDesc(const char* name, KernelSourceLang sourceLang = KernelSourceLang::Hlsl,
+                                           KernelTargetLang targetLang = KernelTargetLang::SpirV)
+            : Name(name)
+            , SourceLang(sourceLang)
+            , TargetLang(targetLang)
+        {
+        }
     };
 
     //! \brief Text encoding.
@@ -44,7 +54,7 @@ namespace UN
     //! \brief Kernel compiler arguments that define a single compilation.
     struct KernelCompilerArgs
     {
-        ArraySlice<UInt8> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
+        ArraySlice<const UInt8> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
         TextEncoding SourceEncoding                 = TextEncoding::Ascii;            //!< Source code text encoding.
         CompilerOptimizationLevel OptimizationLevel = CompilerOptimizationLevel::Max; //!< Compiler optimization level.
         const char* EntryPoint                      = "main";                         //!< Compute shader entry point.
