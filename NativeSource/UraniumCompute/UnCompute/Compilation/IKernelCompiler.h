@@ -35,13 +35,6 @@ namespace UN
         }
     };
 
-    //! \brief Text encoding.
-    enum class TextEncoding
-    {
-        Ascii, //!< ASCII encoding: number of characters in the text is equal to the number of bytes.
-        Utf8   //!< UTF-8 encoding: ASCII-compatible, variable-width.
-    };
-
     //! Flags used to control compiler optimization level.
     enum class CompilerOptimizationLevel
     {
@@ -56,7 +49,6 @@ namespace UN
     struct KernelCompilerArgs
     {
         ArraySlice<const Byte> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
-        TextEncoding SourceEncoding                 = TextEncoding::Ascii;            //!< Source code text encoding.
         CompilerOptimizationLevel OptimizationLevel = CompilerOptimizationLevel::Max; //!< Compiler optimization level.
         const char* EntryPoint                      = "main";                         //!< Compute shader entry point.
     };

@@ -92,12 +92,12 @@ namespace UN
 
     inline void DynamicLibrary::Unload()
     {
-        UNLOG_Info("Unloading dynamic library at {}...", m_NativeHandle);
         if (m_NativeHandle == nullptr)
         {
             return;
         }
 
+        UNLOG_Info("Unloading dynamic library at {}...", m_NativeHandle);
         UN_FreeLibrary(m_NativeHandle);
         m_NativeHandle = nullptr;
     }
