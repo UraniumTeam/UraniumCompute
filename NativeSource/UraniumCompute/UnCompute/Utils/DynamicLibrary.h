@@ -65,6 +65,7 @@ namespace UN
         inline static ResultCode Create(DynamicLibrary** ppLibrary)
         {
             *ppLibrary = AllocateObject<DynamicLibrary>();
+            (*ppLibrary)->AddRef();
             return ResultCode::Success;
         }
     };
@@ -91,6 +92,7 @@ namespace UN
 
     inline void DynamicLibrary::Unload()
     {
+        UNLOG_Info("Unloading dynamic library at {}...", m_NativeHandle);
         if (m_NativeHandle == nullptr)
         {
             return;
