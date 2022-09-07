@@ -106,6 +106,8 @@ namespace UN
 
     ResultCode KernelCompiler::Init(const IKernelCompiler::DescriptorType& desc)
     {
+        m_Desc = desc;
+
         UN_VerifyResultFatal(DynamicLibrary::Create(&m_DynamicLibrary), "Couldn't create DynamicLibrary object");
 
         if (auto resultCode = m_DynamicLibrary->Init("dxcompiler"); !Succeeded(resultCode))
@@ -123,16 +125,16 @@ namespace UN
         UN_VerifyResultFatal(m_DynamicLibrary->GetFunction("DxcCreateInstance", &createInstance),
                              "Couldn't find DxcCreateInstance()");
 
-        CComPtr<IDxcLibrary> library;
-        HRESULT result = createInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library));
+        CComPtr<IDxcLibrary> pLibrary;
+        HRESULT result = createInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&pLibrary));
         if (FAILED(result))
         {
             UN_Error(false, "Couldn't create a DXC library");
             return ConvertResult(result);
         }
 
-        CComPtr<IDxcCompiler> compiler;
-        result = createInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&compiler));
+        CComPtr<IDxcCompiler> pCompiler;
+        result = createInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
         if (FAILED(result))
         {
             UN_Error(false, "Couldn't create a DXC compiler");
@@ -141,14 +143,14 @@ namespace UN
 
         CComPtr<IDxcBlobEncoding> source;
         auto sourceSize = static_cast<UInt32>(args.SourceCode.Length());
-        result          = library->CreateBlobWithEncodingFromPinned(args.SourceCode.Data(), sourceSize, CP_UTF8, &source);
+        result          = pLibrary->CreateBlobWithEncodingFromPinned(args.SourceCode.Data(), sourceSize, CP_UTF8, &source);
         if (FAILED(result))
         {
             UN_Error(false, "Couldn't create a DXC Blob encoding");
             return ConvertResult(result);
         }
 
-        IncludeHandler includeHandler(L"", library);
+        IncludeHandler includeHandler(L"", pLibrary);
 
         std::vector<DxcDefine> defines;
 #if UN_DEBUG
@@ -179,16 +181,16 @@ namespace UN
         auto entryPoint = std::wstring(args.EntryPoint, args.EntryPoint + strlen(args.EntryPoint));
         auto profile    = GetTargetProfile(m_Desc.SourceLang);
         CComPtr<IDxcOperationResult> compileResult;
-        result = compiler->Compile(source,
-                                   L"KernelComputeShader",
-                                   entryPoint.c_str(),
-                                   profile,
-                                   compileArgs.data(),
-                                   argsCount,
-                                   defines.data(),
-                                   defineCount,
-                                   &includeHandler,
-                                   &compileResult);
+        result = pCompiler->Compile(source,
+                                    L"KernelComputeShader",
+                                    entryPoint.c_str(),
+                                    profile,
+                                    compileArgs.data(),
+                                    argsCount,
+                                    defines.data(),
+                                    defineCount,
+                                    &includeHandler,
+                                    &compileResult);
 
         if (SUCCEEDED(result))
         {
@@ -201,17 +203,17 @@ namespace UN
 
         if (SUCCEEDED(result))
         {
-            CComPtr<IDxcBlob> byteCode;
-            UN_Verify(SUCCEEDED(compileResult->GetResult(&byteCode)), "Couldn't get compilation result");
-            auto bufferPtr = static_cast<Int8*>(byteCode->GetBufferPointer());
-            new (pResult) HeapArray(HeapArray<Int8>::CopyFrom(ArraySlice(bufferPtr, bufferPtr + byteCode->GetBufferSize())));
+            CComPtr<IDxcBlob> pByteCode;
+            UN_Verify(SUCCEEDED(compileResult->GetResult(&pByteCode)), "Couldn't get compilation result");
+            auto pBuffer = static_cast<Int8*>(pByteCode->GetBufferPointer());
+            *pResult     = HeapArray<Int8>::CopyFrom(ArraySlice(pBuffer, pBuffer + pByteCode->GetBufferSize()));
             return ResultCode::Success;
         }
         else
         {
             CComPtr<IDxcBlobEncoding> errors;
             CComPtr<IDxcBlobEncoding> unicodeErrors;
-            if (SUCCEEDED(compileResult->GetErrorBuffer(&errors)) && SUCCEEDED(library->GetBlobAsUtf8(errors, &unicodeErrors)))
+            if (SUCCEEDED(compileResult->GetErrorBuffer(&errors)) && SUCCEEDED(pLibrary->GetBlobAsUtf8(errors, &unicodeErrors)))
             {
                 auto errorString = static_cast<const char*>(unicodeErrors->GetBufferPointer());
                 UN_VerifyError(false, "Shader compilation failed: {}", errorString);
