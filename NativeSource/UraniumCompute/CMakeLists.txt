@@ -1,9 +1,11 @@
 set(SRC
     Bindings/Acceleration/DeviceFactory.cpp
     Bindings/Backend/Buffer.cpp
+    Bindings/Backend/CommandList.cpp
     Bindings/Backend/ComputeDevice.cpp
     Bindings/Backend/DeviceMemory.cpp
     Bindings/Backend/DeviceObject.cpp
+    Bindings/Backend/Fence.cpp
     Bindings/Containers/HeapArray.cpp
     Bindings/Memory/Object.cpp
 
@@ -11,6 +13,7 @@ set(SRC
     UnCompute/Acceleration/DeviceFactory.cpp
     UnCompute/Acceleration/IDeviceFactory.h
 
+    UnCompute/Backend/BaseTypes.h
     UnCompute/Backend/BufferBase.cpp
     UnCompute/Backend/BufferBase.h
     UnCompute/Backend/CommandListBase.cpp
@@ -28,6 +31,7 @@ set(SRC
     UnCompute/Backend/IFence.h
 
     UnCompute/Base/Base.h
+    UnCompute/Base/Byte.h
     UnCompute/Base/CompilerTraits.h
     UnCompute/Base/Flags.h
     UnCompute/Base/Logger.h
@@ -36,6 +40,9 @@ set(SRC
     UnCompute/Base/PlatformTraits.h
     UnCompute/Base/ResultCode.h
 
+    UnCompute/Compilation/IKernelCompiler.h
+    UnCompute/Compilation/KernelCompiler.cpp
+    UnCompute/Compilation/KernelCompiler.h
     UnCompute/Containers/ArraySlice.h
     UnCompute/Containers/HeapArray.h
 
@@ -50,6 +57,8 @@ set(SRC
 
     UnCompute/VulkanBackend/VulkanBuffer.cpp
     UnCompute/VulkanBackend/VulkanBuffer.h
+    UnCompute/VulkanBackend/VulkanCommandList.cpp
+    UnCompute/VulkanBackend/VulkanCommandList.h
     UnCompute/VulkanBackend/VulkanComputeDevice.cpp
     UnCompute/VulkanBackend/VulkanComputeDevice.h
     UnCompute/VulkanBackend/VulkanDescriptorAllocator.cpp
@@ -61,15 +70,6 @@ set(SRC
     UnCompute/VulkanBackend/VulkanFence.cpp
     UnCompute/VulkanBackend/VulkanFence.h
     UnCompute/VulkanBackend/VulkanInclude.h
-    UnCompute/VulkanBackend/VulkanCommandList.cpp
-    UnCompute/VulkanBackend/VulkanCommandList.h
-    UnCompute/Backend/BaseTypes.h
-    Bindings/Backend/Fence.cpp
-    Bindings/Backend/CommandList.cpp
-    UnCompute/Compilation/IKernelCompiler.h
-    UnCompute/Compilation/KernelCompiler.cpp
-    UnCompute/Compilation/KernelCompiler.h
-    UnCompute/Base/Byte.h
 )
 
 add_library(UnCompute SHARED ${SRC})
