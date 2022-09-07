@@ -25,6 +25,7 @@ namespace UN
         }
     };
 
+    class IKernelCompiler;
     class IComputeDevice;
     struct ComputeDeviceDesc;
 
@@ -54,6 +55,13 @@ namespace UN
         //!
         //! \return ResultCode::Success or an error code.
         virtual ResultCode CreateDevice(IComputeDevice** ppDevice) = 0;
+
+        //! \brief Create a kernel compiler.
+        //!
+        //! \param ppCompiler - A pointer to memory where the pointer to the created compiler will be written.
+        //!
+        //! \return ResultCode::Success or an error code.
+        virtual ResultCode CreateKernelCompiler(IKernelCompiler** ppCompiler) = 0;
     };
 
     inline constexpr const char* CreateDeviceFactoryProcName = "CreateDeviceFactoryImpl";
