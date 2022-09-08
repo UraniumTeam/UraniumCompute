@@ -7,3 +7,6 @@
 [submodule "NativeSource/ThirdParty/spdlog"]
 	path = NativeSource/ThirdParty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "NativeSource/ThirdParty/DirectXShaderCompiler"]
+	path = NativeSource/ThirdParty/DirectXShaderCompiler
+	url = https://github.com/microsoft/DirectXShaderCompiler.git
