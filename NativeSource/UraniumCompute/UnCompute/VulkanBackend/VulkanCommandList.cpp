@@ -2,6 +2,7 @@
 #include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/VulkanBackend/VulkanCommandList.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <UnCompute/VulkanBackend/VulkanFence.h>
 
 namespace UN
