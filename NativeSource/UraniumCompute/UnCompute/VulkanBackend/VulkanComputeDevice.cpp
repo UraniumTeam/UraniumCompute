@@ -76,8 +76,8 @@ namespace UN
 
     ResultCode VulkanComputeDevice::Init(const ComputeDeviceDesc& desc)
     {
-        m_NativeAdapter        = m_pFactory->GetVulkanAdapters()[desc.AdapterId];
-        auto adapterProperties = m_pFactory->GetVulkanAdapterProperties()[desc.AdapterId];
+        m_NativeAdapter                         = m_pFactory->GetVulkanAdapters()[desc.AdapterId];
+        [[maybe_unused]] auto adapterProperties = m_pFactory->GetVulkanAdapterProperties()[desc.AdapterId];
 
         FindQueueFamilies();
 
