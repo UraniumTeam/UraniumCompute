@@ -69,16 +69,16 @@ namespace UN
         inline BufferCopyRegion() = default;
 
         inline explicit BufferCopyRegion(UInt64 size)
-            : SourceOffset(0)
+            : Size(size)
+            , SourceOffset(0)
             , DestOffset(0)
-            , Size(size)
         {
         }
 
         inline BufferCopyRegion(UInt32 sourceOffset, UInt32 destOffset, UInt64 size)
-            : SourceOffset(sourceOffset)
+            : Size(size)
+            , SourceOffset(sourceOffset)
             , DestOffset(destOffset)
-            , Size(size)
         {
         }
     };
