@@ -120,7 +120,7 @@ namespace UN
 
     ResultCode KernelCompiler::Compile(const KernelCompilerArgs& args, HeapArray<Byte>* pResult)
     {
-        DxcCreateInstanceProc createInstance;
+        DxcCreateInstanceProc createInstance{};
         UN_VerifyResultFatal(m_DynamicLibrary->GetFunction("DxcCreateInstance", &createInstance),
                              "Couldn't find DxcCreateInstance()");
 
