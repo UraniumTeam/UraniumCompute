@@ -64,9 +64,9 @@ namespace UN
 
     public:
         inline IncludeHandler(const std::wstring& basePath, IDxcLibrary* library)
-            : m_BasePath(basePath)
+            : m_RefCounter(0)
+            , m_BasePath(basePath)
             , m_Library(library)
-            , m_RefCounter(0)
         {
         }
 
