@@ -1,14 +1,15 @@
+#include <UnCompute/Compilation/KernelCompiler.h>
 #include <UnCompute/Memory/Memory.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
-#include <UnCompute/Compilation/KernelCompiler.h>
 #include <algorithm>
 #include <iostream>
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
-                                                          VkDebugReportObjectTypeEXT /* objectType */, UN::UInt64 /* object */,
-                                                          size_t /* location */, UN::Int32 /* messageCode */,
-                                                          const char* pLayerPrefix, const char* pMessage, void* /* pUserData */)
+[[maybe_unused]] static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
+                                                                           VkDebugReportObjectTypeEXT /* objectType */,
+                                                                           UN::UInt64 /* object */, size_t /* location */,
+                                                                           UN::Int32 /* messageCode */, const char* pLayerPrefix,
+                                                                           const char* pMessage, void* /* pUserData */)
 {
     constexpr static auto ignoredMessages = std::array<const char*, 0>{};
 
