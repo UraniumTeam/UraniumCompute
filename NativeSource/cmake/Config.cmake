@@ -43,7 +43,7 @@ function(un_configure_target TARGET)
     if(UN_COMPILER_MSVC)
         target_compile_options(${TARGET} PRIVATE /W4 /WX)
     else()
-        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -pedantic -Werror)
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -pedantic -Werror -fPIC)
     endif()
 endfunction()
 
