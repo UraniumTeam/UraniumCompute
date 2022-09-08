@@ -15,5 +15,5 @@
 #    undef CreateWindow
 #    undef MemoryBarrier
 #else
-#    error Unsupported platform
+#   include <dlfcn.h>
 #endif
