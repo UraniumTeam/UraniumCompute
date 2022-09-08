@@ -1,7 +1,6 @@
 #include <UnCompute/Compilation/KernelCompiler.h>
 #include <UnCompute/Utils/DynamicLibrary.h>
 
-#include <d3d11shader.h>
 #include <dxc/DxilContainer/DxilContainer.h>
 #include <dxc/dxcapi.h>
 
@@ -78,12 +77,12 @@ namespace UN
 
         inline ULONG AddRef() override
         {
-            return m_RefCounter++;
+            return ++m_RefCounter;
         }
 
         inline ULONG Release() override
         {
-            return m_RefCounter--;
+            return --m_RefCounter;
         }
 
         inline HRESULT LoadSource(LPCWSTR pFilename, IDxcBlob** ppIncludeSource) override
