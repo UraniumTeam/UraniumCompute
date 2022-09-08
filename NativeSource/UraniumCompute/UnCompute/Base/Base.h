@@ -5,7 +5,6 @@
 #include <atomic>
 #include <cassert>
 #include <cstdint>
-#include <intrin.h>
 #include <string_view>
 
 namespace UN
