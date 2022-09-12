@@ -2,6 +2,7 @@
 #include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/VulkanBackend/VulkanCommandList.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
+#include <UnCompute/VulkanBackend/VulkanDescriptorAllocator.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <UnCompute/VulkanBackend/VulkanFence.h>
@@ -150,7 +151,25 @@ namespace UN
         }
 
         UNLOG_Debug("Successfully created Vulkan device on {}", adapterProperties.deviceName);
-        return ResultCode::Success;
+
+        UN_VerifyResultFatal(VulkanDescriptorAllocator::Create(this, &m_pDescriptorAllocator),
+                             "Couldn't create a descriptor allocator");
+
+        VulkanDescriptorAllocatorDesc descriptorAllocatorDesc{};
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER] = 1.f;
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]       = 2.f;
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]       = 2.f;
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]        = 1.f;
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]        = 1.f;
+        descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_SAMPLER]              = 1.f;
+
+        auto result = m_pDescriptorAllocator->Init(descriptorAllocatorDesc);
+        if (!Succeeded(result))
+        {
+            UN_Error(false, "Couldn't initialize a descriptor allocator, result was {}", result);
+        }
+
+        return result;
     }
 
     void VulkanComputeDevice::Reset()
@@ -184,25 +203,21 @@ namespace UN
 
     ResultCode VulkanComputeDevice::CreateBuffer(IBuffer** ppBuffer)
     {
-        VulkanBuffer::Create(this, ppBuffer);
-        return ResultCode::Success;
+        return VulkanBuffer::Create(this, ppBuffer);
     }
 
     ResultCode VulkanComputeDevice::CreateMemory(IDeviceMemory** ppMemory)
     {
-        VulkanDeviceMemory::Create(this, ppMemory);
-        return ResultCode::Success;
+        return VulkanDeviceMemory::Create(this, ppMemory);
     }
 
     ResultCode VulkanComputeDevice::CreateFence(IFence** ppFence)
     {
-        VulkanFence::Create(this, ppFence);
-        return ResultCode::Success;
+        return VulkanFence::Create(this, ppFence);
     }
 
     ResultCode VulkanComputeDevice::CreateCommandList(ICommandList** ppCommandList)
     {
-        VulkanCommandList::Create(this, ppCommandList);
-        return ResultCode::Success;
+        return VulkanCommandList::Create(this, ppCommandList);
     }
 } // namespace UN

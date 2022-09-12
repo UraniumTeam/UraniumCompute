@@ -21,6 +21,7 @@ namespace UN
     };
 
     class VulkanDeviceFactory;
+    class VulkanDescriptorAllocator;
 
     class VulkanComputeDevice : public Object<IComputeDevice>
     {
@@ -31,7 +32,7 @@ namespace UN
         VkDevice m_NativeDevice          = VK_NULL_HANDLE;
         VkPhysicalDevice m_NativeAdapter = VK_NULL_HANDLE;
 
-        VkMemoryRequirements m_BufferMemoryRequirements = {};
+        Ptr<VulkanDescriptorAllocator> m_pDescriptorAllocator;
 
         void ResetInternal();
         void FindQueueFamilies();
@@ -85,6 +86,11 @@ namespace UN
             VkQueue queue;
             vkGetDeviceQueue(m_NativeDevice, GetQueueFamilyIndex(flags), 0, &queue);
             return queue;
+        }
+
+        inline VulkanDescriptorAllocator* GetDescriptorAllocator()
+        {
+            return m_pDescriptorAllocator.Get();
         }
 
         ResultCode FindMemoryType(UInt32 typeBits, VkMemoryPropertyFlags properties, UInt32& memoryType);

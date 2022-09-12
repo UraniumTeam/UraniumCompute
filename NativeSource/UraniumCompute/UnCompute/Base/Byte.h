@@ -9,6 +9,8 @@ namespace UN
     {
     };
 
+    static_assert(sizeof(Byte) == 1);
+
     template<class T>
     inline std::enable_if_t<std::is_integral_v<T>, Byte*> un_byte_cast(T* ptr)
     {
