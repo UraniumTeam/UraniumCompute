@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <iostream>
 
+constexpr auto RequiredInstanceLayers = std::array{ "VK_LAYER_KHRONOS_validation",
+                                                    /*"VK_LAYER_LUNARG_standard_validation"*/
+};
+
 [[maybe_unused]] static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT flags,
                                                                            VkDebugReportObjectTypeEXT /* objectType */,
                                                                            UN::UInt64 /* object */, size_t /* location */,
@@ -35,8 +39,9 @@
         UNLOG_Error("[{}]: {}", message, pLayerPrefix);
         break;
     case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
-        UNLOG_Debug("[{}]: {}", message, pLayerPrefix);
-        break;
+        return VK_FALSE;
+        // UNLOG_Debug("[{}]: {}", message, pLayerPrefix);
+        // break;
     default:
         UNLOG_Warning("[{}]: {}", message, pLayerPrefix);
         break;

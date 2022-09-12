@@ -10,9 +10,11 @@ namespace UN
         ConstantBuffer, //!< Constant buffer.
         RWBuffer,       //!< Storage buffer with unordered access.
         SampledTexture, //!< Read-only sampled image.
-        RWTexture       //!< Storage image with unordered access.
+        RWTexture,      //!< Storage image with unordered access.
+        Sampler         //!< Texture sampler.
     };
 
+    //! \brief Kernel resource descriptor.
     struct KernelResourceDesc
     {
         Int32 BindingIndex      = -1;                         //!< Binding index in the compute shader source.
