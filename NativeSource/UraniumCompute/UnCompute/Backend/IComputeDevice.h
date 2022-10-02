@@ -25,6 +25,7 @@ namespace UN
     class IDeviceMemory;
     class ICommandList;
     class IResourceBinding;
+    class IKernel;
 
     //! \brief Interface for all backend-specific compute devices.
     //!
@@ -55,5 +56,7 @@ namespace UN
         virtual ResultCode CreateCommandList(ICommandList** ppCommandList) = 0;
 
         virtual ResultCode CreateResourceBinding(IResourceBinding** ppResourceBinding) = 0;
+
+        virtual ResultCode CreateKernel(IKernel** ppKernel) = 0;
     };
 } // namespace UN

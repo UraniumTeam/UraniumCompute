@@ -6,6 +6,7 @@
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <UnCompute/VulkanBackend/VulkanFence.h>
+#include <UnCompute/VulkanBackend/VulkanKernel.h>
 #include <UnCompute/VulkanBackend/VulkanResourceBinding.h>
 #include <algorithm>
 
@@ -225,5 +226,10 @@ namespace UN
     ResultCode VulkanComputeDevice::CreateResourceBinding(IResourceBinding** ppResourceBinding)
     {
         return VulkanResourceBinding::Create(this, ppResourceBinding);
+    }
+
+    ResultCode VulkanComputeDevice::CreateKernel(IKernel** ppKernel)
+    {
+        return VulkanKernel::Create(this, ppKernel);
     }
 } // namespace UN

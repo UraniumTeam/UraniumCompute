@@ -163,16 +163,18 @@ namespace UN
         std::vector<LPCWSTR> compileArgs;
         if (m_Desc.TargetLang == KernelTargetLang::SpirV)
         {
-            compileArgs.assign({ ConvertOptLevel(args.OptimizationLevel),
-                                 DXC_ARG_PACK_MATRIX_COLUMN_MAJOR,
-                                 L"-spirv",
-                                 L"-fspv-target-env=vulkan1.1",
-                                 L"-fspv-extension=KHR",
-                                 L"-fspv-extension=SPV_GOOGLE_hlsl_functionality1",
-                                 L"-fspv-extension=SPV_GOOGLE_user_type",
-                                 L"-fvk-use-dx-layout",
-                                 L"-fspv-extension=SPV_EXT_descriptor_indexing",
-                                 L"-fspv-reflect" });
+            compileArgs.assign({
+                ConvertOptLevel(args.OptimizationLevel),
+                DXC_ARG_PACK_MATRIX_COLUMN_MAJOR,
+                L"-spirv",
+                L"-fspv-target-env=vulkan1.1",
+                L"-fspv-extension=KHR",
+                //L"-fspv-extension=SPV_GOOGLE_hlsl_functionality1",
+                L"-fspv-extension=SPV_GOOGLE_user_type",
+                L"-fvk-use-dx-layout",
+                L"-fspv-extension=SPV_EXT_descriptor_indexing",
+                //L"-fspv-reflect"
+            });
         }
 
         auto argsCount = static_cast<UInt32>(compileArgs.size());

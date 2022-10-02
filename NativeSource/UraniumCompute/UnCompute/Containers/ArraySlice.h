@@ -157,7 +157,7 @@ namespace UN
             return IndexOf(value) != -1;
         }
 
-        //! \bried Length of the slice.
+        //! \brief Length of the slice.
         [[nodiscard]] inline USize Length() const noexcept
         {
             return m_pEnd - m_pBegin;
