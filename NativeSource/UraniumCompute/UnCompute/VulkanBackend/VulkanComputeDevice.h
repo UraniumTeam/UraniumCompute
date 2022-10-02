@@ -104,6 +104,7 @@ namespace UN
         ResultCode CreateMemory(IDeviceMemory** ppMemory) override;
         ResultCode CreateFence(IFence** ppFence) override;
         ResultCode CreateCommandList(ICommandList** ppCommandList) override;
+        ResultCode CreateResourceBinding(IResourceBinding** ppResourceBinding) override;
 
         static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };

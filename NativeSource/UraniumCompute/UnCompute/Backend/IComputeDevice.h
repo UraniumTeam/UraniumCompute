@@ -24,6 +24,7 @@ namespace UN
     class IBuffer;
     class IDeviceMemory;
     class ICommandList;
+    class IResourceBinding;
 
     //! \brief Interface for all backend-specific compute devices.
     //!
@@ -52,5 +53,7 @@ namespace UN
         virtual ResultCode CreateFence(IFence** ppFence) = 0;
 
         virtual ResultCode CreateCommandList(ICommandList** ppCommandList) = 0;
+
+        virtual ResultCode CreateResourceBinding(IResourceBinding** ppResourceBinding) = 0;
     };
 } // namespace UN

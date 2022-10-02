@@ -6,6 +6,7 @@
 #include <UnCompute/VulkanBackend/VulkanDeviceFactory.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <UnCompute/VulkanBackend/VulkanFence.h>
+#include <UnCompute/VulkanBackend/VulkanResourceBinding.h>
 #include <algorithm>
 
 namespace UN
@@ -124,7 +125,7 @@ namespace UN
         deviceCI.enabledExtensionCount   = static_cast<UInt32>(RequiredDeviceExtensions.size());
         deviceCI.ppEnabledExtensionNames = RequiredDeviceExtensions.data();
 
-        if (auto vkResult = vkCreateDevice(m_NativeAdapter, &deviceCI, nullptr, &m_NativeDevice); !Succeeded(vkResult))
+        if (auto vkResult = vkCreateDevice(m_NativeAdapter, &deviceCI, nullptr, &m_NativeDevice); Failed(vkResult))
         {
             UN_Error(false, "Couldn't create a Vulkan device, vkCreateDevice returned {}", vkResult);
             return VulkanConvert(vkResult);
@@ -140,7 +141,7 @@ namespace UN
             poolCI.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             poolCI.queueFamilyIndex = queue.FamilyIndex;
             poolCI.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-            if (auto vkResult = vkCreateCommandPool(m_NativeDevice, &poolCI, nullptr, &queue.CmdPool); !Succeeded(vkResult))
+            if (auto vkResult = vkCreateCommandPool(m_NativeDevice, &poolCI, nullptr, &queue.CmdPool); Failed(vkResult))
             {
                 UN_Error(false,
                          "Couldn't create a command pool for queue family index {}, vkCreateCommandPool returned {}",
@@ -164,7 +165,7 @@ namespace UN
         descriptorAllocatorDesc.Sizes[VK_DESCRIPTOR_TYPE_SAMPLER]              = 1.f;
 
         auto result = m_pDescriptorAllocator->Init(descriptorAllocatorDesc);
-        if (!Succeeded(result))
+        if (Failed(result))
         {
             UN_Error(false, "Couldn't initialize a descriptor allocator, result was {}", result);
         }
@@ -219,5 +220,10 @@ namespace UN
     ResultCode VulkanComputeDevice::CreateCommandList(ICommandList** ppCommandList)
     {
         return VulkanCommandList::Create(this, ppCommandList);
+    }
+
+    ResultCode VulkanComputeDevice::CreateResourceBinding(IResourceBinding** ppResourceBinding)
+    {
+        return VulkanResourceBinding::Create(this, ppResourceBinding);
     }
 } // namespace UN

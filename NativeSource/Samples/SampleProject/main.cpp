@@ -2,6 +2,7 @@
 #include <UnCompute/Backend/ICommandList.h>
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
+#include <UnCompute/Backend/IResourceBinding.h>
 #include <UnCompute/Backend/IFence.h>
 #include <UnCompute/Compilation/IKernelCompiler.h>
 #include <UnCompute/Memory/Memory.h>
@@ -50,8 +51,7 @@ int main()
 
     // TODO: we need a nicer API for this...
     IDeviceObject* objects[] = { pBuffer1.Get(), pBuffer2.Get() };
-    auto memoryDesc          = DeviceMemoryDesc(
-        "Test memory", MemoryKindFlags::HostAndDeviceAccessible, memorySize, ArraySlice<IDeviceObject*>(objects));
+    auto memoryDesc          = DeviceMemoryDesc("Test memory", MemoryKindFlags::HostAndDeviceAccessible, memorySize, objects);
 
     UN_VerifyResultFatal(pMemory->Init(memoryDesc), "Couldn't allocate {} bytes of device memory", MemorySize64(memoryDesc.Size));
 
@@ -162,7 +162,8 @@ int main()
     KernelCompilerDesc compilerDesc("Kernel compiler");
     UN_VerifyResultFatal(pKernelCompiler->Init(compilerDesc), "Couldn't initialize kernel compiler");
 
-    std::string sourceCode = "[numthreads(1, 1, 1)]\n"
+    std::string sourceCode = "RWStructuredBuffer<uint> values : register(u0);\n"
+                             "[numthreads(1, 1, 1)]\n"
                              "void main(uint3 globalInvocationID : SV_DispatchThreadID) {}";
 
     KernelCompilerArgs compilerArgs;
@@ -178,4 +179,11 @@ int main()
     }
 
     std::cout << "..." << std::endl;
+
+    Ptr<IResourceBinding> pResourceBinding;
+    UN_VerifyResultFatal(pDevice->CreateResourceBinding(&pResourceBinding), "Couldn't create resource binding");
+
+    KernelResourceDesc bindingLayout[] = { KernelResourceDesc(0, KernelResourceKind::RWBuffer) };
+    ResourceBindingDesc resourceBindingDesc("Resource binding", bindingLayout);
+    UN_VerifyResultFatal(pResourceBinding->Init(resourceBindingDesc), "Couldn't initialize resource binding");
 }

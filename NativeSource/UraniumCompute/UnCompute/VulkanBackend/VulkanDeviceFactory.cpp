@@ -103,7 +103,7 @@ namespace UN
         instanceCI.enabledExtensionCount   = static_cast<UInt32>(RequiredInstanceExtensions.size());
         instanceCI.ppEnabledExtensionNames = RequiredInstanceExtensions.data();
 
-        if (auto vkResult = vkCreateInstance(&instanceCI, VK_NULL_HANDLE, &m_Instance); !Succeeded(vkResult))
+        if (auto vkResult = vkCreateInstance(&instanceCI, VK_NULL_HANDLE, &m_Instance); Failed(vkResult))
         {
             UN_Error(false, "Couldn't create Vulkan instance, vkCreateInstance returned {}", vkResult);
             return VulkanConvert(vkResult);
@@ -120,7 +120,7 @@ namespace UN
         debugCI.flags |= VK_DEBUG_REPORT_DEBUG_BIT_EXT;
         debugCI.pfnCallback = &DebugReportCallback;
 
-        if (auto vkResult = vkCreateDebugReportCallbackEXT(m_Instance, &debugCI, VK_NULL_HANDLE, &m_Debug); !Succeeded(vkResult))
+        if (auto vkResult = vkCreateDebugReportCallbackEXT(m_Instance, &debugCI, VK_NULL_HANDLE, &m_Debug); Failed(vkResult))
         {
             UN_Error(false, "Couldn't create Vulkan debug report callback, vkCreateDebugReportCallbackEXT returned {}", vkResult);
             return VulkanConvert(vkResult);

@@ -109,7 +109,7 @@ namespace UN
 
         UN_VerifyResultFatal(DynamicLibrary::Create(&m_DynamicLibrary), "Couldn't create DynamicLibrary object");
 
-        if (auto resultCode = m_DynamicLibrary->Init("dxcompiler"); !Succeeded(resultCode))
+        if (auto resultCode = m_DynamicLibrary->Init("dxcompiler"); Failed(resultCode))
         {
             UN_Verify(false, "Couldn't load dxcompiler" UN_DLL_EXTENSION ", result code was {}", resultCode);
             return resultCode;

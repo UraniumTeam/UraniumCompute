@@ -84,20 +84,20 @@ namespace UN
         // DynamicLibrary class to avoid including platform headers.
 
         auto resultCode = DynamicLibrary::Create(ppLibrary);
-        if (!Succeeded(resultCode))
+        if (Failed(resultCode))
         {
             return resultCode;
         }
 
         resultCode = (*ppLibrary)->Init(UraniumComputeDllName);
-        if (!Succeeded(resultCode))
+        if (Failed(resultCode))
         {
             UN_Error(false, "Couldn't load {} library", UraniumComputeDllName);
             return resultCode;
         }
 
         resultCode = (*ppLibrary)->GetFunction(CreateDeviceFactoryProcName, pCreateDeviceFactoryProc);
-        if (!Succeeded(resultCode))
+        if (Failed(resultCode))
         {
             UN_Error(false,
                      "Couldn't get the entry point named \"{}\" in \"{}\" library",

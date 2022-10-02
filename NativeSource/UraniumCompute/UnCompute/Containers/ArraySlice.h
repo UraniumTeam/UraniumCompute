@@ -52,7 +52,7 @@ namespace UN
         //!
         //! \param arr - The source array.
         template<USize N>
-        inline explicit ArraySlice(T (&arr)[N]) noexcept
+        inline ArraySlice(T (&arr)[N]) noexcept
             : m_pBegin(arr)
             , m_pEnd(arr + N)
         {

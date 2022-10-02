@@ -22,7 +22,7 @@ namespace UN
         auto vkMemory = m_MemoryOwner->GetNativeMemory();
         if (auto vkResult = vkBindBufferMemory(
                 m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeBuffer, vkMemory, deviceMemory.GetByteOffset());
-            !Succeeded(vkResult))
+            Failed(vkResult))
         {
             UN_Error(false, "Couldn't bind Vulkan memory to buffer, vkBindBufferMemory returned {}", vkResult);
             return VulkanConvert(vkResult);
@@ -49,7 +49,7 @@ namespace UN
             | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
         auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
-        if (auto vkResult = vkCreateBuffer(vkDevice, &bufferCI, VK_NULL_HANDLE, &m_NativeBuffer); !Succeeded(vkResult))
+        if (auto vkResult = vkCreateBuffer(vkDevice, &bufferCI, VK_NULL_HANDLE, &m_NativeBuffer); Failed(vkResult))
         {
             UN_Error(false, "Couldn't create Vulkan buffer, vkCreateBuffer returned {}", vkResult);
             return VulkanConvert(vkResult);

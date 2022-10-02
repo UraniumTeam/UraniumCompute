@@ -152,7 +152,7 @@ namespace UN
         [[nodiscard]] inline void* Map() const
         {
             void* pResult;
-            if (auto result = m_pMemory->Map(m_ByteOffset, m_ByteSize, &pResult); !Succeeded(result))
+            if (auto result = m_pMemory->Map(m_ByteOffset, m_ByteSize, &pResult); Failed(result))
             {
                 UN_Error(false, "Couldn't map memory, IDeviceMemory::Map returned {}", result);
                 return nullptr;

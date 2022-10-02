@@ -9,6 +9,8 @@ namespace UN
         VkDescriptorSetLayout m_SetLayout = VK_NULL_HANDLE;
         VkDescriptorSet m_DescriptorSet   = VK_NULL_HANDLE;
 
+        VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
+
     protected:
         ResultCode InitInternal(const DescriptorType& desc) override;
 

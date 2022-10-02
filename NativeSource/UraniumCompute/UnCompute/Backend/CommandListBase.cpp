@@ -18,7 +18,7 @@ namespace UN
         }
 
         m_State = CommandListState::Recording;
-        if (auto resultCode = BeginInternal(); !Succeeded(resultCode))
+        if (auto resultCode = BeginInternal(); Failed(resultCode))
         {
             UN_Assert(false, "Couldn't begin the command list, result was {}", resultCode);
             return CommandListBuilder(nullptr);
@@ -59,7 +59,7 @@ namespace UN
         }
 
         m_State = CommandListState::Executable;
-        if (auto resultCode = EndInternal(); !Succeeded(resultCode))
+        if (auto resultCode = EndInternal(); Failed(resultCode))
         {
             UN_Assert(false, "Couldn't end the command list, result was {}", resultCode);
         }
