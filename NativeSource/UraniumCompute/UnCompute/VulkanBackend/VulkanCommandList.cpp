@@ -4,6 +4,8 @@
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 #include <UnCompute/VulkanBackend/VulkanFence.h>
+#include <UnCompute/VulkanBackend/VulkanKernel.h>
+#include <UnCompute/VulkanBackend/VulkanResourceBinding.h>
 
 namespace UN
 {
@@ -113,6 +115,25 @@ namespace UN
         copy.dstOffset = region.DestOffset;
         copy.srcOffset = region.SourceOffset;
         vkCmdCopyBuffer(m_CommandBuffer, nativeSrc, nativeDst, 1, &copy);
+    }
+
+    void VulkanCommandList::CmdDispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z)
+    {
+        auto* pVkKernel        = un_verify_cast<VulkanKernel*>(pKernel);
+        auto* pResourceBinding = pVkKernel->GetResourceBinding();
+        auto descriptorSet     = pResourceBinding->GetNativeDescriptorSet();
+
+        vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pVkKernel->GetNativePipeline());
+        vkCmdBindDescriptorSets(m_CommandBuffer,
+                                VK_PIPELINE_BIND_POINT_COMPUTE,
+                                pResourceBinding->GetNativePipelineLayout(),
+                                0,
+                                1,
+                                &descriptorSet,
+                                0,
+                                nullptr);
+
+        vkCmdDispatch(m_CommandBuffer, x, y, z);
     }
 
     VulkanCommandList::~VulkanCommandList()

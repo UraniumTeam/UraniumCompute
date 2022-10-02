@@ -195,6 +195,8 @@ namespace UN
     {
         UNLOG_Debug("Destroyed Vulkan device");
 
+        vkDeviceWaitIdle(m_NativeDevice);
+
         for (auto& family : m_QueueFamilies)
         {
             vkDestroyCommandPool(m_NativeDevice, family.CmdPool, nullptr);

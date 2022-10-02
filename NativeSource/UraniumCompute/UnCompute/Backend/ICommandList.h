@@ -86,6 +86,7 @@ namespace UN
     class IFence;
     class ICommandList;
     class IBuffer;
+    class IKernel;
 
     //! \brief Command list builder, used for device command recording.
     class CommandListBuilder
@@ -119,6 +120,14 @@ namespace UN
         //! \param region       - Copy region.
         void Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region);
 
+        //! \brief Dispatch a compute kernel to execute on the device.
+        //!
+        //! \param pKernel - The kernel to dispatch.
+        //! \param x       - the number of local workgroups to dispatch in the X dimension.
+        //! \param y       - the number of local workgroups to dispatch in the Y dimension.
+        //! \param z       - the number of local workgroups to dispatch in the Z dimension.
+        void Dispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z);
+
         explicit operator bool();
     };
 
@@ -131,6 +140,7 @@ namespace UN
         virtual void End() = 0;
 
         virtual void CmdCopy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region) = 0;
+        virtual void CmdDispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z)                         = 0;
 
     public:
         using DescriptorType = CommandListDesc;
@@ -172,6 +182,11 @@ namespace UN
     inline void CommandListBuilder::Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region)
     {
         m_pCommandList->CmdCopy(pSource, pDestination, region);
+    }
+
+    inline void CommandListBuilder::Dispatch(UN::IKernel* pKernel, UN::Int32 x, UN::Int32 y, UN::Int32 z)
+    {
+        m_pCommandList->CmdDispatch(pKernel, x, y, z);
     }
 
     inline CommandListBuilder::operator bool()

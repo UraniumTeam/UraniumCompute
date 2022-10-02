@@ -166,10 +166,11 @@ int main()
     UN_VerifyResultFatal(pKernelCompiler->Init(compilerDesc), "Couldn't initialize kernel compiler");
 
     std::string sourceCode = R"(
-RWStructuredBuffer<uint> values : register(u0);
+RWStructuredBuffer<float> values : register(u0);
 [numthreads(1, 1, 1)]
 void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
+    values[globalInvocationID.x] *= 2;
 }
 )";
 
@@ -194,9 +195,54 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     ResourceBindingDesc resourceBindingDesc("Resource binding", bindingLayout);
     UN_VerifyResultFatal(pResourceBinding->Init(resourceBindingDesc), "Couldn't initialize resource binding");
 
+    UN_VerifyResultFatal(pResourceBinding->SetVariable(0, pBuffer1.Get()), "Couldn't set buffer variable");
+
     Ptr<IKernel> pKernel;
     UN_VerifyResultFatal(pDevice->CreateKernel(&pKernel), "Couldn't create compute kernel");
 
     KernelDesc kernelDesc("Compute kernel", pResourceBinding.Get(), bytecode);
     UN_VerifyResultFatal(pKernel->Init(kernelDesc), "Couldn't initialize  compute kernel");
+
+    pCommandList->ResetState();
+    if (auto builder = pCommandList->Begin())
+    {
+        builder.Dispatch(pKernel.Get(), 16, 1, 1);
+    }
+    else
+    {
+        UN_Error(false, "Couldn't run kernel");
+    }
+
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice1))
+    {
+        std::cout << "Data in the buffer before Kernel run: ";
+        for (UInt64 i = 0; i < 16; ++i)
+        {
+            std::cout << data[i] << " ";
+        }
+
+        std::cout << "..." << std::endl;
+    }
+    else
+    {
+        UN_Error(false, "Couldn't map memory");
+    }
+
+    UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
+    UN_VerifyResultFatal(pWaitFence->WaitOnCpu(), "Command list fence timeout");
+
+    if (auto data = MemoryMapHelper<float>::Map(memorySlice1))
+    {
+        std::cout << "Data in the buffer after Kernel run: ";
+        for (UInt64 i = 0; i < 16; ++i)
+        {
+            std::cout << data[i] << " ";
+        }
+
+        std::cout << "..." << std::endl;
+    }
+    else
+    {
+        UN_Error(false, "Couldn't map memory");
+    }
 }

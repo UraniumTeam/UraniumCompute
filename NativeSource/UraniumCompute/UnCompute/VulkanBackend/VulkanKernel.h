@@ -26,6 +26,16 @@ namespace UN
 
         void Reset() override;
 
+        [[nodiscard]] inline VkPipeline GetNativePipeline() const
+        {
+            return m_Pipeline;
+        }
+
+        [[nodiscard]] inline VulkanResourceBinding* GetResourceBinding() const
+        {
+            return m_pResourceBinding.Get();
+        }
+
         inline static ResultCode Create(IComputeDevice* pDevice, IKernel** ppKernel)
         {
             *ppKernel = AllocateObject<VulkanKernel>(pDevice);
