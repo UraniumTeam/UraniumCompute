@@ -22,6 +22,12 @@ namespace UN
         return result == VK_SUCCESS;
     }
 
+    //! \brief Check if Vulkan result failed.
+    inline bool Failed(VkResult result)
+    {
+        return result != VK_SUCCESS;
+    }
+
     inline const char* VulkanResultToString(VkResult result)
     {
         switch (result)

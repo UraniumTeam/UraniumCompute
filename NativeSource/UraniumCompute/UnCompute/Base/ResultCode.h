@@ -23,7 +23,13 @@ namespace UN
     //! \brief Check if an operation returned ResultCode::Success.
     inline bool Succeeded(ResultCode result)
     {
-        return result == ::UN::ResultCode::Success;
+        return result == ResultCode::Success;
+    }
+
+    //! \brief Check if an operation did not return ResultCode::Success.
+    inline bool Failed(ResultCode result)
+    {
+        return result != ResultCode::Success;
     }
 
     inline const char* ResultToString(ResultCode result)

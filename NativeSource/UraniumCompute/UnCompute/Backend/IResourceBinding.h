@@ -19,6 +19,14 @@ namespace UN
     {
         Int32 BindingIndex      = -1;                         //!< Binding index in the compute shader source.
         KernelResourceKind Kind = KernelResourceKind::Buffer; //!< Kind of resource that is bound to a kernel.
+
+        inline KernelResourceDesc() = default;
+
+        inline KernelResourceDesc(Int32 bindingIndex, KernelResourceKind kind)
+            : BindingIndex(bindingIndex)
+            , Kind(kind)
+        {
+        }
     };
 
     //! \brief Resource binding descriptor.
@@ -26,6 +34,14 @@ namespace UN
     {
         const char* Name = nullptr;                  //!< Resource binding debug name.
         ArraySlice<const KernelResourceDesc> Layout; //!< Array of kernel resource descriptors.
+
+        inline ResourceBindingDesc() = default;
+
+        inline ResourceBindingDesc(const char* name, const ArraySlice<const KernelResourceDesc>& layout)
+            : Name(name)
+            , Layout(layout)
+        {
+        }
     };
 
     //! \brief Resource binding object used to bind resources to a compute kernel.

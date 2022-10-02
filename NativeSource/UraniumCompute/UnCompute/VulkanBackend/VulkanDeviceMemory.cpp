@@ -107,7 +107,7 @@ namespace UN
         UN_VerifyResult(vkDevice->FindMemoryType(typeBits, properties, m_MemoryTypeIndex), "Couldn't find device memory type");
         info.memoryTypeIndex = m_MemoryTypeIndex;
 
-        if (auto vkResult = vkAllocateMemory(vkDevice->GetNativeDevice(), &info, nullptr, &m_NativeMemory); !Succeeded(vkResult))
+        if (auto vkResult = vkAllocateMemory(vkDevice->GetNativeDevice(), &info, nullptr, &m_NativeMemory); Failed(vkResult))
         {
             UN_Error(false, "Couldn't allocate Vulkan device memory, vkAllocateMemory returned {}", vkResult);
             return VulkanConvert(vkResult);

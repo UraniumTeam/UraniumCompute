@@ -66,14 +66,30 @@ namespace UN
         auto device   = m_pDevice.As<VulkanComputeDevice>();
         auto vkDevice = device->GetNativeDevice();
 
-        if (auto result = vkCreateDescriptorSetLayout(vkDevice, &layoutCI, VK_NULL_HANDLE, &m_SetLayout); !Succeeded(result))
+        if (auto result = vkCreateDescriptorSetLayout(vkDevice, &layoutCI, VK_NULL_HANDLE, &m_SetLayout); Failed(result))
         {
             UN_Error(false, "Couldn't create Vulkan descriptor set layout, vkCreateDescriptorSetLayout returned {}", result);
             return VulkanConvert(result);
         }
 
         auto allocator = device->GetDescriptorAllocator();
-        return allocator->AllocateSet(m_SetLayout, &m_DescriptorSet);
+        if (auto result = allocator->AllocateSet(m_SetLayout, &m_DescriptorSet); Failed(result))
+        {
+            return result;
+        }
+
+        VkPipelineLayoutCreateInfo pipelineLayoutCI{};
+        pipelineLayoutCI.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCI.pSetLayouts    = &m_SetLayout;
+        pipelineLayoutCI.setLayoutCount = 1;
+
+        if (auto result = vkCreatePipelineLayout(vkDevice, &pipelineLayoutCI, nullptr, &m_PipelineLayout); Failed(result))
+        {
+            UN_Error(false, "Couldn't create Vulkan compute pipeline layout, vkCreatePipelineLayout returned {}", result);
+            return VulkanConvert(result);
+        }
+
+        return ResultCode::Success;
     }
 
     ResultCode VulkanResourceBinding::Create(IComputeDevice* pDevice, IResourceBinding** ppResourceBinding)

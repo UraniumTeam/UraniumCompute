@@ -42,12 +42,12 @@ namespace UN
 
     ResultCode VulkanCommandList::InitInternal(const CommandListDesc& desc)
     {
-        if (auto result = m_pDevice->CreateFence(&m_pFence); !Succeeded(result))
+        if (auto result = m_pDevice->CreateFence(&m_pFence); Failed(result))
         {
             UN_VerifyError(false, "Couldn't create a fence for command list");
             return result;
         }
-        if (auto result = m_pFence->Init(FenceDesc("Command list wait fence")); !Succeeded(result))
+        if (auto result = m_pFence->Init(FenceDesc("Command list wait fence")); Failed(result))
         {
             UN_VerifyError(false, "Couldn't initialize a fence for command list");
             return result;
