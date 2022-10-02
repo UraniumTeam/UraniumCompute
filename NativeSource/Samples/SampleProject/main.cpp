@@ -2,8 +2,9 @@
 #include <UnCompute/Backend/ICommandList.h>
 #include <UnCompute/Backend/IComputeDevice.h>
 #include <UnCompute/Backend/IDeviceMemory.h>
-#include <UnCompute/Backend/IResourceBinding.h>
 #include <UnCompute/Backend/IFence.h>
+#include <UnCompute/Backend/IKernel.h>
+#include <UnCompute/Backend/IResourceBinding.h>
 #include <UnCompute/Compilation/IKernelCompiler.h>
 #include <UnCompute/Memory/Memory.h>
 #include <iostream>
@@ -31,7 +32,9 @@ int main()
     Ptr<IComputeDevice> pDevice;
     UN_VerifyResultFatal(pFactory->CreateDevice(&pDevice), "Couldn't create device");
 
-    ComputeDeviceDesc deviceDesc(adapters[0].Id);
+    ComputeDeviceDesc deviceDesc(std::find_if(adapters.begin(), adapters.end(), [](const AdapterInfo& info) {
+                                     return info.Kind == AdapterKind::Discrete;
+                                 })->Id);
     UN_VerifyResultFatal(pDevice->Init(deviceDesc), "Couldn't initialize device");
 
     Ptr<IBuffer> pBuffer1, pBuffer2;
@@ -162,9 +165,13 @@ int main()
     KernelCompilerDesc compilerDesc("Kernel compiler");
     UN_VerifyResultFatal(pKernelCompiler->Init(compilerDesc), "Couldn't initialize kernel compiler");
 
-    std::string sourceCode = "RWStructuredBuffer<uint> values : register(u0);\n"
-                             "[numthreads(1, 1, 1)]\n"
-                             "void main(uint3 globalInvocationID : SV_DispatchThreadID) {}";
+    std::string sourceCode = R"(
+RWStructuredBuffer<uint> values : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+}
+)";
 
     KernelCompilerArgs compilerArgs;
     compilerArgs.SourceCode = ArraySlice(un_byte_cast(sourceCode.c_str()), un_byte_cast(sourceCode.c_str() + sourceCode.size()));
@@ -186,4 +193,10 @@ int main()
     KernelResourceDesc bindingLayout[] = { KernelResourceDesc(0, KernelResourceKind::RWBuffer) };
     ResourceBindingDesc resourceBindingDesc("Resource binding", bindingLayout);
     UN_VerifyResultFatal(pResourceBinding->Init(resourceBindingDesc), "Couldn't initialize resource binding");
+
+    Ptr<IKernel> pKernel;
+    UN_VerifyResultFatal(pDevice->CreateKernel(&pKernel), "Couldn't create compute kernel");
+
+    KernelDesc kernelDesc("Compute kernel", pResourceBinding.Get(), bytecode);
+    UN_VerifyResultFatal(pKernel->Init(kernelDesc), "Couldn't initialize  compute kernel");
 }

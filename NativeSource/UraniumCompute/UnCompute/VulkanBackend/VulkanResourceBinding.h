@@ -20,6 +20,11 @@ namespace UN
 
         void Reset() override;
 
+        [[nodiscard]] inline VkPipelineLayout GetNativePipelineLayout() const
+        {
+            return m_PipelineLayout;
+        }
+
         static ResultCode Create(IComputeDevice* pDevice, IResourceBinding** ppResourceBinding);
     };
 } // namespace UN

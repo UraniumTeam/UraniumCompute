@@ -105,6 +105,7 @@ namespace UN
         ResultCode CreateFence(IFence** ppFence) override;
         ResultCode CreateCommandList(ICommandList** ppCommandList) override;
         ResultCode CreateResourceBinding(IResourceBinding** ppResourceBinding) override;
+        ResultCode CreateKernel(IKernel** ppKernel) override;
 
         static ResultCode Create(VulkanDeviceFactory* pInstance, VulkanComputeDevice** ppDevice);
     };
