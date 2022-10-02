@@ -18,11 +18,18 @@ namespace UN
         explicit VulkanResourceBinding(IComputeDevice* pDevice);
         ~VulkanResourceBinding() override;
 
+        ResultCode SetVariable(Int32 bindingIndex, IBuffer* pBuffer) override;
+
         void Reset() override;
 
         [[nodiscard]] inline VkPipelineLayout GetNativePipelineLayout() const
         {
             return m_PipelineLayout;
+        }
+
+        [[nodiscard]] inline VkDescriptorSet GetNativeDescriptorSet() const
+        {
+            return m_DescriptorSet;
         }
 
         static ResultCode Create(IComputeDevice* pDevice, IResourceBinding** ppResourceBinding);

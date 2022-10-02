@@ -44,6 +44,8 @@ namespace UN
         }
     };
 
+    class IBuffer;
+
     //! \brief Resource binding object used to bind resources to a compute kernel.
     class IResourceBinding : public IDeviceObject
     {
@@ -51,6 +53,14 @@ namespace UN
         using DescriptorType = ResourceBindingDesc;
 
         [[nodiscard]] virtual const DescriptorType& GetDesc() const = 0;
+
+        //! \brief Set kernel variable.
+        //!
+        //! \param bindingIndex - Binding index of the variable to set.
+        //! \param pBuffer      - The buffer to assign.
+        //!
+        //! \return ResultCode::Success or an error code.
+        virtual ResultCode SetVariable(Int32 bindingIndex, IBuffer* pBuffer) = 0;
 
         virtual ResultCode Init(const DescriptorType& desc) = 0;
     };

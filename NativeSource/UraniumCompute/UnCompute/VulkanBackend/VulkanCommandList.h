@@ -18,6 +18,7 @@ namespace UN
         ResultCode ResetStateInternal() override;
         ResultCode SubmitInternal() override;
         void CmdCopy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region) override;
+        void CmdDispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z) override;
 
     public:
         explicit VulkanCommandList(IComputeDevice* pDevice);

@@ -1,4 +1,5 @@
 #include <UnCompute/Memory/Memory.h>
+#include <UnCompute/VulkanBackend/VulkanBuffer.h>
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDescriptorAllocator.h>
 #include <UnCompute/VulkanBackend/VulkanResourceBinding.h>
@@ -52,7 +53,7 @@ namespace UN
             auto& d       = desc.Layout[i];
             auto& binding = bindings.emplace_back();
 
-            binding.binding         = i;
+            binding.binding         = d.BindingIndex;
             binding.descriptorCount = 1;
             binding.descriptorType  = GetDescriptorType(d.Kind);
             binding.stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -102,5 +103,50 @@ namespace UN
     VulkanResourceBinding::~VulkanResourceBinding()
     {
         Reset();
+    }
+
+    ResultCode VulkanResourceBinding::SetVariable(Int32 bindingIndex, IBuffer* pBuffer)
+    {
+        auto* pBinding = std::find_if(m_Desc.Layout.begin(), m_Desc.Layout.end(), [bindingIndex](const KernelResourceDesc& desc) {
+            return desc.BindingIndex == bindingIndex;
+        });
+
+        if (pBinding == m_Desc.Layout.end())
+        {
+            UN_Error(false, "No variable at binding index {} found in RB \"{}\"", bindingIndex, GetDebugName());
+            return ResultCode::InvalidArguments;
+        }
+
+        switch (pBinding->Kind)
+        {
+        case KernelResourceKind::Buffer:
+        case KernelResourceKind::ConstantBuffer:
+        case KernelResourceKind::RWBuffer:
+            break;
+        case KernelResourceKind::SampledTexture:
+        case KernelResourceKind::RWTexture:
+        case KernelResourceKind::Sampler:
+            UN_Error(false, "Variable at binding index {} from RB \"{}\" was not a buffer", bindingIndex, GetDebugName());
+            return ResultCode::InvalidArguments;
+        }
+
+        auto* pVkBuffer = un_verify_cast<VulkanBuffer*>(pBuffer);
+
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = pVkBuffer->GetNativeBuffer();
+        bufferInfo.offset = 0;
+        bufferInfo.range  = VK_WHOLE_SIZE;
+
+        VkWriteDescriptorSet writeDescriptorSet{};
+        writeDescriptorSet.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescriptorSet.dstSet          = m_DescriptorSet;
+        writeDescriptorSet.descriptorType  = GetDescriptorType(pBinding->Kind);
+        writeDescriptorSet.dstBinding      = bindingIndex;
+        writeDescriptorSet.pBufferInfo     = &bufferInfo;
+        writeDescriptorSet.descriptorCount = 1;
+
+        auto* vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
+        vkUpdateDescriptorSets(vkDevice, 1, &writeDescriptorSet, 0, nullptr);
+        return ResultCode::Success;
     }
 } // namespace UN
