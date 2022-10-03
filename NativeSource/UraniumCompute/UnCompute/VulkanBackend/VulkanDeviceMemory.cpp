@@ -99,11 +99,13 @@ namespace UN
             return ResultCode::InvalidArguments;
         }
 
-        UN_Warning(objectSize <= desc.Size, "DeviceMemoryDesc::Size was not enough to allocate all of DeviceMemoryDesc::Objects");
+        UN_Warning(desc.Size == 0 || objectSize <= desc.Size,
+                   "DeviceMemoryDesc::Size was not enough to allocate all of DeviceMemoryDesc::Objects, use zero for auto size");
+        m_Desc.Size = std::max(desc.Size, objectSize);
 
         VkMemoryAllocateInfo info{};
         info.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        info.allocationSize = std::max(desc.Size, objectSize);
+        info.allocationSize = m_Desc.Size;
         UN_VerifyResult(vkDevice->FindMemoryType(typeBits, properties, m_MemoryTypeIndex), "Couldn't find device memory type");
         info.memoryTypeIndex = m_MemoryTypeIndex;
 

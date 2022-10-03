@@ -23,6 +23,7 @@ namespace UN
         ~VulkanBuffer() override;
 
         ResultCode BindMemory(const DeviceMemorySlice& deviceMemory) override;
+        ResultCode BindMemory(IDeviceMemory* pDeviceMemory) override;
         void Reset() override;
 
         [[nodiscard]] inline VkBuffer GetNativeBuffer() const
