@@ -283,7 +283,7 @@ struct fmt::formatter<UN::MemorySizeImpl<T>> : fmt::formatter<std::string_view>
         auto bytes  = static_cast<UN::Float64>(size.GetBytes());
 
         const char* units[] = { "B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-        while (bytes > 1024)
+        while (bytes >= 1024)
         {
             bytes /= 1024;
             i++;
