@@ -1,28 +1,19 @@
 #pragma once
 #include <UnCompute/Backend/IBuffer.h>
+#include <UnCompute/Backend/MemoryKindFlags.h>
 #include <UnCompute/Base/Flags.h>
 #include <UnCompute/Containers/ArraySlice.h>
 #include <limits>
 
 namespace UN
 {
-    //! \brief Device memory kind flags.
-    enum class MemoryKindFlags
-    {
-        None             = 0,         //!< Invalid or unspecified value.
-        HostAccessible   = UN_BIT(0), //!< Host (CPU) accessible memory.
-        DeviceAccessible = UN_BIT(1), //!< Device (GPU for accelerated backends) accessible memory.
-
-        HostAndDeviceAccessible = HostAccessible | DeviceAccessible //!< Memory accessible for both the device and the host.
-    };
-
     //! \brief Device memory descriptor.
     struct DeviceMemoryDesc
     {
-        const char* Name = nullptr;               //!< Device memory debug name.
-        UInt64 Size      = 0;                     //!< Memory size in bytes.
+        const char* Name = nullptr;         //!< Device memory debug name.
+        UInt64 Size      = 0;               //!< Memory size in bytes.
         ArraySlice<IDeviceObject*> Objects; //!< Resource objects that the memory must be compatible with.
-        MemoryKindFlags Flags;                    //!< Memory kind flags.
+        MemoryKindFlags Flags;              //!< Memory kind flags.
 
         inline DeviceMemoryDesc() = default;
 
@@ -257,6 +248,7 @@ namespace UN
 
         inline T& operator[](USize index)
         {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
             UN_Assert(index * sizeof(T) < m_MemorySlice.GetByteSize(), "Index out of range in MemoryMapHelper");
             return m_Map[index];
         }
@@ -342,6 +334,18 @@ namespace UN
                                           UInt64 byteSize = IDeviceMemory::WholeSize)
         {
             return Map(DeviceMemorySlice(pMemory, byteOffset, byteSize));
+        }
+
+        inline T* begin()
+        {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
+            return m_Map;
+        }
+
+        inline T* end()
+        {
+            UN_Assert(IsValid(), "MemoryMapHelper was in invalid state");
+            return m_Map + Length();
         }
     };
 } // namespace UN

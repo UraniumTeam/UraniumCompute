@@ -63,4 +63,9 @@ namespace UN
     {
         Reset();
     }
+
+    ResultCode VulkanBuffer::BindMemory(IDeviceMemory* pDeviceMemory)
+    {
+        return BindMemory(DeviceMemorySlice(pDeviceMemory));
+    }
 } // namespace UN

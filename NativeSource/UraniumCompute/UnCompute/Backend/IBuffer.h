@@ -18,6 +18,7 @@ namespace UN
         }
     };
 
+    class IDeviceMemory;
     class DeviceMemorySlice;
 
     //! \brief An interface for backend-specific buffers that store the data on the device.
@@ -44,5 +45,15 @@ namespace UN
         //!
         //! \return ResultCode::Success or an error code (if the memory was incompatible).
         virtual ResultCode BindMemory(const DeviceMemorySlice& deviceMemory) = 0;
+
+        //! \brief Bind device memory to the buffer.
+        //!
+        //! Buffer doesn't allocate any device memory itself on creation or initialization.
+        //! So the memory must be allocated separately and than bound to the buffer using this function.
+        //!
+        //! \param pDeviceMemory - The memory to bind.
+        //!
+        //! \return ResultCode::Success or an error code (if the memory was incompatible).
+        virtual ResultCode BindMemory(IDeviceMemory* pDeviceMemory) = 0;
     };
 } // namespace UN
