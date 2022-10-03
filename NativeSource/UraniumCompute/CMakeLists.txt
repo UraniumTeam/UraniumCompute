@@ -29,6 +29,13 @@ set(SRC
     UnCompute/Backend/IDeviceMemory.h
     UnCompute/Backend/IDeviceObject.h
     UnCompute/Backend/IFence.h
+    UnCompute/Backend/IKernel.h
+    UnCompute/Backend/IResourceBinding.h
+    UnCompute/Backend/KernelBase.cpp
+    UnCompute/Backend/KernelBase.h
+    UnCompute/Backend/MemoryKindFlags.h
+    UnCompute/Backend/ResourceBindingBase.cpp
+    UnCompute/Backend/ResourceBindingBase.h
 
     UnCompute/Base/Base.h
     UnCompute/Base/Byte.h
@@ -43,6 +50,7 @@ set(SRC
     UnCompute/Compilation/IKernelCompiler.h
     UnCompute/Compilation/KernelCompiler.cpp
     UnCompute/Compilation/KernelCompiler.h
+
     UnCompute/Containers/ArraySlice.h
     UnCompute/Containers/HeapArray.h
 
@@ -54,6 +62,7 @@ set(SRC
     UnCompute/Memory/SystemAllocator.h
 
     UnCompute/Utils/DynamicLibrary.h
+    UnCompute/Utils/MemoryUtils.h
 
     UnCompute/VulkanBackend/VulkanBuffer.cpp
     UnCompute/VulkanBackend/VulkanBuffer.h
@@ -70,12 +79,11 @@ set(SRC
     UnCompute/VulkanBackend/VulkanFence.cpp
     UnCompute/VulkanBackend/VulkanFence.h
     UnCompute/VulkanBackend/VulkanInclude.h
-    UnCompute/Backend/IResourceBinding.h
-    UnCompute/Backend/ResourceBindingBase.cpp
-    UnCompute/Backend/ResourceBindingBase.h
+    UnCompute/VulkanBackend/VulkanKernel.cpp
+    UnCompute/VulkanBackend/VulkanKernel.h
     UnCompute/VulkanBackend/VulkanResourceBinding.cpp
     UnCompute/VulkanBackend/VulkanResourceBinding.h
-    UnCompute/Backend/IKernel.h UnCompute/Backend/KernelBase.cpp UnCompute/Backend/KernelBase.h UnCompute/VulkanBackend/VulkanKernel.cpp UnCompute/VulkanBackend/VulkanKernel.h UnCompute/Backend/MemoryKindFlags.h UnCompute/Utils/MemoryUtils.h)
+)
 
 add_library(UnCompute SHARED ${SRC})
 
