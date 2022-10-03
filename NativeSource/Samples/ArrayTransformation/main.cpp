@@ -40,11 +40,12 @@ int main()
 
     using BufferType = UInt32;
 
-    constexpr UInt64 bufferElementCount = 32;
+    constexpr UInt64 bufferElementCount = 256 * 1024 * 1024;
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
     UN_VerifyResultFatal(pDeviceBuffer->Init(BufferDesc("Device local buffer", bufferSize)), "Couldn't initialize buffer");
 
+    UNLOG_Info("Allocating 2x {} of memory", MemorySize(bufferSize));
     Ptr<IDeviceMemory> pStagingMemory, pDeviceMemory;
     UN_VerifyResultFatal(
         Utility::AllocateMemoryFor(pStagingBuffer.Get(), MemoryKindFlags::HostAndDeviceAccessible, &pStagingMemory),
@@ -75,7 +76,6 @@ int main()
 
     if (auto builder = pCommandList->Begin())
     {
-        UNLOG_Info(pCommandList->GetState());
         BufferCopyRegion copyRegion(bufferSize);
         builder.Copy(pStagingBuffer.Get(), pDeviceBuffer.Get(), copyRegion);
     }
@@ -88,8 +88,11 @@ int main()
 
     // Can also be synchronized with memory barrier commands in this case (should be faster)
     auto pFence = pCommandList->GetFence();
+    UNLOG_Info("Waiting for copy command lists");
     UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
     UN_VerifyResultFatal(pFence->WaitOnCpu(1s), "Command list fence timeout");
+
+    UNLOG_Info("Copy complete");
 
     Ptr<IKernelCompiler> pKernelCompiler;
     UN_VerifyResultFatal(pFactory->CreateKernelCompiler(&pKernelCompiler), "Couldn't create kernel compiler");
@@ -102,6 +105,7 @@ RWStructuredBuffer<uint> values : register(u0);
 
 uint fib(uint n) {
     if(n <= 1) return n;
+    n %= 32;
 
     uint c = 1;
     uint p = 1;
@@ -155,13 +159,14 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         UN_Error(false, "Couldn't run kernel");
     }
 
+    UNLOG_Info("Waiting for dispatch command lists");
     UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
     UN_VerifyResultFatal(pFence->WaitOnCpu(), "Command list fence timeout");
+    UNLOG_Info("Dispatch complete");
     pCommandList->ResetState();
 
     if (auto builder = pCommandList->Begin())
     {
-        UNLOG_Info(pCommandList->GetState());
         BufferCopyRegion copyRegion(bufferSize);
         builder.Copy(pDeviceBuffer.Get(), pStagingBuffer.Get(), copyRegion);
     }
@@ -170,15 +175,22 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         UN_Error(false, "Couldn't begin command list recording");
     }
 
+    UNLOG_Info("Waiting for copy command lists");
     UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
     UN_VerifyResultFatal(pFence->WaitOnCpu(), "Command list fence timeout");
+    UNLOG_Info("Copy complete");
 
     if (auto data = MemoryMapHelper<BufferType>::Map(pStagingMemory.Get()))
     {
         std::cout << "Calculation results: ";
-        for (UInt64 i = 0; i < bufferElementCount; ++i)
+        for (UInt64 i = 0; i < 32; ++i)
         {
             std::cout << data[i] << " ";
+        }
+
+        if (bufferElementCount > 32) // NOLINT
+        {
+            std::cout << "...";
         }
 
         std::cout << std::endl;
