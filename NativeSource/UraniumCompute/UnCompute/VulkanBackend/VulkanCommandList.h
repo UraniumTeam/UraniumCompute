@@ -17,6 +17,8 @@ namespace UN
         ResultCode EndInternal() override;
         ResultCode ResetStateInternal() override;
         ResultCode SubmitInternal() override;
+
+        void CmdMemoryBarrier(IBuffer* pBuffer, const MemoryBarrierDesc& barrierDesc) override;
         void CmdCopy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region) override;
         void CmdDispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z) override;
 

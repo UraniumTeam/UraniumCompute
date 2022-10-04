@@ -9,6 +9,20 @@
 
 namespace UN
 {
+    inline VkAccessFlags VulkanConvert(AccessFlags flags)
+    {
+        VkAccessFlags result = VK_FLAGS_NONE;
+        // clang-format off
+        if (AllFlagsActive(flags, AccessFlags::KernelRead))    { result |= VK_ACCESS_SHADER_READ_BIT;    }
+        if (AllFlagsActive(flags, AccessFlags::KernelWrite))   { result |= VK_ACCESS_SHADER_WRITE_BIT;   }
+        if (AllFlagsActive(flags, AccessFlags::TransferRead))  { result |= VK_ACCESS_TRANSFER_READ_BIT;  }
+        if (AllFlagsActive(flags, AccessFlags::TransferWrite)) { result |= VK_ACCESS_TRANSFER_WRITE_BIT; }
+        if (AllFlagsActive(flags, AccessFlags::HostRead))      { result |= VK_ACCESS_HOST_READ_BIT;      }
+        if (AllFlagsActive(flags, AccessFlags::HostWrite))     { result |= VK_ACCESS_HOST_WRITE_BIT;     }
+        // clang-format on
+        return result;
+    }
+
     VulkanCommandList::VulkanCommandList(IComputeDevice* pDevice)
         : CommandListBase(pDevice)
     {
@@ -139,5 +153,35 @@ namespace UN
     VulkanCommandList::~VulkanCommandList()
     {
         Reset();
+    }
+
+    void VulkanCommandList::CmdMemoryBarrier(IBuffer* pBuffer, const MemoryBarrierDesc& barrierDesc)
+    {
+        VkBufferMemoryBarrier barrier{};
+        barrier.sType         = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        barrier.offset        = 0;
+        barrier.size          = VK_WHOLE_SIZE;
+        barrier.buffer        = un_verify_cast<VulkanBuffer*>(pBuffer)->GetNativeBuffer();
+        barrier.srcAccessMask = VulkanConvert(barrierDesc.SourceAccess);
+        barrier.dstAccessMask = VulkanConvert(barrierDesc.DestAccess);
+
+        auto* pDevice               = m_pDevice.As<VulkanComputeDevice>();
+        barrier.srcQueueFamilyIndex = barrierDesc.SourceQueueKind == HardwareQueueKindFlags::None
+            ? VK_QUEUE_FAMILY_IGNORED
+            : pDevice->GetQueueFamilyIndex(barrierDesc.SourceQueueKind);
+        barrier.dstQueueFamilyIndex = barrierDesc.DestQueueKind == HardwareQueueKindFlags::None
+            ? VK_QUEUE_FAMILY_IGNORED
+            : pDevice->GetQueueFamilyIndex(barrierDesc.DestQueueKind);
+
+        vkCmdPipelineBarrier(m_CommandBuffer,
+                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                             VK_FLAGS_NONE,
+                             0,
+                             nullptr,
+                             1,
+                             &barrier,
+                             0,
+                             nullptr);
     }
 } // namespace UN

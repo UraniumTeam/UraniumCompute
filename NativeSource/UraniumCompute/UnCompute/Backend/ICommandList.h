@@ -83,9 +83,46 @@ namespace UN
         }
     };
 
+    //! \brief Resource access flags used for memory barriers.
+    enum class AccessFlags
+    {
+        None          = UN_BIT(0),
+        KernelRead    = UN_BIT(1),
+        KernelWrite   = UN_BIT(2),
+        TransferRead  = UN_BIT(3),
+        TransferWrite = UN_BIT(4),
+        HostRead      = UN_BIT(5),
+        HostWrite     = UN_BIT(6)
+    };
+
+    UN_ENUM_OPERATORS(AccessFlags);
+
+    class IBuffer;
+
+    //! \brief Memory barrier descriptor.
+    struct MemoryBarrierDesc
+    {
+        AccessFlags SourceAccess = AccessFlags::None; //!< Source access mask.
+        AccessFlags DestAccess   = AccessFlags::None; //!< Destination access mask.
+
+        HardwareQueueKindFlags SourceQueueKind = HardwareQueueKindFlags::None; //!< Source command queue kind.
+        HardwareQueueKindFlags DestQueueKind   = HardwareQueueKindFlags::None; //!< Destination command queue kind.
+
+        inline MemoryBarrierDesc() = default;
+
+        inline MemoryBarrierDesc(AccessFlags sourceAccess, AccessFlags destAccess,
+                                 HardwareQueueKindFlags sourceQueueKind = HardwareQueueKindFlags::None,
+                                 HardwareQueueKindFlags destQueueKind   = HardwareQueueKindFlags::None)
+            : SourceAccess(sourceAccess)
+            , DestAccess(destAccess)
+            , SourceQueueKind(sourceQueueKind)
+            , DestQueueKind(destQueueKind)
+        {
+        }
+    };
+
     class IFence;
     class ICommandList;
-    class IBuffer;
     class IKernel;
 
     //! \brief Command list builder, used for device command recording.
@@ -113,6 +150,12 @@ namespace UN
         //! \brief Set the command list state to CommandListState::Executable.
         void End();
 
+        //! \brief Insert a memory dependency.
+        //!
+        //! \param pBuffer     - The buffer affected by the barrier.
+        //! \param barrierDesc - The barrier descriptor.
+        void MemoryBarrier(IBuffer* pBuffer, const MemoryBarrierDesc& barrierDesc);
+
         //! \brief Copy a region of the source buffer to the destination buffer.
         //!
         //! \param pSource      - Source buffer.
@@ -123,9 +166,9 @@ namespace UN
         //! \brief Dispatch a compute kernel to execute on the device.
         //!
         //! \param pKernel - The kernel to dispatch.
-        //! \param x       - the number of local workgroups to dispatch in the X dimension.
-        //! \param y       - the number of local workgroups to dispatch in the Y dimension.
-        //! \param z       - the number of local workgroups to dispatch in the Z dimension.
+        //! \param x       - The number of local workgroups to dispatch in the X dimension.
+        //! \param y       - The number of local workgroups to dispatch in the Y dimension.
+        //! \param z       - The number of local workgroups to dispatch in the Z dimension.
         void Dispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z);
 
         explicit operator bool();
@@ -139,6 +182,7 @@ namespace UN
     protected:
         virtual void End() = 0;
 
+        virtual void CmdMemoryBarrier(IBuffer* pBuffer, const MemoryBarrierDesc& barrierDesc)         = 0;
         virtual void CmdCopy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region) = 0;
         virtual void CmdDispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z)                         = 0;
 
@@ -177,6 +221,11 @@ namespace UN
             m_pCommandList->End();
             m_pCommandList = nullptr;
         }
+    }
+
+    inline void CommandListBuilder::MemoryBarrier(IBuffer* pBuffer, const MemoryBarrierDesc& barrierDesc)
+    {
+        m_pCommandList->CmdMemoryBarrier(pBuffer, barrierDesc);
     }
 
     inline void CommandListBuilder::Copy(IBuffer* pSource, IBuffer* pDestination, const BufferCopyRegion& region)

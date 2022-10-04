@@ -1,2 +1,3 @@
 add_subdirectory(SampleProject)
 add_subdirectory(ArrayTransformation)
+add_subdirectory(MemoryBarriers)

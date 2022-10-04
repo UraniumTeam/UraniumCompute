@@ -30,10 +30,18 @@ namespace UN
             Unmap();
         }
 
-        auto vkResult = vkMapMemory(
-            m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeMemory, byteOffset, byteSize, VK_FLAGS_NONE, ppData);
-        m_Mapped = Succeeded(vkResult);
+        auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
+
+        auto vkResult = vkMapMemory(vkDevice, m_NativeMemory, byteOffset, byteSize, VK_FLAGS_NONE, ppData);
+        m_Mapped      = Succeeded(vkResult);
         UN_Error(m_Mapped, "Couldn't map Vulkan memory, vkMapMemory returned {}", vkResult);
+
+        VkMappedMemoryRange range{};
+        range.sType  = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.memory = m_NativeMemory;
+        range.offset = 0;
+        range.size   = VK_WHOLE_SIZE;
+        vkInvalidateMappedMemoryRanges(vkDevice, 1, &range);
 
         return VulkanConvert(vkResult);
     }
@@ -45,7 +53,16 @@ namespace UN
             return;
         }
 
-        vkUnmapMemory(m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice(), m_NativeMemory);
+        auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
+
+        VkMappedMemoryRange range{};
+        range.sType  = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.memory = m_NativeMemory;
+        range.offset = 0;
+        range.size   = VK_WHOLE_SIZE;
+        vkFlushMappedMemoryRanges(vkDevice, 1, &range);
+
+        vkUnmapMemory(vkDevice, m_NativeMemory);
         m_Mapped = false;
     }
 

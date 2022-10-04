@@ -103,7 +103,8 @@ int main()
     std::string kernelSource = R"(
 RWStructuredBuffer<uint> values : register(u0);
 
-uint fib(uint n) {
+uint fib(uint n)
+{
     if(n <= 1) return n;
     n %= 32;
 
