@@ -40,7 +40,7 @@ int main()
 
     using BufferType = UInt32;
 
-    constexpr UInt64 bufferElementCount = 256 * 1024 * 1024;
+    constexpr UInt64 bufferElementCount = 1024 * 1024;
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
     UN_VerifyResultFatal(pDeviceBuffer->Init(BufferDesc("Device local buffer", bufferSize)), "Couldn't initialize buffer");
@@ -73,26 +73,6 @@ int main()
 
     CommandListDesc commandListDesc("Command list", HardwareQueueKindFlags::Compute);
     UN_VerifyResultFatal(pCommandList->Init(commandListDesc), "Couldn't initialize command list");
-
-    if (auto builder = pCommandList->Begin())
-    {
-        BufferCopyRegion copyRegion(bufferSize);
-        builder.Copy(pStagingBuffer.Get(), pDeviceBuffer.Get(), copyRegion);
-    }
-    else
-    {
-        UN_Error(false, "Couldn't begin command list recording");
-    }
-
-    using namespace std::chrono_literals;
-
-    // Can also be synchronized with memory barrier commands in this case (should be faster)
-    auto pFence = pCommandList->GetFence();
-    UNLOG_Info("Waiting for copy command lists");
-    UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
-    UN_VerifyResultFatal(pFence->WaitOnCpu(1s), "Command list fence timeout");
-
-    UNLOG_Info("Copy complete");
 
     Ptr<IKernelCompiler> pKernelCompiler;
     UN_VerifyResultFatal(pFactory->CreateKernelCompiler(&pKernelCompiler), "Couldn't create kernel compiler");
@@ -150,36 +130,27 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     KernelDesc kernelDesc("Compute kernel", pResourceBinding.Get(), bytecode);
     UN_VerifyResultFatal(pKernel->Init(kernelDesc), "Couldn't initialize  compute kernel");
 
-    pCommandList->ResetState();
-    if (auto builder = pCommandList->Begin())
-    {
-        builder.Dispatch(pKernel.Get(), bufferElementCount, 1, 1);
-    }
-    else
-    {
-        UN_Error(false, "Couldn't run kernel");
-    }
-
-    UNLOG_Info("Waiting for dispatch command lists");
-    UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
-    UN_VerifyResultFatal(pFence->WaitOnCpu(), "Command list fence timeout");
-    UNLOG_Info("Dispatch complete");
-    pCommandList->ResetState();
-
     if (auto builder = pCommandList->Begin())
     {
         BufferCopyRegion copyRegion(bufferSize);
+        builder.Copy(pStagingBuffer.Get(), pDeviceBuffer.Get(), copyRegion);
+        builder.MemoryBarrier(pDeviceBuffer.Get(), MemoryBarrierDesc(AccessFlags::HostWrite, AccessFlags::KernelRead));
+        builder.Dispatch(pKernel.Get(), bufferElementCount, 1, 1);
+        builder.MemoryBarrier(pDeviceBuffer.Get(), MemoryBarrierDesc(AccessFlags::KernelWrite, AccessFlags::TransferRead));
         builder.Copy(pDeviceBuffer.Get(), pStagingBuffer.Get(), copyRegion);
+        builder.MemoryBarrier(pStagingBuffer.Get(), MemoryBarrierDesc(AccessFlags::TransferWrite, AccessFlags::HostRead));
     }
     else
     {
         UN_Error(false, "Couldn't begin command list recording");
     }
 
+    using namespace std::chrono_literals;
+
+    auto pFence = pCommandList->GetFence();
     UNLOG_Info("Waiting for copy command lists");
     UN_VerifyResultFatal(pCommandList->Submit(), "Couldn't submit GPU commands");
     UN_VerifyResultFatal(pFence->WaitOnCpu(), "Command list fence timeout");
-    UNLOG_Info("Copy complete");
 
     if (auto data = MemoryMapHelper<BufferType>::Map(pStagingMemory.Get()))
     {
