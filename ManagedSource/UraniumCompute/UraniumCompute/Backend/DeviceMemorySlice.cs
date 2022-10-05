@@ -1,12 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using UraniumCompute.Utils;
+﻿using System.Diagnostics;
 
 namespace UraniumCompute.Backend;
 
 /// <summary>
 ///     A slice of device memory.
 /// </summary>
-public readonly record struct DeviceMemorySlice : IValidatable
+public readonly record struct DeviceMemorySlice
 {
     /// <summary>
     ///     The underlying device memory object.
@@ -28,18 +27,7 @@ public readonly record struct DeviceMemorySlice : IValidatable
         Memory = memory;
         Offset = offset;
         Size = Math.Min(size, memory.Descriptor.Size - offset);
-    }
-
-    public bool HasValidationErrors([MaybeNullWhen(false)] out string errorMessage)
-    {
-        if (Size == DeviceMemory.WholeSize || Size <= Memory.Descriptor.Size - Offset)
-        {
-            errorMessage = null;
-            return false;
-        }
-
-        errorMessage = $"Size = {Size}, but memory has only {Memory.Descriptor.Size} - {Offset} bytes left";
-        return true;
+        Debug.Assert(Size == DeviceMemory.WholeSize || Size <= Memory.Descriptor.Size - Offset);
     }
 
     /// <summary>

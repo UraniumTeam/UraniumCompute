@@ -1,6 +1,6 @@
 ﻿namespace UraniumCompute.Utils;
 
-public static class TypeExtension
+public static class TypeExtensions
 {
     private static readonly Dictionary<string, string> CSharpTypeAliases = new()
     {
