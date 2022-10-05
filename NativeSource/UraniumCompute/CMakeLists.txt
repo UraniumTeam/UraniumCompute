@@ -83,7 +83,7 @@ set(SRC
     UnCompute/VulkanBackend/VulkanKernel.h
     UnCompute/VulkanBackend/VulkanResourceBinding.cpp
     UnCompute/VulkanBackend/VulkanResourceBinding.h
-)
+    Bindings/Backend/Kernel.cpp Bindings/Backend/ResourceBinding.cpp Bindings/Compilation/KernelCompiler.cpp)
 
 add_library(UnCompute SHARED ${SRC})
 

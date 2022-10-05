@@ -21,5 +21,10 @@ namespace UN
         {
             return self->CreateDevice(ppDevice);
         }
+
+        UN_DLL_EXPORT ResultCode IDeviceFactory_CreateKernelCompiler(IDeviceFactory* self, IKernelCompiler** ppCompiler)
+        {
+            return self->CreateKernelCompiler(ppCompiler);
+        }
     }
 } // namespace UN

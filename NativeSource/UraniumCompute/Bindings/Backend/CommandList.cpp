@@ -45,10 +45,21 @@ namespace UN
             self->End();
         }
 
+        UN_DLL_EXPORT void CommandListBuilder_MemoryBarrier(CommandListBuilder* self, IBuffer* pBuffer,
+                                                            const MemoryBarrierDesc& barrierDesc)
+        {
+            self->MemoryBarrier(pBuffer, barrierDesc);
+        }
+
         UN_DLL_EXPORT void CommandListBuilder_Copy(CommandListBuilder* self, IBuffer* pSource, IBuffer* pDestination,
                                                    const BufferCopyRegion& region)
         {
             self->Copy(pSource, pDestination, region);
+        }
+
+        UN_DLL_EXPORT void CommandListBuilder_Dispatch(CommandListBuilder* self, IKernel* pKernel, Int32 x, Int32 y, Int32 z)
+        {
+            self->Dispatch(pKernel, x, y, z);
         }
     }
 } // namespace UN

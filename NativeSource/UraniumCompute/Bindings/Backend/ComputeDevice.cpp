@@ -28,5 +28,15 @@ namespace UN
         {
             return self->CreateCommandList(ppCommandList);
         }
+
+        UN_DLL_EXPORT ResultCode IComputeDevice_CreateResourceBinding(IComputeDevice* self, IResourceBinding** ppResourceBinding)
+        {
+            return self->CreateResourceBinding(ppResourceBinding);
+        }
+
+        UN_DLL_EXPORT ResultCode IComputeDevice_CreateKernel(IComputeDevice* self, IKernel** ppKernel)
+        {
+            return self->CreateKernel(ppKernel);
+        }
     }
 } // namespace UN
