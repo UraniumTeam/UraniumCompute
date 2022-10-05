@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Mono.Cecil;
+﻿using Mono.Cecil;
 using UraniumCompute.Compiler.Disassembling;
 
 namespace UraniumCompute.Compiler.Decompiling;
@@ -40,6 +39,7 @@ public sealed class MethodCompilation
         {
             Console.WriteLine(instruction);
         }
+
         throw new NotImplementedException();
     }
 }
