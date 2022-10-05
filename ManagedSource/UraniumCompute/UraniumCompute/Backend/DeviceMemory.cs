@@ -12,13 +12,12 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
 {
     public const ulong WholeSize = ulong.MaxValue;
 
-    public override unsafe Desc Descriptor
+    public override Desc Descriptor
     {
         get
         {
             IDeviceMemory_GetDesc(Handle, out var value);
-            var objects = new ReadOnlySpan<IntPtr>(value.Objects.pBegin, (int)value.Objects.Length());
-            return new Desc(value.Name, value.Size, objects.ToArray(), value.Flags);
+            return value;
         }
     }
 
@@ -28,32 +27,13 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
 
     public override void Init(in Desc desc)
     {
-        var objects = desc.Objects.ToArray();
-        Init(desc.Name, desc.Size, objects, desc.Flags);
+        IDeviceMemory_Init(Handle, in desc);
     }
 
-    /// <summary>
-    ///     A more efficient version of Init. Doesn't allocate an array of object handles.
-    /// </summary>
-    /// <param name="name">Debug name.</param>
-    /// <param name="size">Size of allocated device memory.</param>
-    /// <param name="objects">
-    ///     A span of object handles (see <see cref="NativeObject.Handle" />) that the allocated memory must be compatible
-    ///     with.
-    /// </param>
-    /// <param name="flags">Memory kind flags.</param>
-    public unsafe void Init(NativeString name, ulong size, ReadOnlySpan<IntPtr> objects, MemoryKindFlags flags)
+    public void Init(NativeString name, ulong size, IEnumerable<DeviceObject> objects, MemoryKindFlags flags)
     {
-        fixed (IntPtr* p = objects)
-        {
-            var descNative = new DescNative(name, size, new ArraySliceBase
-            {
-                pBegin = (sbyte*)p,
-                pEnd = (sbyte*)(p + objects.Length)
-            }, flags);
-
-            IDeviceMemory_Init(Handle, in descNative).ThrowOnError("Couldn't initialize device memory");
-        }
+        var handles = objects.Select(x => x.Handle).ToArray();
+        Init(new Desc(name, size, handles, flags));
     }
 
     internal unsafe void* MapImpl(ulong byteOffset = 0, ulong byteSize = WholeSize)
@@ -100,10 +80,10 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceMemory_Init(IntPtr self, in DescNative desc);
+    private static extern ResultCode IDeviceMemory_Init(IntPtr self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IDeviceMemory_GetDesc(IntPtr self, out DescNative desc);
+    private static extern void IDeviceMemory_GetDesc(IntPtr self, out Desc desc);
 
     [DllImport("UnCompute")]
     private static extern ResultCode IDeviceMemory_Map(IntPtr self, ulong byteOffset, ulong byteSize, out IntPtr data);
@@ -114,15 +94,57 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     [DllImport("UnCompute")]
     private static extern bool IDeviceMemory_IsCompatible(IntPtr self, IntPtr deviceObject);
 
-    [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DescNative(NativeString Name, ulong Size, ArraySliceBase Objects, MemoryKindFlags Flags);
-
     /// <summary>
     ///     Device memory descriptor.
     /// </summary>
-    /// <param name="Name">Device memory debug name.</param>
-    /// <param name="Size">Memory size in bytes.</param>
-    /// <param name="Objects">Resource objects that the memory must be compatible with.</param>
-    /// <param name="Flags">Memory kind flags.</param>
-    public readonly record struct Desc(NativeString Name, ulong Size, IEnumerable<IntPtr> Objects, MemoryKindFlags Flags);
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct Desc
+    {
+        /// <summary>Device memory debug name.</summary>
+        public NativeString Name { get; init; }
+
+        /// <summary>Memory size in bytes.</summary>
+        public ulong Size { get; init; }
+
+        /// <summary>Resource objects that the memory must be compatible with.</summary>
+        public ReadOnlySpan<IntPtr> Objects
+        {
+            get => objects.AsSpan<IntPtr>();
+            init
+            {
+                unsafe
+                {
+                    fixed (IntPtr* p = value)
+                    {
+                        objects = new ArraySliceBase
+                        {
+                            pBegin = (sbyte*)p,
+                            pEnd = (sbyte*)(p + value.Length)
+                        };
+                    }
+                }
+            }
+        }
+
+        /// <summary>Memory kind flags.</summary>
+        public MemoryKindFlags Flags { get; init; }
+
+        private readonly ArraySliceBase objects;
+
+        /// <summary>
+        ///     Device memory descriptor.
+        /// </summary>
+        /// <param name="name">Device memory debug name.</param>
+        /// <param name="size">Memory size in bytes.</param>
+        /// <param name="objects">Resource objects that the memory must be compatible with.</param>
+        /// <param name="flags">Memory kind flags.</param>
+        public Desc(NativeString name, ulong size, ReadOnlySpan<IntPtr> objects, MemoryKindFlags flags)
+        {
+            Name = name;
+            Size = size;
+            Flags = flags;
+            this.objects = new ArraySliceBase();
+            Objects = objects;
+        }
+    }
 }
