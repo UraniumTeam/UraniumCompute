@@ -60,6 +60,16 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     }
 
     /// <summary>
+    ///     Bind device memory to this buffer.
+    /// </summary>
+    /// <param name="memory">Memory to bind.</param>
+    public void BindMemory(DeviceMemory memory)
+    {
+        TryBindMemory(new DeviceMemorySlice(memory))
+            .ThrowOnError("Couldn't bind memory to buffer");
+    }
+
+    /// <summary>
     ///     Try to bind device memory slice to this buffer or get the error code.
     ///     Unlike <see cref="BindMemory" />, this function doesn't throw exceptions.
     /// </summary>
