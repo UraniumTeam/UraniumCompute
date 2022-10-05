@@ -51,6 +51,20 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Span<T> Slice(int start, int length)
+    {
+        if (start < 0 || length < 0 || (ulong)(start + length) > LongCount)
+        {
+            throw new IndexOutOfRangeException("Memory map out of range");
+        }
+
+        unsafe
+        {
+            return new Span<T>(mapPointer + start, length);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe ref T GetElementAt(long index)
     {
         if (index < 0 || (ulong)index > LongCount)

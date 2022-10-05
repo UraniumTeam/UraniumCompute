@@ -16,9 +16,10 @@ hostBuffer.BindMemory(hostMemory);
 
 using (var map = hostBuffer.Map())
 {
-    for (var i = 0; i < map.Count; i++)
+    var i = 0u;
+    foreach (ref var x in map[..])
     {
-        map[i] = (uint)i;
+        x = i++;
     }
 }
 
