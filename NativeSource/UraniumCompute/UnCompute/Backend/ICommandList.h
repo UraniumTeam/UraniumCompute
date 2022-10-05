@@ -233,7 +233,7 @@ namespace UN
         m_pCommandList->CmdCopy(pSource, pDestination, region);
     }
 
-    inline void CommandListBuilder::Dispatch(UN::IKernel* pKernel, UN::Int32 x, UN::Int32 y, UN::Int32 z)
+    inline void CommandListBuilder::Dispatch(IKernel* pKernel, Int32 x, Int32 y, Int32 z)
     {
         m_pCommandList->CmdDispatch(pKernel, x, y, z);
     }

@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using UraniumCompute.Backend;
+using UraniumCompute.Compilation;
 using UraniumCompute.Containers;
 using UraniumCompute.Memory;
 
@@ -77,7 +78,7 @@ public sealed class DeviceFactory : NativeObject
     }
 
     /// <summary>
-    ///     Create compute device.
+    ///     Create a compute device.
     /// </summary>
     /// <returns>The created device</returns>
     /// <exception cref="ErrorResultException">Unmanaged function returned an error code.</exception>
@@ -91,14 +92,30 @@ public sealed class DeviceFactory : NativeObject
     }
 
     /// <summary>
-    ///     Create compute device.
+    ///     Create a kernel compiler.
     /// </summary>
-    /// <param name="computeDevice">The created device.</param>
-    /// <returns>The <see cref="ResultCode" /> of the operation.</returns>
-    public ResultCode CreateDevice(out ComputeDevice? computeDevice)
+    /// <returns>The created compiler</returns>
+    /// <exception cref="ErrorResultException">Unmanaged function returned an error code.</exception>
+    public KernelCompiler CreateKernelCompiler()
+    {
+        return CreateKernelCompiler(out var compiler) switch
+        {
+            ResultCode.Success => compiler!,
+            var resultCode => throw new ErrorResultException("Couldn't create Kernel compiler", resultCode)
+        };
+    }
+
+    private ResultCode CreateDevice(out ComputeDevice? computeDevice)
     {
         var resultCode = IDeviceFactory_CreateDevice(Handle, out var device);
         computeDevice = resultCode == ResultCode.Success ? new ComputeDevice(device) : null;
+        return resultCode;
+    }
+
+    private ResultCode CreateKernelCompiler(out KernelCompiler? kernelCompiler)
+    {
+        var resultCode = IDeviceFactory_CreateKernelCompiler(Handle, out var compiler);
+        kernelCompiler = resultCode == ResultCode.Success ? new KernelCompiler(compiler) : null;
         return resultCode;
     }
 
@@ -113,6 +130,9 @@ public sealed class DeviceFactory : NativeObject
 
     [DllImport("UnCompute")]
     private static extern ResultCode IDeviceFactory_CreateDevice(IntPtr self, out IntPtr device);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IDeviceFactory_CreateKernelCompiler(IntPtr self, out IntPtr compiler);
 
     /// <summary>
     ///     Device factory descriptor.

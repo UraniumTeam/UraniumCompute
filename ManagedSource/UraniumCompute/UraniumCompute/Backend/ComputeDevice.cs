@@ -88,6 +88,34 @@ public sealed class ComputeDevice : NativeObject
         };
     }
 
+    /// <summary>
+    ///     Create <see cref="Kernel" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
+    public Kernel CreateKernel()
+    {
+        return IComputeDevice_CreateKernel(Handle, out var kernel) switch
+        {
+            ResultCode.Success => new Kernel(kernel),
+            var resultCode => throw new ErrorResultException("Couldn't create kernel", resultCode)
+        };
+    }
+
+    /// <summary>
+    ///     Create <see cref="ResourceBinding" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
+    public ResourceBinding CreateResourceBinding()
+    {
+        return IComputeDevice_CreateResourceBinding(Handle, out var resourceBinding) switch
+        {
+            ResultCode.Success => new ResourceBinding(resourceBinding),
+            var resultCode => throw new ErrorResultException("Couldn't create resource binding", resultCode)
+        };
+    }
+
     [Pure]
     internal static bool TryGetDevice(IntPtr handle, [MaybeNullWhen(false)] out ComputeDevice device)
     {
@@ -114,6 +142,12 @@ public sealed class ComputeDevice : NativeObject
 
     [DllImport("UnCompute")]
     private static extern ResultCode IComputeDevice_CreateCommandList(IntPtr self, out IntPtr commandList);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IComputeDevice_CreateResourceBinding(IntPtr self, out IntPtr kernel);
+
+    [DllImport("UnCompute")]
+    private static extern ResultCode IComputeDevice_CreateKernel(IntPtr self, out IntPtr kernel);
 
     /// <summary>
     ///     Compute device descriptor.

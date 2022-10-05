@@ -31,7 +31,7 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
 
     private Fence? fence;
 
-    public CommandList(IntPtr handle) : base(handle)
+    internal CommandList(IntPtr handle) : base(handle)
     {
     }
 
@@ -110,6 +110,31 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         }
 
         /// <summary>
+        ///     Insert a memory dependency.
+        /// </summary>
+        /// <param name="buffer">The buffer affected by the barrier.</param>
+        /// <param name="barrierDesc">The barrier descriptor.</param>
+        /// <typeparam name="T">Type of the elements stored in the buffer affected by the barrier.</typeparam>
+        public void MemoryBarrier<T>(Buffer<T> buffer, in MemoryBarrierDesc barrierDesc)
+            where T : unmanaged
+        {
+            CommandListBuilder_MemoryBarrier(ref builder, buffer.Handle, in barrierDesc);
+        }
+
+        /// <summary>
+        ///     Insert a memory dependency.
+        /// </summary>
+        /// <param name="buffer">The buffer affected by the barrier.</param>
+        /// <param name="sourceAccess">Source access mask.</param>
+        /// <param name="destAccess">Destination access mask.</param>
+        /// <typeparam name="T">Type of the elements stored in the buffer affected by the barrier.</typeparam>
+        public void MemoryBarrier<T>(Buffer<T> buffer, AccessFlags sourceAccess, AccessFlags destAccess)
+            where T : unmanaged
+        {
+            MemoryBarrier(buffer, new MemoryBarrierDesc(sourceAccess, destAccess));
+        }
+
+        /// <summary>
         ///     Copy a region of the source buffer to the destination buffer.
         /// </summary>
         /// <param name="source">Source buffer.</param>
@@ -152,6 +177,18 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         }
 
         /// <summary>
+        ///     Dispatch a compute kernel to execute on the device.
+        /// </summary>
+        /// <param name="kernel">The kernel to dispatch.</param>
+        /// <param name="x">The number of local workgroups to dispatch in the X dimension.</param>
+        /// <param name="y">The number of local workgroups to dispatch in the Y dimension.</param>
+        /// <param name="z">The number of local workgroups to dispatch in the Z dimension.</param>
+        public void Dispatch(Kernel kernel, int x, int y, int z)
+        {
+            CommandListBuilder_Dispatch(ref builder, kernel.Handle, x, y, z);
+        }
+
+        /// <summary>
         ///     Set the command list state to Executable and end command recording.
         /// </summary>
         public void Dispose()
@@ -163,8 +200,15 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         private static extern void CommandListBuilder_End(ref NativeBuilder self);
 
         [DllImport("UnCompute")]
-        private static extern void CommandListBuilder_Copy(ref NativeBuilder self, IntPtr pSource, IntPtr pDestination,
+        private static extern void CommandListBuilder_MemoryBarrier(ref NativeBuilder self, IntPtr buffer,
+            in MemoryBarrierDesc barrierDesc);
+
+        [DllImport("UnCompute")]
+        private static extern void CommandListBuilder_Copy(ref NativeBuilder self, IntPtr source, IntPtr destination,
             in BufferCopyRegion region);
+
+        [DllImport("UnCompute")]
+        private static extern void CommandListBuilder_Dispatch(ref NativeBuilder self, IntPtr kernel, int x, int y, int z);
     }
 
     [StructLayout(LayoutKind.Sequential)]
