@@ -3,6 +3,7 @@ using System.Reflection;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
+using UraniumCompute.Utils;
 
 namespace SampleProject;
 
@@ -19,11 +20,10 @@ internal static class Program
         }
 
         using var device = factory.CreateDevice();
-        var discreteAdapter = factory.Adapters.ToArray().First(x => x.Kind == AdapterKind.Discrete);
-        device.Init(new ComputeDevice.Desc(discreteAdapter.Id));
+        device.Init(new ComputeDevice.Desc(factory.Adapters.FirstDiscrete().Id));
 
         using var hostBuffer = device.CreateBuffer<float>();
-        hostBuffer.Init(new BufferBase.Desc("Test Buffer", 1024));
+        hostBuffer.Init("Test Buffer", 1024);
 
         using var hostMemory = hostBuffer.AllocateMemory("Host Memory", MemoryKindFlags.HostAndDeviceAccessible);
         hostBuffer.BindMemory(new DeviceMemorySlice(hostMemory));
