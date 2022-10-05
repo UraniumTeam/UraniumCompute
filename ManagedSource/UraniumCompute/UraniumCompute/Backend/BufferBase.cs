@@ -41,11 +41,10 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     /// <returns>The allocated device memory.</returns>
     public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong overrideSize = ulong.MaxValue)
     {
-        Span<IntPtr> handle = stackalloc IntPtr[1];
-        handle[0] = Handle;
+        ReadOnlySpan<IntPtr> handle = stackalloc IntPtr[] {Handle};
         var memorySize = overrideSize == ulong.MaxValue ? Descriptor.Size : overrideSize;
         var memory = Device.CreateMemory();
-        memory.Init(memoryDebugName, memorySize, handle, flags);
+        memory.Init(new DeviceMemory.Desc(memoryDebugName, memorySize, handle, flags));
         return memory;
     }
 

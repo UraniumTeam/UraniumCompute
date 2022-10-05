@@ -116,7 +116,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         using var bytecode = kernelCompiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main"));
 
         using var resourceBinding = device.CreateResourceBinding();
-        resourceBinding.Init(new ResourceBinding.Desc("Resource binding", new[]
+        resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
         {
             new KernelResourceDesc(0, KernelResourceKind.RWBuffer)
         }));
@@ -124,7 +124,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         resourceBinding.SetVariable(0, deviceBuffer);
 
         using var kernel = device.CreateKernel();
-        kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode));
+        kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
 
         commandList.ResetState();
         using (var cmd = commandList.Begin())

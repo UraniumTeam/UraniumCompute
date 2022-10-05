@@ -11,8 +11,8 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     {
         get
         {
-            IResourceBinding_GetDesc(Handle, out var descNative);
-            return new Desc(descNative.Name, descNative.Layout.AsSpan<KernelResourceDesc>().ToArray());
+            IResourceBinding_GetDesc(Handle, out var desc);
+            return desc;
         }
     }
 
@@ -20,18 +20,9 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     {
     }
 
-    public override unsafe void Init(in Desc desc)
+    public override void Init(in Desc desc)
     {
-        fixed (KernelResourceDesc* p = desc.Layout)
-        {
-            var descNative = new DescNative(desc.Name, new ArraySliceBase
-            {
-                pBegin = (sbyte*)p,
-                pEnd = (sbyte*)(p + desc.Layout.Length)
-            });
-
-            IResourceBinding_Init(Handle, in descNative).ThrowOnError("Couldn't initialize device memory");
-        }
+        IResourceBinding_Init(Handle, in desc).ThrowOnError("Couldn't initialize device memory");
     }
 
     public void SetVariable<T>(int bindingIndex, Buffer<T> buffer)
@@ -41,21 +32,51 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IResourceBinding_Init(IntPtr self, in DescNative desc);
+    private static extern ResultCode IResourceBinding_Init(IntPtr self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IResourceBinding_GetDesc(IntPtr self, out DescNative desc);
+    private static extern void IResourceBinding_GetDesc(IntPtr self, out Desc desc);
 
     [DllImport("UnCompute")]
     private static extern ResultCode IResourceBinding_SetVariable(IntPtr self, int bindingIndex, IntPtr buffer);
 
-    [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DescNative(NativeString Name, ArraySliceBase Layout);
-
     /// <summary>
     ///     Resource binding descriptor.
     /// </summary>
-    /// <param name="Name">Resource binding debug name.</param>
-    /// <param name="Layout">Array of kernel resource descriptors.</param>
-    public readonly record struct Desc(NativeString Name, KernelResourceDesc[] Layout);
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct Desc
+    {
+        /// <summary>Resource binding debug name.</summary>
+        public NativeString Name { get; init; }
+
+        /// <summary>Array of kernel resource descriptors.</summary>
+        public ReadOnlySpan<KernelResourceDesc> Layout
+        {
+            internal get => layout.AsSpan<KernelResourceDesc>();
+            init
+            {
+                unsafe
+                {
+                    fixed (KernelResourceDesc* p = value)
+                    {
+                        layout = ArraySliceBase.Create(p, value.Length);
+                    }
+                }
+            }
+        }
+
+        private readonly ArraySliceBase layout;
+
+        /// <summary>
+        ///     Resource binding descriptor.
+        /// </summary>
+        /// <param name="name">Resource binding debug name.</param>
+        /// <param name="layout">Array of kernel resource descriptors.</param>
+        public Desc(NativeString name, ReadOnlySpan<KernelResourceDesc> layout)
+        {
+            Name = name;
+            this.layout = new ArraySliceBase();
+            Layout = layout;
+        }
+    }
 }

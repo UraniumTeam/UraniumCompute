@@ -12,38 +12,77 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
         get
         {
             IKernel_GetDesc(Handle, out var desc);
-            return new Desc(desc.Name, resourceBinding!, new NativeArray<byte>());
+            return desc;
         }
     }
-
-    private ResourceBinding? resourceBinding;
 
     internal Kernel(IntPtr handle) : base(handle)
     {
     }
 
-    public override unsafe void Init(in Desc desc)
+    public override void Init(in Desc desc)
     {
-        resourceBinding = desc.ResourceBinding;
-        IKernel_Init(Handle, new DescNative(desc.Name, desc.ResourceBinding.Handle, new ArraySliceBase
-        {
-            pBegin = (sbyte*)desc.Bytecode.NativePointer,
-            pEnd = (sbyte*)desc.Bytecode.NativePointer + desc.Bytecode.LongCount
-        })).ThrowOnError("Couldn't initialize compute kernel");
+        IKernel_Init(Handle, in desc).ThrowOnError("Couldn't initialize compute kernel");
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IKernel_Init(IntPtr self, in DescNative desc);
+    private static extern ResultCode IKernel_Init(IntPtr self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IKernel_GetDesc(IntPtr self, out DescNative desc);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DescNative(NativeString Name, IntPtr ResourceBinding, ArraySliceBase Bytecode);
+    private static extern void IKernel_GetDesc(IntPtr self, out Desc desc);
 
     /// <summary>
     ///     Kernel descriptor.
     /// </summary>
-    /// <param name="Name">Kernel debug name.</param>
-    public readonly record struct Desc(NativeString Name, ResourceBinding ResourceBinding, NativeArray<byte> Bytecode);
+    [StructLayout(LayoutKind.Sequential)]
+    public readonly struct Desc
+    {
+        /// <summary>
+        ///     Kernel debug name.
+        /// </summary>
+        public NativeString Name { internal get; init; }
+
+        /// <summary>
+        ///     Resource binding object that binds resources for the kernel.
+        /// </summary>
+        public ResourceBinding ResourceBinding
+        {
+            init => resourceBinding = value.Handle;
+        }
+
+        /// <summary>
+        ///     Kernel program bytecode.
+        /// </summary>
+        public ReadOnlySpan<byte> Bytecode
+        {
+            internal get => bytecode.AsSpan<byte>();
+            init
+            {
+                unsafe
+                {
+                    fixed (byte* p = value)
+                    {
+                        bytecode = ArraySliceBase.Create(p, value.Length);
+                    }
+                }
+            }
+        }
+
+        private readonly IntPtr resourceBinding;
+        private readonly ArraySliceBase bytecode;
+
+        /// <summary>
+        ///     Kernel descriptor.
+        /// </summary>
+        /// <param name="name">Kernel debug name.</param>
+        /// <param name="resourceBinding">Resource binding object that binds resources for the kernel.</param>
+        /// <param name="bytecode">Kernel program bytecode.</param>
+        public Desc(NativeString name, ResourceBinding resourceBinding, ReadOnlySpan<byte> bytecode)
+        {
+            Name = name;
+            this.resourceBinding = resourceBinding.Handle;
+            this.bytecode = new ArraySliceBase();
+            Bytecode = bytecode;
+        }
+    }
 }

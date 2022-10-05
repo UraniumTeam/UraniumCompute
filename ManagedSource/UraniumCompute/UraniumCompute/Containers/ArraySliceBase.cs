@@ -10,6 +10,17 @@ internal unsafe struct ArraySliceBase
     public sbyte* pEnd;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ArraySliceBase Create<T>(T* ptr, int length)
+        where T : unmanaged
+    {
+        return new ArraySliceBase
+        {
+            pBegin = (sbyte*)ptr,
+            pEnd = (sbyte*)(ptr + length)
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly long Length()
     {
         return pEnd - pBegin;

@@ -60,7 +60,7 @@ compiler.Init(new KernelCompiler.Desc("Kernel compiler"));
 using var bytecode = compiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main"));
 
 using var resourceBinding = device.CreateResourceBinding();
-resourceBinding.Init(new ResourceBinding.Desc("Resource binding", new[]
+resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
 {
     new KernelResourceDesc(0, KernelResourceKind.RWBuffer)
 }));
@@ -68,7 +68,7 @@ resourceBinding.Init(new ResourceBinding.Desc("Resource binding", new[]
 resourceBinding.SetVariable(0, deviceBuffer);
 
 using var kernel = device.CreateKernel();
-kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode));
+kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
 
 using var commandList = device.CreateCommandList();
 commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
