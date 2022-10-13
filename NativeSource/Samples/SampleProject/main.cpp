@@ -32,9 +32,16 @@ int main()
     Ptr<IComputeDevice> pDevice;
     UN_VerifyResultFatal(pFactory->CreateDevice(&pDevice), "Couldn't create device");
 
-    ComputeDeviceDesc deviceDesc(std::find_if(adapters.begin(), adapters.end(), [](const AdapterInfo& info) {
-                                     return info.Kind == AdapterKind::Discrete;
-                                 })->Id);
+    auto* pGpu = std::find_if(adapters.begin(), adapters.end(), [](const AdapterInfo& info) {
+        return info.Kind == AdapterKind::Discrete;
+    });
+
+    if (pGpu == adapters.end())
+    {
+        pGpu = adapters.Data();
+    }
+
+    ComputeDeviceDesc deviceDesc(pGpu->Id);
     UN_VerifyResultFatal(pDevice->Init(deviceDesc), "Couldn't initialize device");
 
     Ptr<IBuffer> pBuffer1, pBuffer2;
