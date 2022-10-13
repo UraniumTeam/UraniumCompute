@@ -7,7 +7,7 @@ using var factory = DeviceFactory.Create(BackendKind.Vulkan);
 factory.Init(new DeviceFactory.Desc("Array transformation sample"));
 
 using var device = factory.CreateDevice();
-device.Init(new ComputeDevice.Desc(factory.Adapters.FirstDiscrete().Id));
+device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
 
 using var hostBuffer = device.CreateBuffer<uint>();
 hostBuffer.Init("Host buffer", 1024 * 1024);
