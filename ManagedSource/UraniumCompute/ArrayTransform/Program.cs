@@ -10,7 +10,7 @@ using var device = factory.CreateDevice();
 device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
 
 using var hostBuffer = device.CreateBuffer<uint>();
-hostBuffer.Init("Host buffer", 1024 * 1024);
+hostBuffer.Init("Host buffer", 2 * 1024);
 using var hostMemory = hostBuffer.AllocateMemory("Host memory", MemoryKindFlags.HostAndDeviceAccessible);
 hostBuffer.BindMemory(hostMemory);
 
@@ -77,7 +77,7 @@ commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Com
 using (var cmd = commandList.Begin())
 {
     cmd.Copy(hostBuffer, deviceBuffer);
-    cmd.MemoryBarrier(deviceBuffer, AccessFlags.KernelWrite, AccessFlags.KernelRead);
+    cmd.MemoryBarrier(deviceBuffer, AccessFlags.TransferWrite, AccessFlags.KernelRead);
     cmd.Dispatch(kernel, deviceBuffer.Count, 1, 1);
     cmd.MemoryBarrier(deviceBuffer, AccessFlags.KernelWrite, AccessFlags.TransferRead);
     cmd.Copy(deviceBuffer, hostBuffer);
