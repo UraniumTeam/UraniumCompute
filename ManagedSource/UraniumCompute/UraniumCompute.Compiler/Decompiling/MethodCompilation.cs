@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using UraniumCompute.Compiler.Disassembling;
+using UraniumCompute.Compiler.Syntax;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
@@ -35,8 +36,11 @@ public sealed class MethodCompilation
         // 2. Create a syntax tree from classes derived from SyntaxNode
         // 3. Generate code and aggregate diagnostics
         var disassembler = Disassembler.Create(MethodDefinition);
-        foreach (var instruction in disassembler.Disassemble())
+        var instructions = disassembler.Disassemble();
+        var stack = new Stack<SyntaxNode>();
+        foreach (var instruction in instructions)
         {
+            // stack.Push(new BinaryOperationSyntax(BinaryOperationKind.Addition, stack.Pop(), stack.Pop()));
             Console.WriteLine(instruction);
         }
 
