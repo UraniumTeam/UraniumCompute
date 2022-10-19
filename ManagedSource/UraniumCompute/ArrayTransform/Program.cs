@@ -10,7 +10,7 @@ using var device = factory.CreateDevice();
 device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
 
 using var hostBuffer = device.CreateBuffer<uint>();
-hostBuffer.Init("Host buffer", 2 * 1024);
+hostBuffer.Init("Host buffer", 256 * 1024);
 using var hostMemory = hostBuffer.AllocateMemory("Host memory", MemoryKindFlags.HostAndDeviceAccessible);
 hostBuffer.BindMemory(hostMemory);
 
@@ -28,13 +28,14 @@ deviceBuffer.Init("Device buffer", hostBuffer.LongCount);
 using var deviceMemory = deviceBuffer.AllocateMemory("Device memory", MemoryKindFlags.DeviceAccessible);
 deviceBuffer.BindMemory(deviceMemory);
 
+const int workgroupSize = 128;
 const string kernelSource = @"
 RWStructuredBuffer<uint> values : register(u0);
 
 uint fib(uint n)
 {
-    if(n <= 1) return n;
     n %= 16;
+    if(n <= 1) return n;
 
     uint c = 1;
     uint p = 1;
@@ -52,13 +53,15 @@ uint fib(uint n)
 [numthreads(1, 1, 1)]
 void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
-    uint i = globalInvocationID.x;
-    values[i] = fib(values[i]);
+    uint index = globalInvocationID.x;
+    for (uint i = index * WORKGROUP_SIZE; i < (index + 1) * WORKGROUP_SIZE; ++i)
+        values[i] = fib(values[i]);
 }";
 
 using var compiler = factory.CreateKernelCompiler();
 compiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-using var bytecode = compiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main"));
+using var bytecode = compiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main",
+    new[] { new KernelCompiler.Define("WORKGROUP_SIZE", workgroupSize.ToString()) }));
 
 using var resourceBinding = device.CreateResourceBinding();
 resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
@@ -78,7 +81,7 @@ using (var cmd = commandList.Begin())
 {
     cmd.Copy(hostBuffer, deviceBuffer);
     cmd.MemoryBarrier(deviceBuffer, AccessFlags.TransferWrite, AccessFlags.KernelRead);
-    cmd.Dispatch(kernel, deviceBuffer.Count, 1, 1);
+    cmd.Dispatch(kernel, deviceBuffer.Count / workgroupSize, 1, 1);
     cmd.MemoryBarrier(deviceBuffer, AccessFlags.KernelWrite, AccessFlags.TransferRead);
     cmd.Copy(deviceBuffer, hostBuffer);
     cmd.MemoryBarrier(hostBuffer, AccessFlags.TransferWrite, AccessFlags.HostRead);
