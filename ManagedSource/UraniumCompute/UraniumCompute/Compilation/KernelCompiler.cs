@@ -34,14 +34,25 @@ public sealed class KernelCompiler : NativeObject
         // We do not use 'out' here to avoid C++ code trying to deallocate uninitialized pointers.
         var bytecode = new NativeArrayBase();
 
+        var nativeDefines = (args.Definitions ?? ArraySegment<Define>.Empty)
+            .Select(x => new DefineNative(x.Name, x.Value))
+            .ToArray();
         var unicodeSource = Encoding.UTF8.GetBytes(args.SourceCode);
+
         fixed (byte* source = unicodeSource)
+        fixed (DefineNative* defines = nativeDefines)
         {
-            var argsNative = new ArgsNative(new ArraySliceBase
-            {
-                pBegin = (sbyte*)source,
-                pEnd = (sbyte*)(source + args.SourceCode.Length)
-            }, args.OptimizationLevel, args.EntryPoint);
+            var argsNative = new ArgsNative(
+                new ArraySliceBase
+                {
+                    pBegin = (sbyte*)source,
+                    pEnd = (sbyte*)(source + args.SourceCode.Length)
+                }, args.OptimizationLevel, args.EntryPoint,
+                new ArraySliceBase
+                {
+                    pBegin = (sbyte*)defines,
+                    pEnd = (sbyte*)(defines + nativeDefines.Length)
+                });
             IKernelCompiler_Compile(Handle, in argsNative, ref bytecode).ThrowOnError("Couldn't compile kernel code");
         }
 
@@ -57,6 +68,11 @@ public sealed class KernelCompiler : NativeObject
     [DllImport("UnCompute")]
     private static extern ResultCode IKernelCompiler_Compile(IntPtr self, in ArgsNative args, ref NativeArrayBase bytecode);
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    private readonly record struct DefineNative(NativeString Name, NativeString Value);
+
+    public readonly record struct Define(string Name, string Value);
+
     /// <summary>
     ///     Kernel compiler descriptor.
     /// </summary>
@@ -67,8 +83,9 @@ public sealed class KernelCompiler : NativeObject
     public readonly record struct Desc(NativeString Name, KernelSourceLang SourceLang = KernelSourceLang.Hlsl,
         KernelTargetLang TargetLang = KernelTargetLang.SpirV);
 
+    [StructLayout(LayoutKind.Sequential)]
     private readonly record struct ArgsNative(ArraySliceBase SourceCode, CompilerOptimizationLevel OptimizationLevel,
-        NativeString EntryPoint);
+        NativeString EntryPoint, ArraySliceBase Definitions);
 
     /// <summary>
     ///     Kernel compiler arguments that define a single compilation.
@@ -76,6 +93,7 @@ public sealed class KernelCompiler : NativeObject
     /// <param name="SourceCode">Compute shader source code in a high-level language, e.g. HLSL.</param>
     /// <param name="OptimizationLevel">Compiler optimization level.</param>
     /// <param name="EntryPoint">Compute shader entry point.</param>
+    /// <param name="Definitions">Compiler definitions.</param>
     public readonly record struct Args(string SourceCode, CompilerOptimizationLevel OptimizationLevel,
-        NativeString EntryPoint);
+        NativeString EntryPoint, IEnumerable<Define>? Definitions = null);
 }
