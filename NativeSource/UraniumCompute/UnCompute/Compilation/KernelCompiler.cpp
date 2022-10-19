@@ -152,8 +152,17 @@ namespace UN
         IncludeHandler includeHandler(L"", pLibrary);
 
         std::vector<DxcDefine> defines;
+        std::vector<std::wstring> defineWStrings;
+
 #if UN_DEBUG
         defines.push_back(DxcDefine{ L"UN_DEBUG", L"1" });
+
+        for (auto define : args.Definitions)
+        {
+            LPCWSTR name  = defineWStrings.emplace_back(define.Name, define.Name + strlen(define.Name)).c_str();
+            LPCWSTR value = defineWStrings.emplace_back(define.Value, define.Value + strlen(define.Value)).c_str();
+            defines.push_back(DxcDefine{ name, value });
+        }
 #else
         defines.push_back(DxcDefine{ L"UN_DEBUG", L"0" });
 #endif

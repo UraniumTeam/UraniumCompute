@@ -48,6 +48,7 @@ int main()
 
     using BufferType = UInt32;
 
+    constexpr UInt64 workgroupSize      = 16;
     constexpr UInt64 bufferElementCount = 32;
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
@@ -133,14 +134,18 @@ uint fib(uint n)
 void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     uint index = globalInvocationID.x;
-    for (uint i = index * 16; i < (index + 1) * 16; ++i)
+    for (uint i = index * WORKGROUP_SIZE; i < (index + 1) * WORKGROUP_SIZE; ++i)
         values[i] = fib(values[i]);
 }
 )";
 
+    auto workgroupSizeStr = std::to_string(workgroupSize);
+    CompilerDefinition workgroupDefinition("WORKGROUP_SIZE", workgroupSizeStr.c_str());
+
     KernelCompilerArgs compilerArgs;
     compilerArgs.SourceCode =
         ArraySlice(un_byte_cast(kernelSource.c_str()), un_byte_cast(kernelSource.c_str() + kernelSource.size()));
+    compilerArgs.Definitions = ArraySlice(&workgroupDefinition, &workgroupDefinition + 1);
 
     HeapArray<Byte> bytecode;
     UN_VerifyResultFatal(pKernelCompiler->Compile(compilerArgs, &bytecode), "Couldn't compile compute kernel");
@@ -162,7 +167,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     pCommandList->ResetState();
     if (auto builder = pCommandList->Begin())
     {
-        builder.Dispatch(pKernel.Get(), bufferElementCount / 16, 1, 1);
+        builder.Dispatch(pKernel.Get(), bufferElementCount / workgroupSize, 1, 1);
     }
     else
     {

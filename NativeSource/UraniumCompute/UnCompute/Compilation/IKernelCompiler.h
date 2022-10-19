@@ -45,12 +45,28 @@ namespace UN
         Max = O3 //!< Maximum level of optimization supported by the compiler.
     };
 
+    //! Compiler `#define` descriptor.
+    struct CompilerDefinition
+    {
+        const char* Name  = nullptr; //!< Name in `#define NAME VALUE`.
+        const char* Value = nullptr; //!< Value in `#define NAME VALUE`.
+
+        CompilerDefinition() = default;
+
+        inline explicit CompilerDefinition(const char* name, const char* value = nullptr)
+            : Name(name)
+            , Value(value)
+        {
+        }
+    };
+
     //! \brief Kernel compiler arguments that define a single compilation.
     struct KernelCompilerArgs
     {
         ArraySlice<const Byte> SourceCode; //!< Compute shader source code in a high-level language, e.g. HLSL.
         CompilerOptimizationLevel OptimizationLevel = CompilerOptimizationLevel::Max; //!< Compiler optimization level.
         const char* EntryPoint                      = "main";                         //!< Compute shader entry point.
+        ArraySlice<CompilerDefinition> Definitions;                                   //!< Compiler definitions.
     };
 
     //! \brief An interface for kernel compiler that is used for compiling compute shader source into backend's native code.
