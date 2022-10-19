@@ -48,7 +48,7 @@ int main()
 
     using BufferType = UInt32;
 
-    constexpr UInt64 bufferElementCount = 256 * 1024 * 1024;
+    constexpr UInt64 bufferElementCount = 32;
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
     UN_VerifyResultFatal(pDeviceBuffer->Init(BufferDesc("Device local buffer", bufferSize)), "Couldn't initialize buffer");
@@ -113,8 +113,8 @@ RWStructuredBuffer<uint> values : register(u0);
 
 uint fib(uint n)
 {
+    n %= 16;
     if(n <= 1) return n;
-    n %= 32;
 
     uint c = 1;
     uint p = 1;
@@ -132,8 +132,9 @@ uint fib(uint n)
 [numthreads(1, 1, 1)]
 void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
-    uint i = globalInvocationID.x;
-    values[i] = fib(values[i]);
+    uint index = globalInvocationID.x;
+    for (uint i = index * 16; i < (index + 1) * 16; ++i)
+        values[i] = fib(values[i]);
 }
 )";
 
@@ -161,7 +162,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     pCommandList->ResetState();
     if (auto builder = pCommandList->Begin())
     {
-        builder.Dispatch(pKernel.Get(), bufferElementCount, 1, 1);
+        builder.Dispatch(pKernel.Get(), bufferElementCount / 16, 1, 1);
     }
     else
     {
