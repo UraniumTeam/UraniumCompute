@@ -41,7 +41,7 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     {
     }
 
-    public override void Init(in Desc desc)
+    protected override void InitInternal(in Desc desc)
     {
         IFence_Init(Handle, in desc);
     }

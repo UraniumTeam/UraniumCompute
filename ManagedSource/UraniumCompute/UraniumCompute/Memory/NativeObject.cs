@@ -32,6 +32,11 @@ public abstract class NativeObject : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
+        if (Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
         _ = IObject_Release(Handle);
         Handle = IntPtr.Zero;
     }
@@ -42,6 +47,11 @@ public abstract class NativeObject : IDisposable
         if (disposing)
         {
         }
+    }
+
+    protected void IncrementReferenceCount()
+    {
+        _ = IObject_AddRef(Handle);
     }
 
     [DllImport("UnCompute")]

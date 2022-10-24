@@ -35,7 +35,7 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     {
     }
 
-    public override void Init(in Desc desc)
+    protected override void InitInternal(in Desc desc)
     {
         ICommandList_Init(Handle, in desc);
         var fenceHandle = ICommandList_GetFence(Handle);
@@ -166,7 +166,7 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         }
 
         /// <summary>
-        ///     A not type-safe version of buffer copy command (<see cref="Copy{T}(Buffer{T},Buffer{T})" />).
+        ///     A not type-safe version of buffer copy command (<see cref="Copy{T}(Buffer1D{T},Buffer1D{T})" />).
         /// </summary>
         /// <param name="source">Source buffer.</param>
         /// <param name="destination">Destination buffer.</param>

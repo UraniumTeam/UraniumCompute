@@ -27,7 +27,7 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     {
     }
 
-    public override void Init(in Desc desc)
+    protected override void InitInternal(in Desc desc)
     {
         IBuffer_Init(Handle, in desc).ThrowOnError("Couldn't initialize buffer");
     }
