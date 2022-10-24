@@ -8,7 +8,7 @@ using UraniumCompute.Compilation;
 using UraniumCompute.Utils;
 
 using var factory = DeviceFactory.Create(BackendKind.Vulkan);
-factory.Init(new DeviceFactory.Desc("Array transformation sample"));
+factory.Init(new DeviceFactory.Desc("Mandelbrot Set sample"));
 
 using var device = factory.CreateDevice();
 device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
