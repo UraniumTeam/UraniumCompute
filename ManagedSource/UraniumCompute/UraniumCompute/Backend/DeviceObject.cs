@@ -66,15 +66,36 @@ public abstract class DeviceObject : NativeObject
 
 public abstract class DeviceObject<TDesc> : DeviceObject
 {
+    private bool isInitialized;
     public abstract TDesc Descriptor { get; }
+
+    public bool IsInitialized
+    {
+        get => isInitialized;
+        protected set
+        {
+            if (isInitialized && value)
+            {
+                throw new InvalidOperationException("The object was already initialized");
+            }
+
+            isInitialized = value;
+        }
+    }
 
     protected DeviceObject(IntPtr handle) : base(handle)
     {
+    }
+
+    public void Init(TDesc desc)
+    {
+        IsInitialized = true;
+        InitInternal(desc);
     }
 
     /// <summary>
     ///     Initialize the device object.
     /// </summary>
     /// <param name="desc">Device object descriptor.</param>
-    public abstract void Init(in TDesc desc);
+    protected abstract void InitInternal(in TDesc desc);
 }

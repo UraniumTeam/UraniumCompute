@@ -25,7 +25,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     {
     }
 
-    public override void Init(in Desc desc)
+    protected override void InitInternal(in Desc desc)
     {
         IDeviceMemory_Init(Handle, in desc);
     }
@@ -49,13 +49,13 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     /// <param name="byteSize">Size of the part of the memory to map.</param>
     /// <typeparam name="T"></typeparam>
     /// <returns>
-    ///     A <see cref="MemoryMapHelper{T}" /> object that holds a pointer to the mapped memory.
+    ///     A <see cref="MemoryMapper1D{T}" /> object that holds a pointer to the mapped memory.
     /// </returns>
-    public unsafe MemoryMapHelper<T> Map<T>(ulong byteOffset = 0, ulong byteSize = WholeSize)
+    public unsafe MemoryMapper1D<T> Map<T>(ulong byteOffset = 0, ulong byteSize = WholeSize)
         where T : unmanaged
     {
         var ptr = (T*)MapImpl(byteOffset, byteSize);
-        return new MemoryMapHelper<T>(this, byteOffset, byteSize, ptr);
+        return new MemoryMapper1D<T>(new DeviceMemorySlice(this, byteOffset, byteSize), ptr);
     }
 
     /// <summary>

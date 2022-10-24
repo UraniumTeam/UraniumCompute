@@ -9,7 +9,7 @@ factory.Init(new DeviceFactory.Desc("Array transformation sample"));
 using var device = factory.CreateDevice();
 device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
 
-using var hostBuffer = device.CreateBuffer<uint>();
+using var hostBuffer = device.CreateBuffer1D<uint>();
 hostBuffer.Init("Host buffer", 256 * 1024);
 using var hostMemory = hostBuffer.AllocateMemory("Host memory", MemoryKindFlags.HostAndDeviceAccessible);
 hostBuffer.BindMemory(hostMemory);
@@ -23,7 +23,7 @@ using (var map = hostBuffer.Map())
     }
 }
 
-using var deviceBuffer = device.CreateBuffer<uint>();
+using var deviceBuffer = device.CreateBuffer1D<uint>();
 deviceBuffer.Init("Device buffer", hostBuffer.LongCount);
 using var deviceMemory = deviceBuffer.AllocateMemory("Device memory", MemoryKindFlags.DeviceAccessible);
 deviceBuffer.BindMemory(deviceMemory);
