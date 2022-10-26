@@ -57,8 +57,6 @@ void main(uint3 coord : SV_DispatchThreadID)
 {
     float2 spaceStart = float2(START_POINT);
     float2 spaceSize  = float2(FRACTAL_SIZE);
-    // float2 spaceStart = float2(-0.56, 0.57);
-    // float2 spaceSize  = float2(0.03, 0.03);
 
     uint2 start = coord.xy * WORKGROUP_SIZE;
     for (uint wx = 0; wx < WORKGROUP_SIZE; ++wx)
