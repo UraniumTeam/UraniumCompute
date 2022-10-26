@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.ColorSpaces.Conversion;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
@@ -13,7 +14,7 @@ factory.Init(new DeviceFactory.Desc("Mandelbrot Set sample"));
 using var device = factory.CreateDevice();
 device.Init(new ComputeDevice.Desc((factory.Adapters.FirstDiscreteOrNull() ?? factory.Adapters[0]).Id));
 
-const int width = 4 * 1024;
+const int width = 8 * 1024;
 const int workgroupSize = 64;
 const int maxIter = 255;
 
@@ -37,14 +38,11 @@ uint mapIndex(uint2 index)
 
 int IterCount(float2 c)
 {
-    float x = 0.0;
-    float y = 0.0;
+    float2 p = float2(0, 0);
     int iteration = 0;
-    while (x*x + y*y <= 2*2 && iteration < MAX_ITER)
+    while (dot(p, p) <= 2*2 && iteration < MAX_ITER)
     {
-        float xtemp = x*x - y*y + c.x;
-        y = 2*x*y + c.y;
-        x = xtemp;
+        p = float2(p.x*p.x - p.y*p.y,  2*p.x*p.y) + c;
         iteration++;
     }
 
@@ -55,7 +53,7 @@ int IterCount(float2 c)
 void main(uint3 coord : SV_DispatchThreadID)
 {
     float2 spaceStart = float2(-2.0, -1.12);
-    float2 spaceSize  = float2(3.47, 2.24);
+    float2 spaceSize  = float2(2.5, 2.5);
     // float2 spaceStart = float2(-0.56, 0.57);
     // float2 spaceSize  = float2(0.03, 0.03);
 
@@ -63,12 +61,9 @@ void main(uint3 coord : SV_DispatchThreadID)
     for (uint wx = 0; wx < WORKGROUP_SIZE; ++wx)
     for (uint wy = 0; wy < WORKGROUP_SIZE; ++wy)
     {
-        uint2 p = uint2(wx, wy) + start;
-        float2 c = float2(
-                (float)p.x * spaceSize.x / IMG_WIDTH + spaceStart.x,
-                (float)p.y * spaceSize.y / IMG_WIDTH + spaceStart.y
-        );
-        result[mapIndex(p)] = IterCount(c);
+        uint2 screenPoint = uint2(wx, wy) + start;
+        float2 fractalSpacePoint = (float2)screenPoint * spaceSize / IMG_WIDTH + spaceStart;
+        result[mapIndex(screenPoint)] = IterCount(fractalSpacePoint);
     }
 }";
 
@@ -107,6 +102,12 @@ using (var cmd = commandList.Begin())
 commandList.Submit();
 commandList.CompletionFence.WaitOnCpu();
 
+Hsv GetPointColor(int iterCount)
+{
+    var hue = (int)(255f * iterCount / maxIter);
+    return new Hsv(hue, 255, iterCount < maxIter ? 255 : 0);
+}
+
 using var image = new Image<Rgba32>(width, width);
 var converter = new ColorSpaceConverter();
 using (var map = hostBuffer.Map())
@@ -115,11 +116,9 @@ using (var map = hostBuffer.Map())
     for (var y = 0; y < width; ++y)
     {
         var c = Math.Min(255, map[x, y]);
-        var hue = (int)(255f * c / maxIter);
-        var saturation = 255;
-        var value = c < maxIter ? 255 : 0;
-        image[x, y] = converter.ToRgb(new Hsv(hue, saturation, value));
+        image[x, y] = converter.ToRgb(GetPointColor(c));
     }
 }
 
+image.Mutate(c => c.Resize(new Size(width / 2, width / 2)));
 image.Save("fractal.png");
