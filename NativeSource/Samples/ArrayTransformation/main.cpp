@@ -140,12 +140,14 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
 )";
 
     auto workgroupSizeStr = std::to_string(workgroupSize);
-    CompilerDefinition workgroupDefinition("WORKGROUP_SIZE", workgroupSizeStr.c_str());
+
+    CompilerDefinition definitions[] = { CompilerDefinition("WORKGROUP_SIZE", workgroupSizeStr.c_str()),
+                                         CompilerDefinition("TEST_DEF", "123") };
 
     KernelCompilerArgs compilerArgs;
     compilerArgs.SourceCode =
         ArraySlice(un_byte_cast(kernelSource.c_str()), un_byte_cast(kernelSource.c_str() + kernelSource.size()));
-    compilerArgs.Definitions = ArraySlice(&workgroupDefinition, &workgroupDefinition + 1);
+    compilerArgs.Definitions = definitions;
 
     HeapArray<Byte> bytecode;
     UN_VerifyResultFatal(pKernelCompiler->Compile(compilerArgs, &bytecode), "Couldn't compile compute kernel");

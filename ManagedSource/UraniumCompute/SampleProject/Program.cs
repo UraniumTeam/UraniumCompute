@@ -22,7 +22,7 @@ internal static class Program
         using var device = factory.CreateDevice();
         device.Init(new ComputeDevice.Desc(factory.Adapters.FirstDiscrete().Id));
 
-        using var hostBuffer = device.CreateBuffer<float>();
+        using var hostBuffer = device.CreateBuffer1D<float>();
         hostBuffer.Init("Test Buffer", 1024);
 
         using var hostMemory = hostBuffer.AllocateMemory("Host Memory", MemoryKindFlags.HostAndDeviceAccessible);
@@ -70,7 +70,7 @@ internal static class Program
         commandList.Init(
             new CommandList.Desc("Test command list", HardwareQueueKindFlags.Compute, CommandListFlags.OneTimeSubmit));
 
-        using var deviceBuffer = device.CreateBuffer<float>();
+        using var deviceBuffer = device.CreateBuffer1D<float>();
         deviceBuffer.Init(hostBuffer.Descriptor with { Name = "Copied from test buffer" });
 
         using var deviceMemory = hostBuffer.AllocateMemory("Device memory", MemoryKindFlags.DeviceAccessible);

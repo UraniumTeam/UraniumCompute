@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace UraniumCompute.Backend;
 
-public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
+public abstract class MemoryMapHelper<T> : IDisposable
     where T : unmanaged
 {
     public static readonly unsafe ulong ElementSize = (ulong)sizeof(T);
@@ -12,14 +11,8 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
 
     public ulong LongCount => memorySlice.Size / ElementSize;
 
-    public T this[int index]
-    {
-        get => GetElementAt(index);
-        set => GetElementAt(index) = value;
-    }
-
-    private readonly DeviceMemorySlice memorySlice;
-    private readonly unsafe T* mapPointer;
+    protected readonly DeviceMemorySlice memorySlice;
+    protected readonly unsafe T* mapPointer;
 
     internal unsafe MemoryMapHelper(in DeviceMemorySlice slice, T* map)
     {
@@ -27,45 +20,13 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
         mapPointer = map;
     }
 
-    internal unsafe MemoryMapHelper(DeviceMemory memory, ulong offset, ulong size, T* map)
-        : this(new DeviceMemorySlice(memory, offset, size), map)
-    {
-    }
-
     public void Dispose()
     {
         memorySlice.Unmap();
     }
-
-    public IEnumerator<T> GetEnumerator()
-    {
-        for (ulong i = 0; i < LongCount; i++)
-        {
-            yield return GetElementAtUnchecked(i);
-        }
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Span<T> Slice(int start, int length)
-    {
-        if (start < 0 || length < 0 || (ulong)(start + length) > LongCount)
-        {
-            throw new IndexOutOfRangeException("Memory map out of range");
-        }
-
-        unsafe
-        {
-            return new Span<T>(mapPointer + start, length);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe ref T GetElementAt(long index)
+    protected unsafe ref T GetElementAt(long index)
     {
         if (index < 0 || (ulong)index > LongCount)
         {
@@ -76,7 +37,7 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe ref T GetElementAt(ulong index)
+    protected unsafe ref T GetElementAt(ulong index)
     {
         if (index > LongCount)
         {
@@ -87,7 +48,7 @@ public sealed class MemoryMapHelper<T> : IDisposable, IReadOnlyList<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe ref T GetElementAtUnchecked(ulong index)
+    protected unsafe ref T GetElementAtUnchecked(ulong index)
     {
         return ref mapPointer[index];
     }
