@@ -1,6 +1,4 @@
 ﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Mono.Collections.Generic;
 
 namespace UraniumCompute.Compiler.Disassembling;
 
@@ -18,29 +16,14 @@ internal sealed class Disassembler
         return new Disassembler(methodDefinition);
     }
 
-    public IEnumerable<Instruction> GetInstructions()
+    public DisassemblyResult Disassemble()
     {
-        return MethodDefinition.Body.Instructions;
+        return new DisassemblyResult(
+            MethodDefinition.Body.Instructions,
+            MethodDefinition.Name,
+            MethodDefinition.Parameters,
+            MethodDefinition.ReturnType,
+            MethodDefinition.Body.Variables
+        );
     }
-    
-    public string GetName()
-    {
-        return MethodDefinition.Name;
-    }
-    
-    public string GetFullName()
-    {
-        return MethodDefinition.FullName;
-    }
-    
-    public Collection<ParameterDefinition> Parameters()
-    {
-        return MethodDefinition.Parameters;
-    }
-    
-    public TypeReference GetReturnType()
-    {
-        return MethodDefinition.ReturnType;
-    }
-    
 }
