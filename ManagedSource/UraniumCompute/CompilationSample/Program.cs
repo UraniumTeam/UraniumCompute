@@ -7,7 +7,7 @@ internal static class Program
 {
     private static int Add(Span<int> a, Span<int> b)
     {
-        var index = GpuIntrinsic.GetGlobalInvocationId().X;
+        // var index = GpuIntrinsic.GetGlobalInvocationId().X;
         // if (index < 0)
         // {
         //     int index2;
@@ -24,7 +24,7 @@ internal static class Program
         //     index2 = index;
         // }
 
-        return a[index] + b[index];
+        return 100000;
     }
 
     private static void Main()
