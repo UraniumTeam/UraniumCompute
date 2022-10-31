@@ -46,16 +46,31 @@ public sealed class ComputeDevice : NativeObject
     }
 
     /// <summary>
-    ///     Create <see cref="Buffer{T}" /> object.
+    ///     Create <see cref="Buffer1D{T}" /> object.
     /// </summary>
     /// <returns>The created object.</returns>
     /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
-    public Buffer<T> CreateBuffer<T>()
+    public Buffer1D<T> CreateBuffer1D<T>()
         where T : unmanaged
     {
         return IComputeDevice_CreateBuffer(Handle, out var buffer) switch
         {
-            ResultCode.Success => new Buffer<T>(buffer),
+            ResultCode.Success => new Buffer1D<T>(buffer),
+            var resultCode => throw new ErrorResultException("Couldn't create buffer", resultCode)
+        };
+    }
+    
+    /// <summary>
+    ///     Create <see cref="Buffer2D{T}" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
+    public Buffer2D<T> CreateBuffer2D<T>()
+        where T : unmanaged
+    {
+        return IComputeDevice_CreateBuffer(Handle, out var buffer) switch
+        {
+            ResultCode.Success => new Buffer2D<T>(buffer),
             var resultCode => throw new ErrorResultException("Couldn't create buffer", resultCode)
         };
     }

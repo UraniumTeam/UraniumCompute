@@ -37,13 +37,13 @@ public readonly record struct DeviceMemorySlice
     /// <param name="size">Size of the part of the memory to map.</param>
     /// <typeparam name="T">Type of elements stored in the memory.</typeparam>
     /// <returns>
-    ///     A <see cref="MemoryMapHelper{T}" /> object that holds a pointer to the mapped memory.
+    ///     A <see cref="MemoryMapper1D{T}" /> object that holds a pointer to the mapped memory.
     /// </returns>
-    public unsafe MemoryMapHelper<T> Map<T>(ulong offset = 0, ulong size = DeviceMemory.WholeSize)
+    public unsafe MemoryMapper1D<T> Map<T>(ulong offset = 0, ulong size = DeviceMemory.WholeSize)
         where T : unmanaged
     {
         var ptr = (T*)Memory.MapImpl(Offset + offset, Math.Min(size, Size - offset));
-        return new MemoryMapHelper<T>(in this, ptr);
+        return new MemoryMapper1D<T>(in this, ptr);
     }
 
     /// <inheritdoc cref="DeviceMemory.Unmap" />

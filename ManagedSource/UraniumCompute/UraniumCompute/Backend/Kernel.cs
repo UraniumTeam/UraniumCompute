@@ -20,7 +20,7 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
     {
     }
 
-    public override void Init(in Desc desc)
+    protected override void InitInternal(in Desc desc)
     {
         IKernel_Init(Handle, in desc).ThrowOnError("Couldn't initialize compute kernel");
     }
