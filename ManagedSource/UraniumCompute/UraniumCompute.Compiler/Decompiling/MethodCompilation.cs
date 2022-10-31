@@ -36,8 +36,15 @@ public sealed class MethodCompilation
         // 2. Create a syntax tree from classes derived from SyntaxNode
         // 3. Generate code and aggregate diagnostics
         var disassembler = Disassembler.Create(MethodDefinition);
-        var instructions = disassembler.Disassemble();
+        var instructions = disassembler.GetInstructions();
+        var parameters = disassembler.Parameters();
         var stack = new Stack<SyntaxNode>();
+        Console.WriteLine(disassembler.GetName());
+        Console.WriteLine(disassembler.GetReturnType());
+        foreach (var parameter in parameters)
+        {
+            Console.WriteLine($"{parameter.ParameterType} {parameter.Name}");
+        }
         foreach (var instruction in instructions)
         {
             // stack.Push(new BinaryOperationSyntax(BinaryOperationKind.Addition, stack.Pop(), stack.Pop()));
