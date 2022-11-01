@@ -11,12 +11,14 @@ namespace UN
 
     static_assert(sizeof(Byte) == 1);
 
+    //! \brief Cast a pointer to the pointer to Byte.
     template<class T>
     inline std::enable_if_t<std::is_integral_v<T>, Byte*> un_byte_cast(T* ptr)
     {
         return reinterpret_cast<Byte*>(ptr);
     }
 
+    //! \brief Cast a pointer to the pointer to Byte.
     template<class T>
     inline std::enable_if_t<std::is_integral_v<T>, const Byte*> un_byte_cast(const T* ptr)
     {
