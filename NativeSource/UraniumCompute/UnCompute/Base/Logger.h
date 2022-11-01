@@ -108,7 +108,7 @@ struct fmt::formatter<UN::ResultCode> : fmt::formatter<std::string_view>
     }                                                                                                                            \
     while (false)
 
-#if UN_DEBUG
+#if UN_DEBUG || defined DOXYGEN
 //! \brief Same as UN_Verify, but works only in debug builds.
 #    define UN_Assert(expr, ...) UN_Verify(expr, __VA_ARGS__)
 //! \brief Same as UN_VerifyWarning, but works only in debug builds.
@@ -116,11 +116,8 @@ struct fmt::formatter<UN::ResultCode> : fmt::formatter<std::string_view>
 //! \brief Same as UN_VerifyError, but works only in debug builds.
 #    define UN_Error(expr, ...) UN_VerifyError(expr, __VA_ARGS__)
 #else
-//! \brief Same as UN_Verify, but works only in debug builds.
 #    define UN_Assert(expr, ...) UN_UNUSED(expr)
-//! \brief Same as UN_VerifyWarning, but works only in debug builds.
 #    define UN_Warning(expr, ...) UN_UNUSED(expr)
-//! \brief Same as UN_VerifyError, but works only in debug builds.
 #    define UN_Error(expr, ...) UN_UNUSED(expr)
 #endif
 
