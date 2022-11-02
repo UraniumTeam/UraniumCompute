@@ -34,13 +34,13 @@ public sealed class Buffer1D<T> : Buffer<T>
     {
         if (height < 0)
         {
-            height = Count / width;
+            height = (long)LongCount / width;
         }
 
-        if (width * height != Count)
+        if (width * height != (long)LongCount)
         {
-            throw new InvalidOperationException(
-                $"Invalid shape: {width} * {height} = {width * height}, but element count was {Count}");
+            throw new ArgumentException(
+                $"Invalid shape: {width} * {height} = {width * height}, but element count was {LongCount}");
         }
 
         IncrementReferenceCount();
