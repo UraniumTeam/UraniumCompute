@@ -7,10 +7,24 @@ namespace UraniumCompute.Acceleration;
 public sealed class Buffer2D<T> : Buffer<T>
     where T : unmanaged
 {
+    /// <summary>
+    ///     The width of the buffer as <see cref="System.Int64"/>.
+    /// </summary>
     public ulong LongWidth { get; private set; }
+
+    /// <summary>
+    ///     The height of the buffer as <see cref="System.Int64"/>.
+    /// </summary>
     public ulong LongHeight { get; private set; }
-    
+
+    /// <summary>
+    ///     The width of the buffer.
+    /// </summary>
     public int Width => (int)LongWidth;
+
+    /// <summary>
+    ///     The height of the buffer.
+    /// </summary>
     public int Height => (int)LongHeight;
 
     internal Buffer2D(IntPtr handle) : base(handle)
@@ -23,6 +37,12 @@ public sealed class Buffer2D<T> : Buffer<T>
         LongHeight = height;
     }
 
+    /// <summary>
+    ///     Initialize the buffer.
+    /// </summary>
+    /// <param name="name">Debug name of the object.</param>
+    /// <param name="xDimension">Size of the buffer in the x dimension.</param>
+    /// <param name="yDimension">Size of the buffer in the y dimension.</param>
     public void Init(NativeString name, ulong xDimension, ulong yDimension)
     {
         LongWidth = xDimension;
@@ -39,6 +59,11 @@ public sealed class Buffer2D<T> : Buffer<T>
         return BoundMemory.Map<T>().ReshapeUnchecked(LongWidth, LongHeight);
     }
 
+    /// <summary>
+    ///     Reshape the buffer to a <see cref="Buffer1D{T}"/>.
+    /// </summary>
+    /// <param name="width">Width of the 1D buffer.</param>
+    /// <returns>An instance of <see cref="Buffer1D{T}"/> that stores the same handle.</returns>
     public Buffer1D<T> Reshape(int width)
     {
         IncrementReferenceCount();
