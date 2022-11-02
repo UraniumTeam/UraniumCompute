@@ -5,6 +5,10 @@
 
 namespace UN
 {
+    //! \brief Fixed-size heap-allocated array.
+    //!
+    //! This class is mostly used for interoperability with other languages, should not be used internally or
+    //! in the user code, `std::vector` is preferred in such cases.
     template<class T>
     class HeapArray final
     {
