@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace UraniumCompute.Backend;
 
+/// <inheritdoc cref="MemoryMapper{T}"/>
 public sealed class MemoryMapper1D<T> : MemoryMapper<T>, IReadOnlyList<T>
     where T : unmanaged
 {

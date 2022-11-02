@@ -7,6 +7,7 @@ namespace UraniumCompute.Memory;
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct NativeString
 {
+    // TODO: Get rid of this class because of the memory leaks.
     private readonly unsafe byte* nativePointer;
     private static readonly List<MemoryPage> charData = new();
 
