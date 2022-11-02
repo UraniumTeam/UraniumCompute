@@ -2,7 +2,7 @@
 
 namespace UraniumCompute.Backend;
 
-public abstract class MemoryMapHelper<T> : IDisposable
+public abstract class MemoryMapper<T> : IDisposable
     where T : unmanaged
 {
     public static readonly unsafe ulong ElementSize = (ulong)sizeof(T);
@@ -14,7 +14,7 @@ public abstract class MemoryMapHelper<T> : IDisposable
     protected readonly DeviceMemorySlice memorySlice;
     protected readonly unsafe T* mapPointer;
 
-    internal unsafe MemoryMapHelper(in DeviceMemorySlice slice, T* map)
+    internal unsafe MemoryMapper(in DeviceMemorySlice slice, T* map)
     {
         memorySlice = slice;
         mapPointer = map;

@@ -1,6 +1,6 @@
 ﻿namespace UraniumCompute.Backend;
 
-public sealed class MemoryMapper2D<T> : MemoryMapHelper<T>
+public sealed class MemoryMapper2D<T> : MemoryMapper<T>
     where T : unmanaged
 {
     public ulong LongWidth { get; }
