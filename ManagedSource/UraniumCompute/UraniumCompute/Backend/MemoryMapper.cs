@@ -22,6 +22,7 @@ public abstract class MemoryMapper<T> : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         memorySlice.Unmap();
     }
     
