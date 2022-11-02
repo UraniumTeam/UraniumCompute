@@ -29,6 +29,11 @@ public sealed class KernelCompiler : NativeObject
         IKernelCompiler_Init(Handle, in desc).ThrowOnError("Couldn't initialize kernel compiler");
     }
 
+    /// <summary>
+    ///     Compile a compute kernel into target language.
+    /// </summary>
+    /// <param name="args">Compiler arguments.</param>
+    /// <returns>A <see cref="NativeArray{T}"/> with compiled byte-code.</returns>
     public unsafe NativeArray<byte> Compile(in Args args)
     {
         // We do not use 'out' here to avoid C++ code trying to deallocate uninitialized pointers.
@@ -71,6 +76,11 @@ public sealed class KernelCompiler : NativeObject
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     private readonly record struct DefineNative(NativeString Name, NativeString Value);
 
+    /// <summary>
+    ///     Compiler `#define` descriptor.
+    /// </summary>
+    /// <param name="Name">Name in `#define NAME VALUE`.</param>
+    /// <param name="Value">Value in `#define NAME VALUE`.</param>
     public readonly record struct Define(string Name, string Value);
 
     /// <summary>

@@ -2,19 +2,32 @@
 
 namespace UraniumCompute.Backend;
 
-public abstract class MemoryMapHelper<T> : IDisposable
+/// <summary>
+///     Helper class for memory mapping, implements indexing operators and bound checking.
+/// </summary>
+/// <typeparam name="T">Type of the element stored in the mapped memory.</typeparam>
+public abstract class MemoryMapper<T> : IDisposable
     where T : unmanaged
 {
+    /// <summary>
+    ///     Size of a single element in bytes.
+    /// </summary>
     public static readonly unsafe ulong ElementSize = (ulong)sizeof(T);
 
+    /// <summary>
+    ///     The number of elements in the mapped memory.
+    /// </summary>
     public int Count => (int)LongCount;
 
+    /// <summary>
+    ///     The number of elements in the mapped memory as <see cref="System.Int64"/>.
+    /// </summary>
     public ulong LongCount => memorySlice.Size / ElementSize;
 
     protected readonly DeviceMemorySlice memorySlice;
     protected readonly unsafe T* mapPointer;
 
-    internal unsafe MemoryMapHelper(in DeviceMemorySlice slice, T* map)
+    internal unsafe MemoryMapper(in DeviceMemorySlice slice, T* map)
     {
         memorySlice = slice;
         mapPointer = map;
@@ -22,6 +35,7 @@ public abstract class MemoryMapHelper<T> : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         memorySlice.Unmap();
     }
     

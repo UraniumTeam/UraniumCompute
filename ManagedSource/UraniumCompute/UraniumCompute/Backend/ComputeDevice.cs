@@ -59,7 +59,7 @@ public sealed class ComputeDevice : NativeObject
             var resultCode => throw new ErrorResultException("Couldn't create buffer", resultCode)
         };
     }
-    
+
     /// <summary>
     ///     Create <see cref="Buffer2D{T}" /> object.
     /// </summary>

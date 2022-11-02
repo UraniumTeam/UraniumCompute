@@ -30,6 +30,13 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         IDeviceMemory_Init(Handle, in desc);
     }
 
+    /// <summary>
+    ///     Initialize device memory.
+    /// </summary>
+    /// <param name="name">Device memory debug name.</param>
+    /// <param name="size">Memory size in bytes.</param>
+    /// <param name="objects">Resource objects that the memory must be compatible with.</param>
+    /// <param name="flags">Memory kind flags.</param>
     public void Init(NativeString name, ulong size, IEnumerable<DeviceObject> objects, MemoryKindFlags flags)
     {
         var handles = objects.Select(x => x.Handle).ToArray();

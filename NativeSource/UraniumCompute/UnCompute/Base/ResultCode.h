@@ -32,6 +32,7 @@ namespace UN
         return result != ResultCode::Success;
     }
 
+    //! \brief Get a constant string that represents a ResultCode enum value.
     inline const char* ResultToString(ResultCode result)
     {
         switch (result)

@@ -67,8 +67,15 @@ public abstract class DeviceObject : NativeObject
 public abstract class DeviceObject<TDesc> : DeviceObject
 {
     private bool isInitialized;
+    
+    /// <summary>
+    ///     Device object descriptor.
+    /// </summary>
     public abstract TDesc Descriptor { get; }
 
+    /// <summary>
+    ///     True if <see cref="Init"/> was called for this object.
+    /// </summary>
     public bool IsInitialized
     {
         get => isInitialized;
@@ -87,15 +94,15 @@ public abstract class DeviceObject<TDesc> : DeviceObject
     {
     }
 
+    /// <summary>
+    ///     Initialize the device object.
+    /// </summary>
+    /// <param name="desc">Device object descriptor.</param>
     public void Init(TDesc desc)
     {
         IsInitialized = true;
         InitInternal(desc);
     }
 
-    /// <summary>
-    ///     Initialize the device object.
-    /// </summary>
-    /// <param name="desc">Device object descriptor.</param>
     protected abstract void InitInternal(in TDesc desc);
 }

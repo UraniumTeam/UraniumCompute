@@ -211,6 +211,12 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         private static extern void CommandListBuilder_Dispatch(ref NativeBuilder self, IntPtr kernel, int x, int y, int z);
     }
 
+    /// <summary>
+    ///     Command list descriptor.
+    /// </summary>
+    /// <param name="Name">Command list debug name.</param>
+    /// <param name="QueueKindFlags">Command queue kind flags.</param>
+    /// <param name="Flags">Command list flags.</param>
     [StructLayout(LayoutKind.Sequential)]
     public readonly record struct Desc(NativeString Name, HardwareQueueKindFlags QueueKindFlags,
         CommandListFlags Flags = CommandListFlags.None);
