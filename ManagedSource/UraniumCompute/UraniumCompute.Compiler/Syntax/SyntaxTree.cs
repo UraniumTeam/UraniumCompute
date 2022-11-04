@@ -6,14 +6,14 @@ namespace UraniumCompute.Compiler.Syntax;
 
 public class SyntaxTree
 {
-    private readonly DisassemblyResult disassemblyResult;
+    private readonly DisassemblyResult dr;
     private readonly Stack<SyntaxNode> stack = new();
 
     internal IReadOnlyList<TypeReference> VariableTypes { get; }
 
     private SyntaxTree(DisassemblyResult dr)
     {
-        disassemblyResult = dr;
+        this.dr = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
     }
 
@@ -21,36 +21,43 @@ public class SyntaxTree
     {
         return new SyntaxTree(dr);
     }
-    
+
     internal void Compile()
     {
-        var instructions = disassemblyResult.Instructions;
-        var parameters = disassemblyResult.Parameters;
-        
-        
-        var statements = new List<StatementSyntax>();
-        Console.WriteLine(disassemblyResult.Name);
-        Console.WriteLine(disassemblyResult.ReturnType);
-        foreach (var variable in disassemblyResult.Variables)
-        {
-            Console.WriteLine(variable.VariableType);
-        }
+        var instructions = dr.Instructions;
+        var parameters = dr.Parameters;
+        var variables = dr.Variables;
+        //var statements = new List<StatementSyntax>();
+        Console.WriteLine(dr.Name);
+        // Console.WriteLine(dr.ReturnType);
+        // foreach (var variableType in VariableTypes)
+        // {
+        //     Console.WriteLine(variableType);
+        // }
         foreach (var instruction in instructions)
         {
             Console.WriteLine(instruction);
+            ParseStatement(instruction);
         }
+
+        throw new NotImplementedException();
     }
 
-    private StatementSyntax ParseStatement()
+    private void ParseStatement(Instruction statement)
     {
-        // stack.
-        return new ExpressionStatementSyntax(ParseExpression());
+        if (ExpressionSyntax.Expressions.Contains(statement.OpCode.Name))
+            ParseExpression(statement);
+        // stack.Push(new ExpressionStatementSyntax(ParseExpression(statement)));
     }
-    
-    private ExpressionSyntax ParseExpression()
+
+    private void ParseExpression(Instruction expression)
     {
-        // stack.Push(new BinaryOperationSyntax(BinaryOperationKind.Addition, stack.Pop(), stack.Pop()));
-        throw new NotImplementedException();
+        if (BinaryExpressionSyntax.BinaryCilOperations.TryGetValue(expression.OpCode.Name, out var kind))
+            stack.Push(new BinaryExpressionSyntax(
+                kind,
+                (LiteralExpressionSyntax)stack.Pop(),
+                (LiteralExpressionSyntax)stack.Pop()));
+        //throw new NotImplementedException();
         // return new StatementSyntax();
     }
 }
