@@ -63,7 +63,7 @@ public class SyntaxTree
             return;
         }
 
-        Trace.TraceWarning($"Unknown instruction skipped: {Current}");
+        Console.WriteLine($"Warning: Unknown instruction skipped: {Current}");
         NextInstruction();
     }
 
