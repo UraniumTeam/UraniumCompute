@@ -2,6 +2,7 @@ namespace UraniumCompute.Compiler.Syntax;
 
 public enum BinaryOperationKind
 {
+    None,
     Add,
     Sub,
     Mul,

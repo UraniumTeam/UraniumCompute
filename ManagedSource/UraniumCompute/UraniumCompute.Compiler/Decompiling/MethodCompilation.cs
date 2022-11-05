@@ -40,6 +40,6 @@ public sealed class MethodCompilation
         var syntaxTree = SyntaxTree.Create(disassemblyResult);
         syntaxTree.Compile();
 
-        throw new NotImplementedException();
+        return new MethodCompilationResult(syntaxTree.ToString(), Array.Empty<Diagnostic>());
     }
 }
