@@ -3,6 +3,7 @@
 #include <UnCompute/VulkanBackend/VulkanComputeDevice.h>
 #include <UnCompute/VulkanBackend/VulkanDescriptorAllocator.h>
 #include <UnCompute/VulkanBackend/VulkanResourceBinding.h>
+#include <UnCompute/VulkanBackend/VulkanDeviceMemory.h>
 
 namespace UN
 {
