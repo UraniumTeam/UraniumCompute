@@ -14,8 +14,8 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: "Windows MSVC", os: windows-latest, cmakeoptions: "-GNinja" }
-          - { name: "Ubuntu gcc", os: ubuntu-latest, cmakeoptions: "" }
+          - { name: "Windows MSVC", os: windows-latest, cc: "cl", cxx: "cl" }
+          - { name: "Ubuntu gcc", os: ubuntu-latest, cc: "gcc", cxx: "g++" }
     runs-on: ${{ matrix.config.os }}
 
     steps:
@@ -33,6 +33,9 @@ jobs:
           ${{ runner.os }}-build-${{env.BUILD_TYPE}}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
+    
+    - name: Setup Ninja
+      uses: ashutoshvarma/setup-ninja@master
 
     - name: Setup Vulkan SDK
       uses: humbletim/setup-vulkan-sdk@v1.2.0
@@ -41,12 +44,16 @@ jobs:
        vulkan-components: Vulkan-Headers #, Vulkan-Loader
        vulkan-use-cache: true
 
-    - name: Configure CMake
-      run: cmake ${{ matrix.config.cmakeoptions }} -B ${{github.workspace}}/NativeSource/Build${{env.BUILD_TYPE}} -S ${{github.workspace}}/NativeSource -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
     - name: Build CMake
-      run: cmake --build ${{github.workspace}}/NativeSource/Build${{env.BUILD_TYPE}} --config ${{env.BUILD_TYPE}}
-      
+      uses: ashutoshvarma/action-cmake-build@master
+      with:
+        source-dir: ${{github.workspace}}/NativeSource
+        build-dir: ${{github.workspace}}/NativeSource/Build${{env.BUILD_TYPE}}
+        cc: ${{ matrix.config.cc }}
+        cxx: ${{ matrix.config.cxx }}
+        configure-options: -G Ninja
+        build-type: ${{env.BUILD_TYPE}}
+
     - name: Build DotNet
       working-directory: ${{github.workspace}}/ManagedSource/UraniumCompute/UraniumCompute
       run: dotnet build -c ${{env.BUILD_TYPE}}
