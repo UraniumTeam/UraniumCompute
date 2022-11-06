@@ -6,7 +6,12 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(UN_COMPILER_MSVC ON)
 endif ()
 
+if (WIN32)
+    set(UN_WINDOWS ON)
+endif()
+
 set(CMAKE_DEBUG_POSTFIX "")
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 if (UN_COMPILER_MSVC)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
