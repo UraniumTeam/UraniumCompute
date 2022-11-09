@@ -28,7 +28,7 @@ jobs:
           repository: UraniumTeam/uraniumteam.github.io
 
       - run: |
-          cp -a ${{github.workspace}}/docs/doxygen/. uraniumteam.github.io/
+          cp -a UraniumCompute/docs/doxygen/. uraniumteam.github.io/
           cd uraniumteam.github.io/
           git config user.name github-actions
           git config user.email github-actions@github.com
