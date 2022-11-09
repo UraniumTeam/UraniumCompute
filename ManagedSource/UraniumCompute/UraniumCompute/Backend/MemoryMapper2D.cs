@@ -1,12 +1,27 @@
 ﻿namespace UraniumCompute.Backend;
 
-public sealed class MemoryMapper2D<T> : MemoryMapHelper<T>
+/// <inheritdoc cref="MemoryMapper{T}"/>
+public sealed class MemoryMapper2D<T> : MemoryMapper<T>
     where T : unmanaged
 {
+    /// <summary>
+    ///     Width of the mapped memory as <see cref="System.Int64"/>.
+    /// </summary>
     public ulong LongWidth { get; }
+
+    /// <summary>
+    ///     Height of the mapped memory as <see cref="System.Int64"/>.
+    /// </summary>
     public ulong LongHeight { get; }
-    
+
+    /// <summary>
+    ///     Width of the mapped memory.
+    /// </summary>
     public int Width => (int)LongWidth;
+
+    /// <summary>
+    ///     Height of the mapped memory.
+    /// </summary>
     public int Height => (int)LongHeight;
 
     public T this[int x, int y]

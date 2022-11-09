@@ -31,7 +31,7 @@
 #    ifndef UN_FINLINE
 #        define UN_FINLINE inline
 #    endif
-#elif defined _MSC_VER
+#elif defined _MSC_VER || defined DOXYGEN
 #    define UN_COMPILER_MSVC 1
 
 #    define UN_PUSH_MSVC_WARNING(warn) __pragma(warning(push)) __pragma(warning(disable : warn))
@@ -40,6 +40,7 @@
 #    define UN_PUSH_CLANG_WARNING(...)
 #    define UN_POP_CLANG_WARNING
 
+//! \brief Function signature.
 #    define UN_FUNCSIG __FUNCSIG__
 
 #    ifndef UN_FINLINE
@@ -47,7 +48,8 @@
 #    endif
 #endif
 
-#if UN_COMPILER_MSVC || UN_COMPILER_MS_CLANG
+#if UN_COMPILER_MSVC || UN_COMPILER_MS_CLANG || defined DOXYGEN
+//! \brief Break debugger at runtime.
 #    define UN_DebugBreak() __debugbreak()
 #else
 #    define UN_DebugBreak() raise(SIGABRT)

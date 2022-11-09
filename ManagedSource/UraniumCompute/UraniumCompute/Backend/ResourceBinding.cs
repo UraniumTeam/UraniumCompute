@@ -5,6 +5,9 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
+/// <summary>
+///     Resource binding object used to bind resources to a compute kernel.
+/// </summary>
 public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
 {
     public override Desc Descriptor
@@ -25,6 +28,12 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
         IResourceBinding_Init(Handle, in desc).ThrowOnError("Couldn't initialize device memory");
     }
 
+    /// <summary>
+    ///     Set kernel variable.
+    /// </summary>
+    /// <param name="bindingIndex">Binding index of the variable to set.</param>
+    /// <param name="buffer">The buffer to assign.</param>
+    /// <typeparam name="T">Type of the buffer elements.</typeparam>
     public void SetVariable<T>(int bindingIndex, Buffer<T> buffer)
         where T : unmanaged
     {

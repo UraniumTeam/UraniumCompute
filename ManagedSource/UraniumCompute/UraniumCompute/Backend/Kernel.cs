@@ -5,6 +5,9 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
 
+/// <summary>
+///     Compute kernel is a program that is running on the device.
+/// </summary>
 public sealed class Kernel : DeviceObject<Kernel.Desc>
 {
     public override Desc Descriptor
