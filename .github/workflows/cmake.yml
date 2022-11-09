@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: UraniumCompute
+          token: ${{ secrets.PUSH_PAT }}
 
       - uses: mattnotmitt/doxygen-action@v1.9.4
         with:
@@ -26,6 +27,7 @@ jobs:
         with:
           path: uraniumteam.github.io
           repository: UraniumTeam/uraniumteam.github.io
+          token: ${{ secrets.PUSH_PAT }}
 
       - run: |
           cp -a UraniumCompute/docs/doxygen/. uraniumteam.github.io/
