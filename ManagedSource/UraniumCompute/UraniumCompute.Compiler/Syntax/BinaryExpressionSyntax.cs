@@ -35,4 +35,31 @@ public class BinaryExpressionSyntax : ExpressionSyntax
             _ => BinaryOperationKind.None
         };
     }
+    
+    private static string GetOperation(BinaryOperationKind kind)
+    {
+        return kind switch
+        {
+            BinaryOperationKind.Add => "+",
+            BinaryOperationKind.Sub => "-",
+            BinaryOperationKind.Mul => "*",
+            BinaryOperationKind.Div => "/",
+            BinaryOperationKind.Mod => "%",
+            BinaryOperationKind.Eq => "==",
+            BinaryOperationKind.GreaterThan => ">",
+            BinaryOperationKind.LowerThan => "<",
+            BinaryOperationKind.And => "&",
+            BinaryOperationKind.Or => "|",
+            BinaryOperationKind.ShiftL => "<<",
+            BinaryOperationKind.ShiftR => ">>",
+            BinaryOperationKind.Xor => "^",
+            BinaryOperationKind.None => "",
+            _ => throw new Exception()
+        };
+    }
+    
+    public override string ToString()
+    {
+        return $"{Right} {GetOperation(Kind)} {Left}";
+    }
 }
