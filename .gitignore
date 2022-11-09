@@ -11,8 +11,6 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
-Docs/
-
 app.config
 
 # ignore the build folder
