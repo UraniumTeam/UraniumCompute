@@ -1,13 +1,16 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-public class AssignmentExpressionSyntax : ExpressionSyntax
+public class AssignmentExpressionSyntax : ExpressionStatementSyntax
 {
-    internal VariableExpressionSyntax Variable { get; }
-    internal ExpressionSyntax Expression { get; }
+    internal int VarNumber { get; }
 
-    public AssignmentExpressionSyntax(VariableExpressionSyntax variable, ExpressionSyntax expression)
+    public AssignmentExpressionSyntax(int varNumber, ExpressionSyntax expression) : base(expression)
     {
-        Variable = variable;
-        Expression = expression;
+        VarNumber = varNumber;
+    }
+
+    public override string ToString()
+    {
+        return $"V_{VarNumber} = {Expression};";
     }
 }
