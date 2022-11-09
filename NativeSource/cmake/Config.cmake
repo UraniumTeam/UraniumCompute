@@ -6,7 +6,12 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(UN_COMPILER_MSVC ON)
 endif ()
 
+if (WIN32)
+    set(UN_WINDOWS ON)
+endif()
+
 set(CMAKE_DEBUG_POSTFIX "")
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
 
 if (UN_COMPILER_MSVC)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -43,7 +48,7 @@ function(un_configure_target TARGET)
     if (UN_COMPILER_MSVC)
         target_compile_options(${TARGET} PRIVATE /W4 /WX)
     else ()
-        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -pedantic -Werror -fPIC)
+        target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Werror -fPIC)
     endif ()
 endfunction()
 
