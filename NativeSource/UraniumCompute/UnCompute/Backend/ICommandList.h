@@ -15,6 +15,7 @@ namespace UN
         Invalid
     };
 
+    //! \brief Get a constant string that represents a CommandListState enum value.
     inline const char* CommandListStateToString(CommandListState state)
     {
         switch (state)

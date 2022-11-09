@@ -16,14 +16,23 @@
     </PropertyGroup>
 
     <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <Content Include="../../../NativeSource/BuildRelease/UnCompute.dll">
+        <Content Include="../../../NativeSource/BuildRelease/UnCompute.dll" Condition=" '$(OS)' == 'Windows_NT' ">
             <Link>UnCompute.dll</Link>
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+        <Content Include="../../../NativeSource/BuildRelease/UnCompute.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+            <Link>UnCompute.so</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
+
     <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <Content Include="../../../NativeSource/BuildDebug/UnCompute.dll">
+        <Content Include="../../../NativeSource/BuildDebug/UnCompute.dll" Condition=" '$(OS)' == 'Windows_NT' ">
             <Link>UnCompute.dll</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Content Include="../../../NativeSource/BuildDebug/UnCompute.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+            <Link>UnCompute.so</Link>
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

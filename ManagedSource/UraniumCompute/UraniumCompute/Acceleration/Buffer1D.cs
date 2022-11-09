@@ -30,17 +30,24 @@ public sealed class Buffer1D<T> : Buffer<T>
         return BoundMemory.Map<T>();
     }
 
+    /// <summary>
+    ///     Reshape the buffer to a <see cref="Buffer2D{T}"/>.
+    /// </summary>
+    /// <param name="width">Width of the 2D buffer.</param>
+    /// <param name="height">Height of the 2D buffer.</param>
+    /// <returns>An instance of <see cref="Buffer2D{T}"/> that stores the same handle.</returns>
+    /// <exception cref="ArgumentException">Invalid dimensions: width * height != this.Count</exception>
     public Buffer2D<T> Reshape(long width, long height)
     {
         if (height < 0)
         {
-            height = Count / width;
+            height = (long)LongCount / width;
         }
 
-        if (width * height != Count)
+        if (width * height != (long)LongCount)
         {
-            throw new InvalidOperationException(
-                $"Invalid shape: {width} * {height} = {width * height}, but element count was {Count}");
+            throw new ArgumentException(
+                $"Invalid shape: {width} * {height} = {width * height}, but element count was {LongCount}");
         }
 
         IncrementReferenceCount();

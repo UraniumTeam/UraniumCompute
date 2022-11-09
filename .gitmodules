@@ -10,3 +10,6 @@
 [submodule "NativeSource/ThirdParty/DirectXShaderCompiler"]
 	path = NativeSource/ThirdParty/DirectXShaderCompiler
 	url = https://github.com/microsoft/DirectXShaderCompiler.git
+[submodule "docs/doxygen-awesome-css"]
+	path = docs/doxygen-awesome-css
+	url = git@github.com:jothepro/doxygen-awesome-css.git
