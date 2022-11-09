@@ -30,7 +30,7 @@ jobs:
           token: ${{ secrets.PUSH_PAT }}
 
       - run: |
-          cp -a UraniumCompute/docs/doxygen/. uraniumteam.github.io/
+          cp -a UraniumCompute/docs/doxygen/html/. uraniumteam.github.io/
           cd uraniumteam.github.io/
           git config user.name github-actions
           git config user.email github-actions@github.com
