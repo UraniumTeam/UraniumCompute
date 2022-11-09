@@ -10,6 +10,29 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: mattnotmitt/doxygen-action@v1.9.4
+        with:
+            working-directory: ${{github.workspace}}
+            doxyfile-path: ${{github.workspace}}/Doxyfile
+
+      - uses: actions/checkout@v3
+        with:
+          repository: UraniumTeam/uraniumteam.github.io
+
+      - run: |
+          cp -a ${{github.workspace}}/docs/doxygen/. uraniumteam.github.io/
+          cd uraniumteam.github.io/
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Generated docs [$(date -u +%D-%H:%M)]"
+          git push
+
   build:
     strategy:
       matrix:
