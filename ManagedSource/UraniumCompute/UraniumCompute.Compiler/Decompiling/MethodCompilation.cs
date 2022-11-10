@@ -6,28 +6,25 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 public sealed class MethodCompilation
 {
-    internal MethodDefinition MethodDefinition { get; }
+    private string MethodName { get; }
+    private MethodDefinition MethodDefinition { get; }
 
-    private MethodCompilation(MethodDefinition definition)
+    private MethodCompilation(string methodName, MethodDefinition definition)
     {
+        MethodName = methodName;
         MethodDefinition = definition;
     }
 
-    public static MethodCompilation Create(Type type, string methodName)
+    public static MethodCompilation Create(Delegate d, string methodName = "main")
     {
+        var type = d.Method.DeclaringType!;
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
         var tr = a.MainModule.ImportReference(type)!;
         var td = tr.Resolve()!;
 
-        // TODO: this code can choose a wrong overload, so we assert the unique name for now
-        var method = td.Methods.SingleOrDefault(x => x.Name == methodName);
-        if (method is null)
-        {
-            throw new ArgumentException($"The requested method {methodName} was not found in the {type} type " +
-                                        "or had multiple overloads (which are currently not supported)");
-        }
-
-        return new MethodCompilation(method);
+        return new MethodCompilation(
+            methodName,
+            td.Methods.Single(x => x.Name == d.Method.Name && x.Parameters.Count == d.Method.GetParameters().Length));
     }
 
     public MethodCompilationResult Compile()
@@ -37,7 +34,7 @@ public sealed class MethodCompilation
         // 3. Generate code and aggregate diagnostics
         var disassembler = Disassembler.Create(MethodDefinition);
         var disassemblyResult = disassembler.Disassemble();
-        var syntaxTree = SyntaxTree.Create(disassemblyResult);
+        var syntaxTree = SyntaxTree.Create(disassemblyResult, MethodName);
         syntaxTree.Compile();
 
         return new MethodCompilationResult(syntaxTree.ToString(), Array.Empty<Diagnostic>());
