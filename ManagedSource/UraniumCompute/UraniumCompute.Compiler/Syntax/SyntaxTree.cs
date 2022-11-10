@@ -7,6 +7,7 @@ namespace UraniumCompute.Compiler.Syntax;
 
 internal class SyntaxTree
 {
+    internal string MethodName { get; }
     internal IReadOnlyList<TypeReference> VariableTypes { get; }
     internal DisassemblyResult DisassemblyResult { get; }
 
@@ -22,16 +23,17 @@ internal class SyntaxTree
         instructionIndex++;
     }
 
-    private SyntaxTree(DisassemblyResult dr)
+    private SyntaxTree(string methodName, DisassemblyResult dr)
     {
+        MethodName = methodName;
         DisassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
     }
 
-    internal static SyntaxTree Create(DisassemblyResult dr)
+    internal static SyntaxTree Create(DisassemblyResult dr, string methodName = "main")
     {
-        return new SyntaxTree(dr);
+        return new SyntaxTree(methodName, dr);
     }
 
     internal void Compile()
@@ -178,7 +180,7 @@ internal class SyntaxTree
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {DisassemblyResult.Name}() {{ ");
+        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}() {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
         {
