@@ -1,8 +1,8 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-public class ReturnStatementSyntax : ExpressionStatementSyntax
+internal class ReturnStatementSyntax : ExpressionStatementSyntax
 {
-    public ReturnStatementSyntax(ExpressionSyntax expression) : base(expression)
+    internal ReturnStatementSyntax(ExpressionSyntax expression) : base(expression)
     {
     }
 

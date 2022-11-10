@@ -1,10 +1,10 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-public class LiteralExpressionSyntax : ExpressionSyntax
+internal class LiteralExpressionSyntax : ExpressionSyntax
 {
     internal object? Value { get; }
 
-    public LiteralExpressionSyntax(object? value)
+    internal LiteralExpressionSyntax(object? value)
     {
         Value = value;
     }

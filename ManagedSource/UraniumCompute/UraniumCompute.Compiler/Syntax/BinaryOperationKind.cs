@@ -1,6 +1,6 @@
 namespace UraniumCompute.Compiler.Syntax;
 
-public enum BinaryOperationKind
+internal enum BinaryOperationKind
 {
     None,
     Add,

@@ -2,13 +2,13 @@ using Mono.Cecil.Cil;
 
 namespace UraniumCompute.Compiler.Syntax;
 
-public class BinaryExpressionSyntax : ExpressionSyntax
+internal class BinaryExpressionSyntax : ExpressionSyntax
 {
     internal BinaryOperationKind Kind { get; }
     internal ExpressionSyntax Left { get; }
     internal ExpressionSyntax Right { get; }
 
-    public BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax left, ExpressionSyntax right)
+    internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
     {
         Kind = kind;
         Left = left;
@@ -60,6 +60,6 @@ public class BinaryExpressionSyntax : ExpressionSyntax
     
     public override string ToString()
     {
-        return $"{Right} {GetOperation(Kind)} {Left}";
+        return $"({Left} {GetOperation(Kind)} {Right})";
     }
 }
