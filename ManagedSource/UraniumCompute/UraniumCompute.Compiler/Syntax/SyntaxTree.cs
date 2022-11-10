@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UraniumCompute.Compiler.Disassembling;
 
 namespace UraniumCompute.Compiler.Syntax;
 
-public class SyntaxTree
+internal class SyntaxTree
 {
     internal IReadOnlyList<TypeReference> VariableTypes { get; }
     internal DisassemblyResult DisassemblyResult { get; }
@@ -128,6 +127,28 @@ public class SyntaxTree
         return true;
     }
 
+    private int GetVariableIndex()
+    {
+        switch (Current!.OpCode.Code)
+        {
+            case Code.Stloc_0:
+            case Code.Ldloc_0: return 0;
+            case Code.Stloc_1:
+            case Code.Ldloc_1: return 1;
+            case Code.Stloc_2:
+            case Code.Ldloc_2: return 2;
+            case Code.Stloc_3:
+            case Code.Ldloc_3: return 3;
+            case Code.Stloc:
+            case Code.Stloc_S:
+            case Code.Ldloc:
+            case Code.Ldloc_S:
+                return ((VariableDefinition)Current!.Operand).Index;
+        }
+
+        throw new InvalidOperationException($"Invalid instruction: {Current}");
+    }
+
     private bool ParseAssignmentExpression()
     {
         if (!Current!.OpCode.Name.StartsWith("stloc"))
@@ -135,26 +156,7 @@ public class SyntaxTree
             return false;
         }
 
-        switch (Current!.OpCode.Code)
-        {
-            case Code.Stloc_0:
-            case Code.Stloc_1:
-            case Code.Stloc_2:
-            case Code.Stloc_3:
-            {
-                statements.Add(
-                    new AssignmentExpressionSyntax(int.Parse(Current!.OpCode.Name[6..]), stack.Pop()));
-                break;
-            }
-            case Code.Stloc:
-            case Code.Stloc_S:
-            {
-                statements.Add(
-                    new AssignmentExpressionSyntax(int.Parse(Current!.Operand.ToString()![2..]), stack.Pop()));
-                break;
-            }
-        }
-
+        statements.Add(new AssignmentExpressionSyntax(GetVariableIndex(), stack.Pop()));
         NextInstruction();
         return true;
     }
@@ -166,57 +168,20 @@ public class SyntaxTree
             return false;
         }
 
-        switch (Current!.OpCode.Code)
-        {
-            case Code.Ldloc_0:
-            case Code.Ldloc_1:
-            case Code.Ldloc_2:
-            case Code.Ldloc_3:
-            {
-                stack.Push(new VariableExpressionSyntax($"V_{int.Parse(Current!.OpCode.Name[6..])}"));
-                break;
-            }
-            case Code.Ldloc_S:
-            {
-                stack.Push(new VariableExpressionSyntax($"V_{int.Parse(Current!.Operand.ToString()![2..])}"));
-                break;
-            }
-        }
-
+        stack.Push(new VariableExpressionSyntax($"V_{GetVariableIndex()}"));
         NextInstruction();
         return true;
     }
 
-    public static string ConvertType(TypeReference tr)
-    {
-        // TODO: move somewhere + handle errors without exceptions (use Diagnostics)
-        Debug.Assert(tr.IsPrimitive, "Non-primitive types aren't supported yet...");
-        return tr.Name switch
-        {
-            "Void" => "void",
-            nameof(Byte) or nameof(SByte) =>
-                throw new InvalidOperationException("8-bit ints are not supported by GPU"),
-            nameof(Int16) or nameof(UInt16) =>
-                throw new InvalidOperationException("16-bit ints are not supported by GPU"),
-            nameof(Int64) or nameof(UInt64) =>
-                throw new InvalidOperationException("64-bit ints are not supported by GPU"),
-            nameof(Int32) => "int",
-            nameof(UInt32) => "uint",
-            nameof(Single) => "float",
-            nameof(Double) => "double",
-            nameof(Boolean) => "bool",
-            _ => throw new Exception($"Unknown type: {tr.Name}")
-        };
-    }
 
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"{ConvertType(DisassemblyResult.ReturnType)} {DisassemblyResult.Name}() {{");
+        sb.AppendLine($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {DisassemblyResult.Name}() {{");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
         {
-            sb.AppendLine($"{ConvertType(VariableTypes[i])} V_{i};");
+            sb.AppendLine($"{Disassembler.ConvertType(VariableTypes[i])} V_{i};");
         }
 
         foreach (var statement in statements)

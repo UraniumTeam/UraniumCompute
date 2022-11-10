@@ -1,5 +1,5 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-public abstract class ExpressionSyntax : SyntaxNode
+internal abstract class ExpressionSyntax : SyntaxNode
 {
 }
