@@ -55,7 +55,8 @@ internal class SyntaxTree
                 NextInstruction();
                 return;
             case Code.Ret:
-                statements.Add(new ReturnStatementSyntax(stack.Pop()));
+                if (stack.Count != 0)
+                    statements.Add(new ReturnStatementSyntax(stack.Pop()));
                 NextInstruction();
                 return;
             default:

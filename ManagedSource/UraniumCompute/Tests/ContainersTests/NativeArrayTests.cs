@@ -1,6 +1,6 @@
 using UraniumCompute.Containers;
 
-namespace Tests.Containers;
+namespace ContainersTests;
 
 [TestFixture]
 public class NativeArrayTests
