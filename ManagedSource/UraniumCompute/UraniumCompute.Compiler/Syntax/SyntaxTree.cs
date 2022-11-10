@@ -178,16 +178,16 @@ internal class SyntaxTree
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {DisassemblyResult.Name}() {{");
+        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {DisassemblyResult.Name}() {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
         {
-            sb.AppendLine($"{Disassembler.ConvertType(VariableTypes[i])} V_{i};");
+            sb.Append($"{Disassembler.ConvertType(VariableTypes[i])} V_{i}; ");
         }
 
         foreach (var statement in statements)
         {
-            sb.AppendLine(statement.ToString());
+            sb.Append($"{statement} ");
         }
 
         sb.Append('}');
