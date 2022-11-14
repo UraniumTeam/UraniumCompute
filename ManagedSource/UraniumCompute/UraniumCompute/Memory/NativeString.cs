@@ -4,12 +4,17 @@ using UraniumCompute.Containers;
 
 namespace UraniumCompute.Memory;
 
+/// <summary>
+///     This struct can only be used to allocate temporary unmanaged strings to use them as unmanaged method arguments.
+/// </summary>
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct NativeString
 {
-    // TODO: Get rid of this class because of the memory leaks.
+    private const int maxSize = 128;
+
     private readonly unsafe byte* nativePointer;
-    private static readonly List<MemoryPage> charData = new();
+    private static readonly List<NativeArray<byte>> charData = new(maxSize);
+    private static int currentIndex;
 
     private unsafe NativeString(byte* nativePointer, char* data, int length)
     {
@@ -18,15 +23,36 @@ public readonly struct NativeString
         {
             nativePointer[i] = (byte)data[i];
         }
+
+        nativePointer[length] = 0;
     }
 
-    public static implicit operator NativeString(string s)
+    /// <summary>
+    ///     Create from a managed string.
+    /// </summary>
+    /// <param name="s">Managed string.</param>
+    /// <returns>A copy of the string in unmanaged memory.</returns>
+    public static unsafe implicit operator NativeString(string s)
     {
-        return CreateStatic(s);
+        var length = s.Length;
+        fixed (char* chars = s)
+        {
+            var bytes = AllocateBytes(length + 1);
+            return new NativeString(bytes, chars, length);
+        }
     }
 
+    /// <summary>
+    ///     Convert to a <see cref="ReadOnlySpan{T}"/>.
+    /// </summary>
+    /// <returns>The created <see cref="ReadOnlySpan{T}"/>.</returns>
     public unsafe ReadOnlySpan<byte> AsSpan()
     {
+        if (nativePointer == null)
+        {
+            return ReadOnlySpan<byte>.Empty;
+        }
+
         for (var i = 0;; ++i)
         {
             if (nativePointer[i] == 0)
@@ -41,52 +67,20 @@ public readonly struct NativeString
         return Encoding.ASCII.GetString(AsSpan());
     }
 
-    public static unsafe NativeString CreateStatic(string s)
-    {
-        var length = s.Length;
-        fixed (char* chars = s)
-        {
-            var bytes = AllocateBytes(length + 1);
-            bytes[length] = 0;
-            return new NativeString(bytes, chars, length);
-        }
-    }
-
     private static unsafe byte* AllocateBytes(long length)
     {
-        foreach (var memoryPage in charData)
+        if (charData.Count <= currentIndex)
         {
-            var ptr = memoryPage.Allocate(length);
-            if (ptr != null)
-            {
-                return ptr;
-            }
+            charData.Add(new NativeArray<byte>(length));
+        }
+        else if (charData[currentIndex].Count < length)
+        {
+            charData[currentIndex].Dispose();
+            charData[currentIndex] = new NativeArray<byte>(length);
         }
 
-        charData.Add(new MemoryPage(charData.LastOrDefault()?.Array.LongCount * 2 ?? length));
-        return charData.Last().Allocate(length);
-    }
-
-    private unsafe class MemoryPage
-    {
-        public NativeArray<byte> Array;
-        private long usedBytes;
-
-        public MemoryPage(long size)
-        {
-            Array = new NativeArray<byte>(size);
-            usedBytes = 0;
-        }
-
-        public byte* Allocate(long size)
-        {
-            if (Array.Count - usedBytes < size)
-            {
-                return null;
-            }
-
-            usedBytes += size;
-            return (byte*)Array.NativePointer + (usedBytes - size);
-        }
+        var result = charData[currentIndex].NativePointer;
+        currentIndex = (currentIndex + 1) % maxSize;
+        return result;
     }
 }
