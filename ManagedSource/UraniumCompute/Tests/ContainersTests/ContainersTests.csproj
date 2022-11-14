@@ -25,9 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\UraniumCompute.Backend.Cpu\UraniumCompute.Backend.Cpu.csproj"/>
-        <ProjectReference Include="..\UraniumCompute.Backend.Vulkan\UraniumCompute.Backend.Vulkan.csproj"/>
-        <ProjectReference Include="..\UraniumCompute\UraniumCompute.csproj"/>
+        <ProjectReference Include="..\..\UraniumCompute\UraniumCompute.csproj"/>
     </ItemGroup>
 
 </Project>
