@@ -30,6 +30,38 @@ public class Tests
         var expectedResult = "int main() { int V_0; int V_1; V_0 = 9; V_1 = ((V_0 + V_0) * V_0); return V_1; }";
         AssertFunc(func, expectedResult);
     }
+    
+    [Test]
+    public void Test4()
+    {
+        var func = (Span<int> a) =>
+        {
+            return a[10];
+        };
+        var expectedResult = "RWStructuredBuffer<int> a; " +
+                             "int main() { " +
+                             "int V_0; " +
+                             "V_0 = a[10]; " +
+                             "return V_0; }";
+        AssertFunc(func, expectedResult);
+    }
+    
+    [Test]
+    public void Test5()
+    {
+        var func = (Span<int> a) =>
+        {
+            a[0] = 6;
+            return 0;
+        };
+        var expectedResult = "RWStructuredBuffer<int> a; " +
+                             "int main() { " +
+                             "int V_0; " +
+                             "a[0] = 6; " +
+                             "V_0 = 0; " +
+                             "return V_0; }";
+        AssertFunc(func, expectedResult);
+    }
 
     private static void AssertFunc(Delegate func, string expectedHlslCode)
     {
