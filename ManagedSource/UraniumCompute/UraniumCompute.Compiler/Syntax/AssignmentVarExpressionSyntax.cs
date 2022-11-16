@@ -1,10 +1,10 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-internal class AssignmentExpressionSyntax : ExpressionStatementSyntax
+internal class AssignmentVarExpressionSyntax : ExpressionStatementSyntax
 {
     internal int VarNumber { get; }
 
-    internal AssignmentExpressionSyntax(int varNumber, ExpressionSyntax expression) : base(expression)
+    internal AssignmentVarExpressionSyntax(int varNumber, ExpressionSyntax expression) : base(expression)
     {
         VarNumber = varNumber;
     }

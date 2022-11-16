@@ -27,11 +27,10 @@ internal sealed class Disassembler
             MethodDefinition.Body.Variables
         );
     }
-    
-    internal static string ConvertType(TypeReference tr)
+
+    private static string ConvertPrimitiveType(TypeReference tr)
     {
         // TODO: handle errors without exceptions (use Diagnostics)
-        Debug.Assert(tr.IsPrimitive, "Non-primitive types aren't supported yet...");
         return tr.Name switch
         {
             "Void" => "void",
@@ -48,5 +47,23 @@ internal sealed class Disassembler
             nameof(Boolean) => "bool",
             _ => throw new Exception($"Unknown type: {tr.Name}")
         };
+    }
+
+    internal static string ConvertType(TypeReference tr)
+    {
+        Debug.Assert(tr.IsPrimitive || tr.IsGenericInstance, "Type isn't supported yet...");
+
+        if (tr.IsGenericInstance)
+        {
+            var instance = (GenericInstanceType)tr;
+
+            return instance.Name switch
+            {
+                "Span`1" => $"RWStructuredBuffer<{ConvertPrimitiveType(instance.GenericArguments[0])}>",
+                _ => throw new Exception($"Unknown type: {tr.Name}")
+            };
+        }
+
+        return ConvertPrimitiveType(tr);
     }
 }
