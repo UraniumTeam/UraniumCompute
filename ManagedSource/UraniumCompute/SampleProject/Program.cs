@@ -3,7 +3,9 @@ using System.Reflection;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
+using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Utils;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace SampleProject;
 
@@ -106,13 +108,17 @@ internal static class Program
         using var kernelCompiler = factory.CreateKernelCompiler();
         kernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
 
-        const string kernelSource = @"
-RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    values[globalInvocationID.x] *= 2;
-}";
+        var compilation = MethodCompilation.Create((Span<float> values) =>
+        {
+            values[GpuIntrinsic.GetGlobalInvocationId().X] *= 2;
+        });
+        var kernelSource = compilation.Compile().HlslCode!;
+
+        Console.WriteLine(new string('=', 128));
+        Console.WriteLine("Compiled kernel: ");
+        Console.WriteLine(kernelSource);
+        Console.WriteLine(new string('=', 128));
+
         using var bytecode = kernelCompiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main"));
 
         using var resourceBinding = device.CreateResourceBinding();
