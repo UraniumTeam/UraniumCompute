@@ -13,6 +13,11 @@ internal class ParameterExpressionSyntax: ExpressionSyntax
 
     public override string ToString()
     {
+        return $"{Name}";
+    }
+    
+    public string ToStringWithType()
+    {
         return $"{ParameterType} {Name}";
     }
 }
