@@ -13,6 +13,7 @@ internal class SyntaxTree
 
     private readonly Stack<ExpressionSyntax> stack = new();
     private readonly List<StatementSyntax> statements = new();
+    private readonly List<ParameterExpressionSyntax> parameters = new();
     private readonly Instruction[] instructions;
 
     private int instructionIndex;
@@ -38,9 +39,20 @@ internal class SyntaxTree
 
     internal void Compile()
     {
+        ParseParameters();
+
         while (Current is not null)
         {
             ParseStatement();
+        }
+    }
+
+    private void ParseParameters()
+    {
+        foreach (var parameter in DisassemblyResult.Parameters)
+        {
+            parameters.Add(
+                new ParameterExpressionSyntax(Disassembler.ConvertType(parameter.ParameterType), parameter.Name));
         }
     }
 
@@ -74,8 +86,11 @@ internal class SyntaxTree
         {
             ParseLiteralExpression,
             ParseBinaryExpression,
-            ParseAssignmentExpression,
-            ParseVariableExpression
+            ParseAssignmentVarExpression,
+            ParseVariableExpression,
+            ParseAssignmentArgExpression,
+            ParseArgumentExpression,
+            ParseCallExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -96,10 +111,10 @@ internal class SyntaxTree
             Code.Ldc_I4_6 => 6,
             Code.Ldc_I4_7 => 7,
             Code.Ldc_I4_8 => 8,
-            Code.Ldc_I4_S => Current!.Operand,
-            Code.Ldc_I4 => Current!.Operand,
-            Code.Ldc_R4 => Current!.Operand,
-            Code.Ldc_R8 => Current!.Operand,
+            Code.Ldc_I4_S => (sbyte)Current!.Operand & 0xff,
+            Code.Ldc_I4 => (int)Current!.Operand,
+            Code.Ldc_R4 => (float)Current!.Operand,
+            Code.Ldc_R8 => (double)Current!.Operand,
             Code.Ldc_I8 => throw new InvalidOperationException("64-bit ints are not supported by GPU"),
             _ => throw new Exception()
         };
@@ -152,14 +167,16 @@ internal class SyntaxTree
         throw new InvalidOperationException($"Invalid instruction: {Current}");
     }
 
-    private bool ParseAssignmentExpression()
+    private bool ParseAssignmentVarExpression()
     {
         if (!Current!.OpCode.Name.StartsWith("stloc"))
         {
             return false;
         }
 
-        statements.Add(new AssignmentExpressionSyntax(GetVariableIndex(), stack.Pop()));
+        statements.Add(new AssignmentExpressionSyntax(
+            stack.Pop(),
+            new VariableExpressionSyntax(GetVariableIndex())));
         NextInstruction();
         return true;
     }
@@ -171,15 +188,65 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new VariableExpressionSyntax($"V_{GetVariableIndex()}"));
+        stack.Push(new VariableExpressionSyntax(GetVariableIndex()));
         NextInstruction();
         return true;
     }
 
+    private bool ParseAssignmentArgExpression()
+    {
+        if (!Current!.OpCode.Name.StartsWith("stind"))
+        {
+            return false;
+        }
+
+        statements.Add(new AssignmentExpressionSyntax(stack.Pop(), stack.Pop()));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseArgumentExpression()
+    {
+        if (!Current!.OpCode.Name.StartsWith("ldarga"))
+        {
+            return false;
+        }
+
+        stack.Push(new ArgumentExpressionSyntax($"{Current.Operand}"));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseCallExpression()
+    {
+        if (Current!.OpCode.Name != "call")
+        {
+            return false;
+        }
+
+        var operand = (MethodReference)Current.Operand;
+        switch (operand.Name)
+        {
+            case "get_Item":
+                stack.Push( new IndexerExpressionSyntax(stack.Pop(), stack.Pop()));
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown instruction: {Current}");
+        }
+
+        NextInstruction();
+        return true;
+    }
 
     public override string ToString()
     {
         var sb = new StringBuilder();
+        for (var i = 0; i < parameters.Count; ++i)
+        {
+            sb.Append($"{parameters[i].ToStringWithType()} : register(u{i}); ");
+        }
+
+        sb.Append($"[numthreads(1, 1, 1)] ");
         sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}() {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
