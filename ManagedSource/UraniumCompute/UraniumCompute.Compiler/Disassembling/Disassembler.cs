@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using System.Diagnostics;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Compiler.Disassembling;
 
@@ -45,24 +46,24 @@ internal sealed class Disassembler
             nameof(Single) => "float",
             nameof(Double) => "double",
             nameof(Boolean) => "bool",
+            nameof(Index3D) => "uint3",
             _ => throw new Exception($"Unknown type: {tr.Name}")
         };
     }
 
     internal static string ConvertType(TypeReference tr)
     {
-        Debug.Assert(tr.IsPrimitive || tr.IsGenericInstance, "Type isn't supported yet...");
-
-        if (tr.IsGenericInstance)
+        if (tr is GenericInstanceType instance)
         {
-            var instance = (GenericInstanceType)tr;
-
             if (instance.Namespace == "System")
+            {
                 return instance.Name switch
                 {
                     "Span`1" => $"RWStructuredBuffer<{ConvertPrimitiveType(instance.GenericArguments[0])}>",
                     _ => throw new Exception($"Unknown generic type: {instance.Name}")
                 };
+            }
+
             throw new Exception($"Unknown namespace: {instance.Namespace}");
         }
 
