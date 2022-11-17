@@ -2,15 +2,15 @@
 
 internal class VariableExpressionSyntax : ExpressionSyntax
 {
-    internal string Name { get; }
+    internal int Index { get; }
     
-    public VariableExpressionSyntax(string name)
+    public VariableExpressionSyntax(int index)
     {
-        Name = name;
+        Index = index;
     }
 
     public override string ToString()
     {
-        return Name;
+        return $"V_{Index}";
     }
 }

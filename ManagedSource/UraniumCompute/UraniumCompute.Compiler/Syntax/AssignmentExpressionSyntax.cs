@@ -2,15 +2,15 @@
 
 internal class AssignmentExpressionSyntax : ExpressionStatementSyntax
 {
-    internal int VarNumber { get; }
+    internal ExpressionSyntax LeftOperand { get; }
 
-    internal AssignmentExpressionSyntax(int varNumber, ExpressionSyntax expression) : base(expression)
+    internal AssignmentExpressionSyntax(ExpressionSyntax rightOperand, ExpressionSyntax leftOperand) : base(rightOperand)
     {
-        VarNumber = varNumber;
+        LeftOperand = leftOperand;
     }
 
     public override string ToString()
     {
-        return $"V_{VarNumber} = {Expression};";
+        return $"{LeftOperand} = {Expression};";
     }
 }
