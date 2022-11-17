@@ -1,7 +1,9 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UraniumCompute.Compiler.Disassembling;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Compiler.Syntax;
 
@@ -63,18 +65,37 @@ internal class SyntaxTree
             return;
         }
 
+        // For now load indirect instructions do nothing in our case
+        if (Current!.OpCode.Name.StartsWith("ldind"))
+        {
+            NextInstruction();
+            return;
+        }
+
         switch (Current!.OpCode.Code)
         {
             case Code.Nop:
                 NextInstruction();
                 return;
             case Code.Ret:
-                if (stack.Count != 0)
+                if (stack.Any())
+                {
                     statements.Add(new ReturnStatementSyntax(stack.Pop()));
+                }
+
                 NextInstruction();
                 return;
+            case Code.Dup:
+                stack.Push(stack.Peek());
+                NextInstruction();
+                return;
+            case Code.Br:
+            case Code.Br_S:
+                // We do not support branches now
+                NextInstruction();
+                break;
             default:
-                Console.WriteLine($"Warning: Unknown instruction skipped: {Current}");
+                Debug.Fail($"Unknown instruction: {Current}");
                 NextInstruction();
                 break;
         }
@@ -161,6 +182,8 @@ internal class SyntaxTree
             case Code.Stloc_S:
             case Code.Ldloc:
             case Code.Ldloc_S:
+            case Code.Ldloca:
+            case Code.Ldloca_S:
                 return ((VariableDefinition)Current!.Operand).Index;
         }
 
@@ -224,11 +247,89 @@ internal class SyntaxTree
             return false;
         }
 
-        var operand = (MethodReference)Current.Operand;
-        switch (operand.Name)
+        var callParsers = new List<Func<MethodReference, bool>>
+        {
+            ParseSystemCallExpression,
+            ParseIntrinsicCallExpression,
+            ParseIndex3DCallExpression
+        };
+
+        return callParsers.Any(parser => parser((MethodReference)Current.Operand));
+    }
+
+    private bool ParseIndex3DCallExpression(MethodReference methodReference)
+    {
+        // TODO: get rid of this method, parse general struct declarations and member functions instead
+        if (methodReference.DeclaringType.FullName != typeof(Index3D).FullName)
+        {
+            return false;
+        }
+
+        switch (methodReference.Name)
+        {
+            case "get_X":
+                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "x"));
+                break;
+            case "get_Y":
+                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "y"));
+                break;
+            case "get_Z":
+                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "z"));
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown instruction: {Current}");
+        }
+
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseIntrinsicCallExpression(MethodReference methodReference)
+    {
+        if (methodReference.DeclaringType.FullName != typeof(GpuIntrinsic).FullName)
+        {
+            return false;
+        }
+
+        switch (methodReference.Name)
+        {
+            case nameof(GpuIntrinsic.GetGlobalInvocationId):
+                stack.Push(new ArgumentExpressionSyntax("globalInvocationID"));
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown instruction: {Current}");
+        }
+
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseSystemCallExpression(MethodReference methodReference)
+    {
+        if (methodReference.DeclaringType.Namespace != typeof(int).Namespace)
+        {
+            return false;
+        }
+
+        var callParsers = new List<Func<MethodReference, bool>>
+        {
+            ParseSpanCallExpression
+        };
+
+        return callParsers.Any(parser => parser(methodReference));
+    }
+
+    private bool ParseSpanCallExpression(MethodReference methodReference)
+    {
+        if (methodReference.DeclaringType.Name != typeof(Span<>).Name)
+        {
+            return false;
+        }
+
+        switch (methodReference.Name)
         {
             case "get_Item":
-                stack.Push( new IndexerExpressionSyntax(stack.Pop(), stack.Pop()));
+                stack.Push(new IndexerExpressionSyntax(stack.Pop(), stack.Pop()));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -247,7 +348,8 @@ internal class SyntaxTree
         }
 
         sb.Append($"[numthreads(1, 1, 1)] ");
-        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}() {{ ");
+        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}" +
+                  $"(uint3 globalInvocationID : SV_DispatchThreadID) {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
         {

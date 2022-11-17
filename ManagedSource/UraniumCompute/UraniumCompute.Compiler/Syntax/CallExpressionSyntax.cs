@@ -2,18 +2,18 @@
 
 internal class CallExpressionSyntax : ExpressionSyntax
 {
-    internal ExpressionSyntax Variable { get; }
+    internal ExpressionSyntax[] Arguments { get; }
     
-    internal ExpressionSyntax Method { get; }
+    internal string FunctionName { get; }
 
-    public CallExpressionSyntax(ExpressionSyntax method, ExpressionSyntax variable)
+    public CallExpressionSyntax(string functionName, IEnumerable<ExpressionSyntax> arguments)
     {
-        Variable = variable;
-        Method = method;
+        Arguments = arguments.ToArray();
+        FunctionName = functionName;
     }
     
     public override string ToString()
     {
-        return $"{Variable}{Method}";
+        return $"{FunctionName}{string.Join<ExpressionSyntax>(", ", Arguments)}";
     }
 }
