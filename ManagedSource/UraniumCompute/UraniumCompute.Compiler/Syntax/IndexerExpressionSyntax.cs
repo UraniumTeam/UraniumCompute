@@ -2,28 +2,17 @@
 
 internal class IndexerExpressionSyntax : ExpressionSyntax
 {
-    internal object Index { get; }
+    internal ExpressionSyntax Index { get; }
+    internal ExpressionSyntax IndexedExpression { get; }
 
-    public IndexerExpressionSyntax(ExpressionSyntax index)
+    public IndexerExpressionSyntax(ExpressionSyntax index, ExpressionSyntax indexedExpression)
     {
-        switch (index)
-        {
-            case LiteralExpressionSyntax litExpr:
-                Index = litExpr.Value!;
-                break;
-            case VariableExpressionSyntax varExpr:
-                Index = varExpr.Index;
-                break;
-            case ParameterExpressionSyntax paramExpr:
-                Index = paramExpr.Name;
-                break;
-            default:
-                throw new ArgumentException("Unsupported index type");
-        }
+        Index = index;
+        IndexedExpression = indexedExpression;
     }
     
     public override string ToString()
     {
-        return $"[{Index}]";
+        return $"{IndexedExpression}[{Index}]";
     }
 }

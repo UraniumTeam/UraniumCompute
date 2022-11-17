@@ -228,10 +228,7 @@ internal class SyntaxTree
         switch (operand.Name)
         {
             case "get_Item":
-                stack.Push(
-                    new CallExpressionSyntax(
-                        new IndexerExpressionSyntax(stack.Pop()),
-                        stack.Pop()));
+                stack.Push( new IndexerExpressionSyntax(stack.Pop(), stack.Pop()));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -244,11 +241,12 @@ internal class SyntaxTree
     public override string ToString()
     {
         var sb = new StringBuilder();
-        foreach (var parameter in parameters)
+        for (var i = 0; i < parameters.Count; ++i)
         {
-            sb.Append($"{parameter}; ");
+            sb.Append($"{parameters[i].ToStringWithType()} : register(u{i}); ");
         }
 
+        sb.Append($"[numthreads(1, 1, 1)] ");
         sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}() {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
