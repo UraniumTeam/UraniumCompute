@@ -174,7 +174,7 @@ internal class SyntaxTree
             return false;
         }
 
-        statements.Add(new AssignmentExpressionSyntax(
+        statements.Add(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(GetVariableIndex())));
         NextInstruction();
@@ -200,7 +200,7 @@ internal class SyntaxTree
             return false;
         }
 
-        statements.Add(new AssignmentExpressionSyntax(stack.Pop(), stack.Pop()));
+        statements.Add(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }
