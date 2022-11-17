@@ -2,17 +2,17 @@
 
 internal class ParameterExpressionSyntax: ExpressionSyntax
 {
-    internal string TypeP { get; }
+    internal string ParameterType { get; }
     internal string Name { get; }
     
-    public ParameterExpressionSyntax(string type, string name)
+    public ParameterExpressionSyntax(string parameterType, string name)
     {
-        TypeP = type;
+        ParameterType = parameterType;
         Name = name;
     }
 
     public override string ToString()
     {
-        return $"{TypeP} {Name}";
+        return $"{ParameterType} {Name}";
     }
 }

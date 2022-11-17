@@ -2,11 +2,24 @@
 
 internal class IndexerExpressionSyntax : ExpressionSyntax
 {
-    internal int Index { get; }
+    internal object Index { get; }
 
-    public IndexerExpressionSyntax(LiteralExpressionSyntax index)
+    public IndexerExpressionSyntax(ExpressionSyntax index)
     {
-        Index = (int)index.Value!;
+        switch (index)
+        {
+            case LiteralExpressionSyntax litExpr:
+                Index = litExpr.Value!;
+                break;
+            case VariableExpressionSyntax varExpr:
+                Index = varExpr.Index;
+                break;
+            case ParameterExpressionSyntax paramExpr:
+                Index = paramExpr.Name;
+                break;
+            default:
+                throw new ArgumentException("Unsupported index type");
+        }
     }
     
     public override string ToString()
