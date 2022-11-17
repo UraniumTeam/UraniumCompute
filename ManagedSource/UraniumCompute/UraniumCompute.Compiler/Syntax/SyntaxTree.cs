@@ -88,9 +88,9 @@ internal class SyntaxTree
             ParseBinaryExpression,
             ParseAssignmentVarExpression,
             ParseVariableExpression,
+            ParseAssignmentArgExpression,
             ParseArgumentExpression,
-            ParseCallExpression,
-            ParseAssignmentArgExpression
+            ParseCallExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -174,7 +174,9 @@ internal class SyntaxTree
             return false;
         }
 
-        statements.Add(new AssignmentVarExpressionSyntax(GetVariableIndex(), stack.Pop()));
+        statements.Add(new AssignmentExpressionSyntax(
+            stack.Pop(),
+            new VariableExpressionSyntax(GetVariableIndex())));
         NextInstruction();
         return true;
     }
@@ -186,7 +188,19 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new VariableExpressionSyntax($"V_{GetVariableIndex()}"));
+        stack.Push(new VariableExpressionSyntax(GetVariableIndex()));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseAssignmentArgExpression()
+    {
+        if (!Current!.OpCode.Name.StartsWith("stind"))
+        {
+            return false;
+        }
+
+        statements.Add(new AssignmentExpressionSyntax(stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }
@@ -216,25 +230,13 @@ internal class SyntaxTree
             case "get_Item":
                 stack.Push(
                     new CallExpressionSyntax(
-                        new IndexerExpressionSyntax((LiteralExpressionSyntax)stack.Pop()),
+                        new IndexerExpressionSyntax(stack.Pop()),
                         stack.Pop()));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
         }
 
-        NextInstruction();
-        return true;
-    }
-    
-    private bool ParseAssignmentArgExpression()
-    {
-        if (!Current!.OpCode.Name.StartsWith("stind"))
-        {
-            return false;
-        }
-
-        statements.Add(new AssignmentArgExpressionSyntax(stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }

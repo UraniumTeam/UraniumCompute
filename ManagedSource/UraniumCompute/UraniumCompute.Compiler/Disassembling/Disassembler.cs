@@ -57,11 +57,13 @@ internal sealed class Disassembler
         {
             var instance = (GenericInstanceType)tr;
 
-            return instance.Name switch
-            {
-                "Span`1" => $"RWStructuredBuffer<{ConvertPrimitiveType(instance.GenericArguments[0])}>",
-                _ => throw new Exception($"Unknown type: {tr.Name}")
-            };
+            if (instance.Namespace == "System")
+                return instance.Name switch
+                {
+                    "Span`1" => $"RWStructuredBuffer<{ConvertPrimitiveType(instance.GenericArguments[0])}>",
+                    _ => throw new Exception($"Unknown generic type: {instance.Name}")
+                };
+            throw new Exception($"Unknown namespace: {instance.Namespace}");
         }
 
         return ConvertPrimitiveType(tr);
