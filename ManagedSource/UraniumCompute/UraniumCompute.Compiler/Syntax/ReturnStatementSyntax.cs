@@ -1,9 +1,12 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-internal class ReturnStatementSyntax : ExpressionStatementSyntax
+internal class ReturnStatementSyntax : StatementSyntax
 {
-    internal ReturnStatementSyntax(ExpressionSyntax expression) : base(expression)
+    public ExpressionSyntax Expression { get; }
+
+    internal ReturnStatementSyntax(ExpressionSyntax expression)
     {
+        Expression = expression;
     }
 
     public override string ToString()
