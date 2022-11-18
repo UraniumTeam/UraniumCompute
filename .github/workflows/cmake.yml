@@ -60,6 +60,10 @@ jobs:
         configure-options: -G Ninja
         build-type: ${{env.BUILD_TYPE}}
 
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+
     - name: Build DotNet
       working-directory: ${{github.workspace}}/ManagedSource/UraniumCompute/UraniumCompute
       run: dotnet build -c ${{env.BUILD_TYPE}}
