@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\UraniumCompute.Compiler\UraniumCompute.Compiler.csproj" />
+      <ProjectReference Include="..\..\UraniumCompute.Common\UraniumCompute.Common.csproj" />
     </ItemGroup>
 
 </Project>
