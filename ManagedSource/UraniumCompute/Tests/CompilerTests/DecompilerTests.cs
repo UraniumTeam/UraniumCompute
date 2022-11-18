@@ -1,82 +1,90 @@
-using Mono.Cecil;
 using UraniumCompute.Compiler.Decompiling;
 
 namespace CompilerTests;
 
-public class Tests
+public partial class DecompilerTests
 {
     [Test]
-    public void Test1()
+    public void CompilesLiterals()
     {
         var expectedResult = "[numthreads(1, 1, 1)] " +
-                             "int main() " +
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) " +
                              "{ return 100000; }";
         AssertFunc(() => 100000, expectedResult);
     }
 
     [Test]
-    public void Test2()
+    public void CompilesExplicitReturn()
     {
         var expectedResult = "[numthreads(1, 1, 1)] " +
-                             "int main() " +
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) " +
                              "{ int V_0; V_0 = 100000; return V_0; }";
         AssertFunc(() => { return 100000; }, expectedResult);
     }
 
     [Test]
-    public void Test3()
+    public void CompilesBinaryExpressions()
     {
-        var func = () =>
+        var expectedResult = "[numthreads(1, 1, 1)] " +
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) " +
+                             "{ int V_0; int V_1; " +
+                             "V_0 = 9; " +
+                             "V_1 = (V_0 + (V_0 * V_0)); " +
+                             "return V_1; }";
+        AssertFunc((Func<int>)(() =>
         {
             var index = 9;
-            return (index + index) * index;
-        };
+            return index + index * index;
+        }), expectedResult);
+    }
+
+    [Test]
+    public void CompilesBinaryExpressions_WithParentheses()
+    {
         var expectedResult = "[numthreads(1, 1, 1)] " +
-                             "int main() " +
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) " +
                              "{ int V_0; int V_1; " +
                              "V_0 = 9; " +
                              "V_1 = ((V_0 + V_0) * V_0); " +
                              "return V_1; }";
-        AssertFunc(func, expectedResult);
-    }
-    
-    [Test]
-    public void Test4()
-    {
-        var func = (Span<int> a) =>
+        AssertFunc((Func<int>)(() =>
         {
-            return a[10];
-        };
+            var index = 9;
+            return (index + index) * index;
+        }), expectedResult);
+    }
+
+    [Test]
+    public void CompilesBufferParameter_ReadOnly()
+    {
         var expectedResult = "RWStructuredBuffer<int> a : register(u0); " +
                              "[numthreads(1, 1, 1)] " +
-                             "int main() { " +
-                             "int V_0; " +
-                             "V_0 = a[10]; " +
-                             "return V_0; }";
-        AssertFunc(func, expectedResult);
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) { " +
+                             "return a[10]; }";
+        AssertFunc((Span<int> a) => a[10], expectedResult);
     }
-    
+
     [Test]
-    public void Test5()
+    public void CompilesBufferParameter_WriteOnly()
     {
-        var func = (Span<int> a) =>
-        {
-            a[0] = 6;
-            return 0;
-        };
         var expectedResult = "RWStructuredBuffer<int> a : register(u0); " +
                              "[numthreads(1, 1, 1)] " +
-                             "int main() { " +
+                             "int main(uint3 globalInvocationID : SV_DispatchThreadID) { " +
                              "int V_0; " +
                              "a[0] = 6; " +
                              "V_0 = 0; " +
                              "return V_0; }";
-        AssertFunc(func, expectedResult);
+        AssertFunc((Span<int> a) =>
+        {
+            a[0] = 6;
+            return 0;
+        }, expectedResult);
     }
 
     private static void AssertFunc(Delegate func, string expectedHlslCode)
     {
         var compilation = MethodCompilation.Create(func);
-        Assert.That(compilation.Compile().HlslCode, Is.EqualTo(expectedHlslCode));
+        var actualCode = compilation.Compile().HlslCode;
+        Assert.That(actualCode, Is.EqualTo(expectedHlslCode));
     }
 }
