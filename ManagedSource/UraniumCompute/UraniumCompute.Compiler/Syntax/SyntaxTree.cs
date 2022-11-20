@@ -53,8 +53,8 @@ internal class SyntaxTree
     {
         foreach (var parameter in DisassemblyResult.Parameters)
         {
-            parameters.Add(
-                new ParameterExpressionSyntax(Disassembler.ConvertType(parameter.ParameterType), parameter.Name));
+            var parameterType = Disassembler.ConvertType(parameter.ParameterType);
+            parameters.Add(new ParameterExpressionSyntax(parameterType, parameter.Name));
         }
     }
 
@@ -89,11 +89,6 @@ internal class SyntaxTree
                 stack.Push(stack.Peek());
                 NextInstruction();
                 return;
-            case Code.Br:
-            case Code.Br_S:
-                // We do not support branches now
-                NextInstruction();
-                break;
             default:
                 Debug.Fail($"Unknown instruction: {Current}");
                 NextInstruction();
@@ -111,7 +106,8 @@ internal class SyntaxTree
             ParseVariableExpression,
             ParseAssignmentArgExpression,
             ParseArgumentExpression,
-            ParseCallExpression
+            ParseCallExpression,
+            ParseBranchExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -333,6 +329,32 @@ internal class SyntaxTree
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
+        }
+
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseBranchExpression()
+    {
+        var opCode = Current!.OpCode.Code;
+        switch (opCode)
+        {
+            case Code.Br:
+            case Code.Br_S:
+                statements.Add(new GotoStatementSyntax(((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Brfalse:
+            case Code.Brfalse_S:
+            case Code.Brtrue:
+            case Code.Brtrue_S:
+                var comparison = new BinaryExpressionSyntax(BinaryOperationKind.Eq,
+                    new LiteralExpressionSyntax(opCode is Code.Brtrue or Code.Brtrue_S),
+                    stack.Pop());
+                statements.Add(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
+                break;
+            default:
+                return false;
         }
 
         NextInstruction();
