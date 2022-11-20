@@ -1,6 +1,6 @@
 ﻿namespace UraniumCompute.Compiler.Syntax;
 
-internal class ReturnStatementSyntax : StatementSyntax
+internal class ReturnStatementSyntax : ControlFlowStatement
 {
     public ExpressionSyntax Expression { get; }
 
