@@ -36,6 +36,7 @@ public sealed class MethodCompilation
         var disassemblyResult = disassembler.Disassemble();
         var syntaxTree = SyntaxTree.Create(disassemblyResult, MethodName);
         syntaxTree.Compile();
+        syntaxTree = syntaxTree.Rewrite(SyntaxTree.GetStandardPasses());
 
         return new MethodCompilationResult(syntaxTree.ToString(), Array.Empty<Diagnostic>());
     }
