@@ -11,6 +11,6 @@ internal class LiteralExpressionSyntax : ExpressionSyntax
 
     public override string ToString()
     {
-        return Value?.ToString() ?? "null";
+        return Value?.ToString()?.ToLower() ?? "null";
     }
 }

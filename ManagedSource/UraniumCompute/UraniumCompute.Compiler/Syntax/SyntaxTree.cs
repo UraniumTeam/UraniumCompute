@@ -12,7 +12,7 @@ internal class SyntaxTree
 {
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
-    public List<StatementSyntax> Statements { get; init; } = new();
+    public BlockStatementSyntax Block { get; init; } = new();
     public List<ParameterExpressionSyntax> Parameters { get; init; } = new();
 
     private readonly DisassemblyResult disassemblyResult;
@@ -28,7 +28,7 @@ internal class SyntaxTree
     {
         return new SyntaxTree(disassemblyResult, instructions, instructionIndex, MethodName, VariableTypes)
         {
-            Statements = statements.ToList(),
+            Block = new BlockStatementSyntax(statements.ToList()),
             Parameters = Parameters.ToList()
         };
     }
@@ -70,7 +70,7 @@ internal class SyntaxTree
         {
             if (labels.ContainsKey(Current.Offset))
             {
-                Statements.Add(labels[Current.Offset]);
+                AddStatement(labels[Current.Offset]);
             }
 
             ParseStatement();
@@ -119,7 +119,7 @@ internal class SyntaxTree
             case Code.Ret:
                 if (stack.Any())
                 {
-                    Statements.Add(new ReturnStatementSyntax(stack.Pop()));
+                    AddStatement(new ReturnStatementSyntax(stack.Pop()));
                 }
 
                 NextInstruction();
@@ -232,7 +232,7 @@ internal class SyntaxTree
             return false;
         }
 
-        Statements.Add(new AssignmentStatementSyntax(
+        AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(GetVariableIndex())));
         NextInstruction();
@@ -258,7 +258,7 @@ internal class SyntaxTree
             return false;
         }
 
-        Statements.Add(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
+        AddStatement(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }
@@ -381,7 +381,7 @@ internal class SyntaxTree
         {
             case Code.Br:
             case Code.Br_S:
-                Statements.Add(new GotoStatementSyntax(((Instruction)Current!.Operand).Offset));
+                AddStatement(new GotoStatementSyntax(((Instruction)Current!.Operand).Offset));
                 break;
             case Code.Brfalse:
             case Code.Brfalse_S:
@@ -390,7 +390,7 @@ internal class SyntaxTree
                 var comparison = new BinaryExpressionSyntax(BinaryOperationKind.Eq,
                     new LiteralExpressionSyntax(opCode is Code.Brtrue or Code.Brtrue_S),
                     stack.Pop());
-                Statements.Add(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
+                AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
                 break;
             default:
                 return false;
@@ -398,6 +398,11 @@ internal class SyntaxTree
 
         NextInstruction();
         return true;
+    }
+
+    private void AddStatement(StatementSyntax statement)
+    {
+        Block.Statements.Add(statement);
     }
 
     public override string ToString()
@@ -417,7 +422,7 @@ internal class SyntaxTree
             sb.Append($"{Disassembler.ConvertType(VariableTypes[i])} V_{i}; ");
         }
 
-        foreach (var statement in Statements)
+        foreach (var statement in Block.Statements)
         {
             sb.Append($"{statement} ");
         }

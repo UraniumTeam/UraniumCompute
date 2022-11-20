@@ -10,10 +10,10 @@ internal sealed class ControlFlowGraph
     public List<BasicBlock> Blocks { get; }
     public List<BasicBlockBranch> Branches { get; }
 
-    public static ControlFlowGraph Create(IEnumerable<StatementSyntax> statements)
+    public static ControlFlowGraph Create(BlockStatementSyntax block)
     {
         var basicBlockBuilder = new BasicBlockBuilder();
-        var blocks = basicBlockBuilder.Build(statements);
+        var blocks = basicBlockBuilder.Build(block);
 
         var graphBuilder = new GraphBuilder();
         return graphBuilder.Build(blocks);
@@ -61,7 +61,7 @@ internal sealed class ControlFlowGraph
             var sb = new StringBuilder();
             foreach (var statement in Statements)
             {
-                sb.Append(statement);
+                sb.Append($"{statement} ");
             }
 
             return sb.ToString();
@@ -73,12 +73,14 @@ internal sealed class ControlFlowGraph
         public BasicBlock From { get; }
         public BasicBlock To { get; }
         public ExpressionSyntax? Condition { get; }
+        public bool IsPrimary { get; }
 
-        public BasicBlockBranch(BasicBlock from, BasicBlock to, ExpressionSyntax? condition)
+        public BasicBlockBranch(BasicBlock from, BasicBlock to, ExpressionSyntax? condition, bool isPrimary)
         {
             From = from;
             To = to;
             Condition = condition;
+            IsPrimary = isPrimary;
         }
 
         public override string ToString()
@@ -92,9 +94,9 @@ internal sealed class ControlFlowGraph
         private readonly List<StatementSyntax> statements = new();
         private readonly List<BasicBlock> blocks = new();
 
-        public List<BasicBlock> Build(IEnumerable<StatementSyntax> block)
+        public List<BasicBlock> Build(BlockStatementSyntax block)
         {
-            foreach (var statement in block)
+            foreach (var statement in block.Statements)
             {
                 switch (statement)
                 {
@@ -178,14 +180,11 @@ internal sealed class ControlFlowGraph
                     switch (statement)
                     {
                         case GotoStatementSyntax gs:
-                            var toBlock = blockFromOffset[gs.Offset];
-                            Connect(current, toBlock);
+                            Connect(current, blockFromOffset[gs.Offset]);
                             break;
                         case ConditionalGotoStatementSyntax cgs:
-                            var thenBlock = blockFromOffset[cgs.Offset];
-                            var negatedCondition = Negate(cgs.Condition);
-                            Connect(current, thenBlock, cgs.Condition);
-                            Connect(current, next, negatedCondition);
+                            Connect(current, blockFromOffset[cgs.Offset], cgs.Condition);
+                            Connect(current, next, cgs.Condition, true);
                             break;
                         case ReturnStatementSyntax:
                             Connect(current, end);
@@ -219,7 +218,7 @@ internal sealed class ControlFlowGraph
             return new ControlFlowGraph(start, end, blocks, branches);
         }
 
-        private void Connect(BasicBlock from, BasicBlock to, ExpressionSyntax? condition = null)
+        private void Connect(BasicBlock from, BasicBlock to, ExpressionSyntax? condition = null, bool isPrimary = false)
         {
             if (condition is LiteralExpressionSyntax l)
             {
@@ -234,7 +233,12 @@ internal sealed class ControlFlowGraph
                 }
             }
 
-            var branch = new BasicBlockBranch(from, to, condition);
+            if (isPrimary)
+            {
+                condition = Negate(condition!);
+            }
+
+            var branch = new BasicBlockBranch(from, to, condition, isPrimary);
             from.Outgoing.Add(branch);
             to.Incoming.Add(branch);
             branches.Add(branch);
@@ -257,7 +261,7 @@ internal sealed class ControlFlowGraph
             blocks.Remove(block);
         }
 
-        private ExpressionSyntax Negate(ExpressionSyntax condition)
+        private static ExpressionSyntax Negate(ExpressionSyntax condition)
         {
             if (condition is LiteralExpressionSyntax literal)
             {
