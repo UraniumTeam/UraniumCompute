@@ -4,32 +4,54 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UraniumCompute.Compiler.Disassembling;
 using UraniumCompute.Compiler.InterimStructs;
+using UraniumCompute.Compiler.Rewriting;
 
 namespace UraniumCompute.Compiler.Syntax;
 
 internal class SyntaxTree
 {
-    internal string MethodName { get; }
-    internal IReadOnlyList<TypeReference> VariableTypes { get; }
-    internal DisassemblyResult DisassemblyResult { get; }
+    public string MethodName { get; }
+    public IReadOnlyList<TypeReference> VariableTypes { get; }
+    public BlockStatementSyntax Block { get; init; } = new();
+    public List<ParameterExpressionSyntax> Parameters { get; init; } = new();
 
+    private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
-    private readonly List<StatementSyntax> statements = new();
-    private readonly List<ParameterExpressionSyntax> parameters = new();
     private readonly Instruction[] instructions;
+
+    private readonly Dictionary<int, LabelStatementSyntax> labels = new();
 
     private int instructionIndex;
     private Instruction? Current => instructionIndex < instructions.Length ? instructions[instructionIndex] : null;
+
+    public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
+    {
+        return new SyntaxTree(disassemblyResult, instructions, instructionIndex, MethodName, VariableTypes)
+        {
+            Block = new BlockStatementSyntax(statements.ToList()),
+            Parameters = Parameters.ToList()
+        };
+    }
 
     private void NextInstruction()
     {
         instructionIndex++;
     }
 
+    private SyntaxTree(DisassemblyResult disassemblyResult, Instruction[] instructions, int instructionIndex, string methodName,
+        IReadOnlyList<TypeReference> variableTypes)
+    {
+        this.disassemblyResult = disassemblyResult;
+        this.instructions = instructions;
+        this.instructionIndex = instructionIndex;
+        MethodName = methodName;
+        VariableTypes = variableTypes;
+    }
+
     private SyntaxTree(string methodName, DisassemblyResult dr)
     {
         MethodName = methodName;
-        DisassemblyResult = dr;
+        disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
     }
@@ -41,20 +63,37 @@ internal class SyntaxTree
 
     internal void Compile()
     {
+        FindLabels();
         ParseParameters();
 
         while (Current is not null)
         {
+            if (labels.ContainsKey(Current.Offset))
+            {
+                AddStatement(labels[Current.Offset]);
+            }
+
             ParseStatement();
+        }
+    }
+
+    private void FindLabels()
+    {
+        foreach (var instruction in instructions)
+        {
+            if (instruction.Operand is Instruction operand)
+            {
+                labels[operand.Offset] = new LabelStatementSyntax(operand.Offset);
+            }
         }
     }
 
     private void ParseParameters()
     {
-        foreach (var parameter in DisassemblyResult.Parameters)
+        foreach (var parameter in disassemblyResult.Parameters)
         {
-            parameters.Add(
-                new ParameterExpressionSyntax(Disassembler.ConvertType(parameter.ParameterType), parameter.Name));
+            var parameterType = Disassembler.ConvertType(parameter.ParameterType);
+            Parameters.Add(new ParameterExpressionSyntax(parameterType, parameter.Name));
         }
     }
 
@@ -80,7 +119,7 @@ internal class SyntaxTree
             case Code.Ret:
                 if (stack.Any())
                 {
-                    statements.Add(new ReturnStatementSyntax(stack.Pop()));
+                    AddStatement(new ReturnStatementSyntax(stack.Pop()));
                 }
 
                 NextInstruction();
@@ -89,11 +128,6 @@ internal class SyntaxTree
                 stack.Push(stack.Peek());
                 NextInstruction();
                 return;
-            case Code.Br:
-            case Code.Br_S:
-                // We do not support branches now
-                NextInstruction();
-                break;
             default:
                 Debug.Fail($"Unknown instruction: {Current}");
                 NextInstruction();
@@ -111,7 +145,8 @@ internal class SyntaxTree
             ParseVariableExpression,
             ParseAssignmentArgExpression,
             ParseArgumentExpression,
-            ParseCallExpression
+            ParseCallExpression,
+            ParseBranchExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -197,7 +232,7 @@ internal class SyntaxTree
             return false;
         }
 
-        statements.Add(new AssignmentStatementSyntax(
+        AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(GetVariableIndex())));
         NextInstruction();
@@ -223,7 +258,7 @@ internal class SyntaxTree
             return false;
         }
 
-        statements.Add(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
+        AddStatement(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }
@@ -339,16 +374,47 @@ internal class SyntaxTree
         return true;
     }
 
+    private bool ParseBranchExpression()
+    {
+        var opCode = Current!.OpCode.Code;
+        switch (opCode)
+        {
+            case Code.Br:
+            case Code.Br_S:
+                AddStatement(new GotoStatementSyntax(((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Brfalse:
+            case Code.Brfalse_S:
+            case Code.Brtrue:
+            case Code.Brtrue_S:
+                var comparison = new BinaryExpressionSyntax(BinaryOperationKind.Eq,
+                    new LiteralExpressionSyntax(opCode is Code.Brtrue or Code.Brtrue_S),
+                    stack.Pop());
+                AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
+                break;
+            default:
+                return false;
+        }
+
+        NextInstruction();
+        return true;
+    }
+
+    private void AddStatement(StatementSyntax statement)
+    {
+        Block.Statements.Add(statement);
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
-        for (var i = 0; i < parameters.Count; ++i)
+        for (var i = 0; i < Parameters.Count; ++i)
         {
-            sb.Append($"{parameters[i].ToStringWithType()} : register(u{i}); ");
+            sb.Append($"{Parameters[i].ToStringWithType()} : register(u{i}); ");
         }
 
         sb.Append($"[numthreads(1, 1, 1)] ");
-        sb.Append($"{Disassembler.ConvertType(DisassemblyResult.ReturnType)} {MethodName}" +
+        sb.Append($"{Disassembler.ConvertType(disassemblyResult.ReturnType)} {MethodName}" +
                   $"(uint3 globalInvocationID : SV_DispatchThreadID) {{ ");
 
         for (var i = 0; i < VariableTypes.Count; ++i)
@@ -356,12 +422,25 @@ internal class SyntaxTree
             sb.Append($"{Disassembler.ConvertType(VariableTypes[i])} V_{i}; ");
         }
 
-        foreach (var statement in statements)
+        foreach (var statement in Block.Statements)
         {
             sb.Append($"{statement} ");
         }
 
         sb.Append('}');
         return sb.ToString();
+    }
+
+    public static ISyntaxTreeRewriter[] GetStandardPasses()
+    {
+        return new ISyntaxTreeRewriter[]
+        {
+            new BranchResolver()
+        };
+    }
+
+    public SyntaxTree Rewrite(params ISyntaxTreeRewriter[] passes)
+    {
+        return passes.Aggregate(this, (current, rewriter) => rewriter.Rewrite(current));
     }
 }
