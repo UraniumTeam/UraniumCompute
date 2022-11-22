@@ -6,6 +6,8 @@ internal sealed class IfStatementSyntax : StatementSyntax
     public BlockStatementSyntax ThenBlock { get; }
     public BlockStatementSyntax? ElseBlock { get; }
 
+    public bool HasElseBlock => ElseBlock?.Statements.Any() ?? false;
+
     public IfStatementSyntax(ExpressionSyntax condition, BlockStatementSyntax thenBlock, BlockStatementSyntax? elseBlock)
     {
         Condition = condition;
@@ -15,8 +17,8 @@ internal sealed class IfStatementSyntax : StatementSyntax
 
     public override string ToString()
     {
-        return ElseBlock is null
-            ? $"if ({Condition}) {ThenBlock}"
-            : $"if ({Condition}) {ThenBlock} else {ElseBlock}";
+        return HasElseBlock
+            ? $"if ({Condition}) {ThenBlock} else {ElseBlock}"
+            : $"if ({Condition}) {ThenBlock}";
     }
 }
