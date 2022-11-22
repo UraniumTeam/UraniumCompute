@@ -50,19 +50,54 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
             case 2:
                 Debug.Assert(block.Outgoing.All(x => x.Condition is not null));
                 var primaryBranch = block.Outgoing.Single(x => x.IsPrimary);
-                var secondaryBranch = block.Outgoing.Single(x => !x.IsPrimary).To;
+                var secondaryBranch = block.Outgoing.Single(x => !x.IsPrimary);
 
-                stopBlocks.Push(secondaryBranch);
-                yield return new IfStatementSyntax(primaryBranch.Condition!,
-                    new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks)),
-                    null);
+                var commonBlock = FindFirstCommonBlock(block.Outgoing[0].To, block.Outgoing[1].To);
+                stopBlocks.Push(commonBlock);
+                stopBlocks.Push(commonBlock);
 
-                foreach (var statement in WriteBlock(secondaryBranch, stopBlocks))
+                var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks));
+                var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To, stopBlocks));
+                yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseBlock);
+
+                foreach (var statement in WriteBlock(commonBlock, stopBlocks))
                 {
                     yield return statement;
                 }
 
                 break;
         }
+    }
+
+    private static ControlFlowGraph.BasicBlock FindFirstCommonBlock(ControlFlowGraph.BasicBlock leftBranch,
+        ControlFlowGraph.BasicBlock rightBranch)
+    {
+        var visited = new HashSet<ControlFlowGraph.BasicBlock>();
+        var left = ControlFlowGraph.BreadthSearch(leftBranch).ToArray();
+        var right = ControlFlowGraph.BreadthSearch(rightBranch).ToArray();
+
+        var i = 0;
+        for (; i < Math.Min(left.Length, right.Length); ++i)
+        {
+            if (!visited.Add(left[i]))
+            {
+                return left[i];
+            }
+            
+            if (!visited.Add(right[i]))
+            {
+                return right[i];
+            }
+        }
+
+        foreach (var block in left.Skip(i).Concat(right.Skip(i)))
+        {
+            if (!visited.Add(block))
+            {
+                return block;
+            }
+        }
+
+        throw new Exception("Couldn't find common block");
     }
 }

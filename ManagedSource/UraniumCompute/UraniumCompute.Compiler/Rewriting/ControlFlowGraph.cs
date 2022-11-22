@@ -273,6 +273,24 @@ internal sealed class ControlFlowGraph
         }
     }
 
+    public static IEnumerable<BasicBlock> BreadthSearch(BasicBlock startNode)
+    {
+        var visited = new HashSet<BasicBlock>();
+        var queue = new Queue<BasicBlock>();
+        visited.Add(startNode);
+        queue.Enqueue(startNode);
+        while (queue.Count != 0)
+        {
+            var node = queue.Dequeue();
+            yield return node;
+            foreach (var nextNode in node.Outgoing.Select(x => x.To).Where(n => !visited.Contains(n)))
+            {
+                visited.Add(nextNode);
+                queue.Enqueue(nextNode);
+            }
+        }
+    }
+
     public override string ToString()
     {
         string Quote(string text)
