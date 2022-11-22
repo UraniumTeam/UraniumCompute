@@ -35,7 +35,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             _ => BinaryOperationKind.None
         };
     }
-    
+
     private static string GetOperation(BinaryOperationKind kind)
     {
         return kind switch
@@ -54,10 +54,10 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             BinaryOperationKind.ShiftR => ">>",
             BinaryOperationKind.Xor => "^",
             BinaryOperationKind.None => "",
-            _ => throw new Exception()
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
-    
+
     public override string ToString()
     {
         return $"({Left} {GetOperation(Kind)} {Right})";
