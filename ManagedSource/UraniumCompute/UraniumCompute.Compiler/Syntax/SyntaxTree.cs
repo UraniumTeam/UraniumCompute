@@ -107,7 +107,7 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = Disassembler.ConvertType(parameter.ParameterType);
+            var parameterType = TypeResolver.ConvertType(parameter.ParameterType);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
