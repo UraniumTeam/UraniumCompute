@@ -40,7 +40,7 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
         }
 
         var parameters = IsEntryPoint ? "uint3 globalInvocationID : SV_DispatchThreadID" : string.Join(", ", Parameters);
-        sb.Append($"{Disassembler.ConvertType(ReturnType)} {FunctionName}({parameters}) {Block}");
+        sb.Append($"{TypeResolver.ConvertType(ReturnType)} {FunctionName}({parameters}) {Block}");
         return sb.ToString();
     }
 }

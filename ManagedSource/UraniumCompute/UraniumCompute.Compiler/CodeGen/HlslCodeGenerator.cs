@@ -29,7 +29,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         var parameters = syntax.IsEntryPoint
             ? "uint3 globalInvocationID : SV_DispatchThreadID"
             : string.Join(", ", syntax.Parameters);
-        Output.WriteLine($"{Disassembler.ConvertType(syntax.ReturnType)} {syntax.FunctionName}({parameters})");
+        Output.WriteLine($"{TypeResolver.ConvertType(syntax.ReturnType)} {syntax.FunctionName}({parameters})");
         EmitStatement(syntax.Block, 0);
     }
 
@@ -117,7 +117,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     private void Emit(VariableDeclarationStatementSyntax syntax, int indent)
     {
         WriteIndent(indent);
-        Output.WriteLine($"{Disassembler.ConvertType(syntax.VariableType)} {syntax.Name};");
+        Output.WriteLine($"{TypeResolver.ConvertType(syntax.VariableType)} {syntax.Name};");
     }
 
     private void Emit(KernelAttribute kernelAttribute, int indent)

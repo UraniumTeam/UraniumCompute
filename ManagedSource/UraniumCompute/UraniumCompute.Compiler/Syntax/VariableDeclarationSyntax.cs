@@ -1,5 +1,5 @@
 ﻿using Mono.Cecil;
-using UraniumCompute.Compiler.Disassembling;
+using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;
 
@@ -16,6 +16,6 @@ internal sealed class VariableDeclarationStatementSyntax : StatementSyntax
 
     public override string ToString()
     {
-        return $"{Disassembler.ConvertType(VariableType)} {Name};";
+        return $"{TypeResolver.ConvertType(VariableType)} {Name};";
     }
 }
