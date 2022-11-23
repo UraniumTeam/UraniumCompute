@@ -9,7 +9,7 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
 
     public SyntaxTree Rewrite(SyntaxTree syntaxTree)
     {
-        var cfg = ControlFlowGraph.Create(syntaxTree.Block);
+        var cfg = ControlFlowGraph.Create(syntaxTree.Function!.Block);
         statements.AddRange(WriteBlock(cfg.Start, new Stack<ControlFlowGraph.BasicBlock>()));
         return syntaxTree.WithStatements(statements);
     }
@@ -58,7 +58,11 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
 
                 var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks));
                 var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To, stopBlocks));
-                yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseBlock);
+                var elseClause = elseBlock.Statements.Any()
+                    ? new ElseClauseSyntax(elseBlock)
+                    : null;
+
+                yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseClause);
 
                 foreach (var statement in WriteBlock(commonBlock, stopBlocks))
                 {
@@ -83,7 +87,7 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
             {
                 return left[i];
             }
-            
+
             if (!visited.Add(right[i]))
             {
                 return right[i];

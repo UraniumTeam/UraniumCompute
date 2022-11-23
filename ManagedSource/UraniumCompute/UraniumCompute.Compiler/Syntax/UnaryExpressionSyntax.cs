@@ -11,7 +11,7 @@ internal class UnaryExpressionSyntax : ExpressionSyntax
         Expression = expression;
     }
 
-    private static string GetOperation(UnaryOperationKind kind)
+    internal static string GetOperationString(UnaryOperationKind kind)
     {
         return kind switch
         {
@@ -24,6 +24,6 @@ internal class UnaryExpressionSyntax : ExpressionSyntax
 
     public override string ToString()
     {
-        return $"({GetOperation(Kind)} {Expression})";
+        return $"({GetOperationString(Kind)} {Expression})";
     }
 }
