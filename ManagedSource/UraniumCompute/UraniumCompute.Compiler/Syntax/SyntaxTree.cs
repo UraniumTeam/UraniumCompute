@@ -1,7 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using UraniumCompute.Compiler.CodeGen;
+using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.Disassembling;
 using UraniumCompute.Compiler.InterimStructs;
 using UraniumCompute.Compiler.Rewriting;
@@ -12,9 +15,10 @@ internal class SyntaxTree
 {
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
-    public BlockStatementSyntax Block { get; init; } = new();
-    public List<ParameterExpressionSyntax> Parameters { get; init; } = new();
+    public FunctionDeclarationSyntax? Function { get; init; }
+    public IReadOnlyList<ParameterDeclarationSyntax> Parameters => Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
 
+    private readonly MethodInfo method;
     private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
     private readonly Instruction[] instructions;
@@ -26,10 +30,9 @@ internal class SyntaxTree
 
     public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
     {
-        return new SyntaxTree(disassemblyResult, instructions, instructionIndex, MethodName, VariableTypes)
+        return new SyntaxTree(method, disassemblyResult, instructions, instructionIndex, MethodName, VariableTypes)
         {
-            Block = new BlockStatementSyntax(statements.ToList()),
-            Parameters = Parameters.ToList()
+            Function = Function?.WithStatements(statements)
         };
     }
 
@@ -38,9 +41,11 @@ internal class SyntaxTree
         instructionIndex++;
     }
 
-    private SyntaxTree(DisassemblyResult disassemblyResult, Instruction[] instructions, int instructionIndex, string methodName,
+    private SyntaxTree(MethodInfo method, DisassemblyResult disassemblyResult, Instruction[] instructions, int instructionIndex,
+        string methodName,
         IReadOnlyList<TypeReference> variableTypes)
     {
+        this.method = method;
         this.disassemblyResult = disassemblyResult;
         this.instructions = instructions;
         this.instructionIndex = instructionIndex;
@@ -48,23 +53,32 @@ internal class SyntaxTree
         VariableTypes = variableTypes;
     }
 
-    private SyntaxTree(string methodName, DisassemblyResult dr)
+    private SyntaxTree(MethodInfo method, string methodName, DisassemblyResult dr)
     {
+        this.method = method;
         MethodName = methodName;
         disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
+        var attribute = method.GetCustomAttribute<KernelAttribute>() ?? new KernelAttribute();
+        Function = new FunctionDeclarationSyntax(attribute, methodName, dr.ReturnType, new List<ParameterDeclarationSyntax>(),
+            new BlockStatementSyntax());
     }
 
-    internal static SyntaxTree Create(DisassemblyResult dr, string methodName = "main")
+    internal static SyntaxTree Create(MethodInfo method, DisassemblyResult dr, string methodName = "main")
     {
-        return new SyntaxTree(methodName, dr);
+        return new SyntaxTree(method, methodName, dr);
     }
 
     internal void Compile()
     {
         FindLabels();
         ParseParameters();
+
+        for (var i = 0; i < VariableTypes.Count; i++)
+        {
+            AddStatement(new VariableDeclarationStatementSyntax(VariableTypes[i], $"V_{i}"));
+        }
 
         while (Current is not null)
         {
@@ -90,10 +104,11 @@ internal class SyntaxTree
 
     private void ParseParameters()
     {
-        foreach (var parameter in disassemblyResult.Parameters)
+        for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
+            var parameter = disassemblyResult.Parameters[i];
             var parameterType = Disassembler.ConvertType(parameter.ParameterType);
-            Parameters.Add(new ParameterExpressionSyntax(parameterType, parameter.Name));
+            Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
 
@@ -402,33 +417,17 @@ internal class SyntaxTree
 
     private void AddStatement(StatementSyntax statement)
     {
-        Block.Statements.Add(statement);
+        Function!.Block.Statements.Add(statement);
+    }
+
+    public void GenerateCode(ICodeGenerator generator)
+    {
+        generator.EmitFunctionDeclaration(Function!);
     }
 
     public override string ToString()
     {
-        var sb = new StringBuilder();
-        for (var i = 0; i < Parameters.Count; ++i)
-        {
-            sb.Append($"{Parameters[i].ToStringWithType()} : register(u{i}); ");
-        }
-
-        sb.Append($"[numthreads(1, 1, 1)] ");
-        sb.Append($"{Disassembler.ConvertType(disassemblyResult.ReturnType)} {MethodName}" +
-                  $"(uint3 globalInvocationID : SV_DispatchThreadID) {{ ");
-
-        for (var i = 0; i < VariableTypes.Count; ++i)
-        {
-            sb.Append($"{Disassembler.ConvertType(VariableTypes[i])} V_{i}; ");
-        }
-
-        foreach (var statement in Block.Statements)
-        {
-            sb.Append($"{statement} ");
-        }
-
-        sb.Append('}');
-        return sb.ToString();
+        return Function?.ToString() ?? "<Empty>";
     }
 
     public static ISyntaxTreeRewriter[] GetStandardPasses()

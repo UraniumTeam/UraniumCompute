@@ -22,7 +22,6 @@ internal sealed class Disassembler
     {
         return new DisassemblyResult(
             MethodDefinition.Body.Instructions,
-            MethodDefinition.Name,
             MethodDefinition.Parameters,
             MethodDefinition.ReturnType,
             MethodDefinition.Body.Variables
