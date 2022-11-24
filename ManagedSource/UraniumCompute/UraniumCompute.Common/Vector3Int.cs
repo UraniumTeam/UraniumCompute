@@ -81,7 +81,7 @@ public struct Vector3Int : IEquatable<Vector3Int>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator *(int left, Vector3Int right)
     {
-        var vec = left * right.value;
+        var vec = right.value * left;
         return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
     }
 
