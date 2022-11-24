@@ -222,7 +222,7 @@ internal sealed class ControlFlowGraph
         {
             if (condition is LiteralExpressionSyntax l)
             {
-                var value = (bool)l.Value!;
+                var value = (bool)l.Value;
                 if (value)
                 {
                     condition = null;
@@ -265,7 +265,7 @@ internal sealed class ControlFlowGraph
         {
             if (condition is LiteralExpressionSyntax literal)
             {
-                var value = (bool)literal.Value!;
+                var value = (bool)literal.Value;
                 return new LiteralExpressionSyntax(!value);
             }
 
