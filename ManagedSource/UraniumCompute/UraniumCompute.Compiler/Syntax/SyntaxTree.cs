@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.Disassembling;
@@ -161,7 +162,8 @@ internal class SyntaxTree
             ParseAssignmentArgExpression,
             ParseArgumentExpression,
             ParseCallExpression,
-            ParseBranchExpression
+            ParseBranchExpression,
+            ParseFieldExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -300,38 +302,10 @@ internal class SyntaxTree
         var callParsers = new List<Func<MethodReference, bool>>
         {
             ParseSystemCallExpression,
-            ParseIntrinsicCallExpression,
-            ParseIndex3DCallExpression
+            ParseIntrinsicCallExpression
         };
 
         return callParsers.Any(parser => parser((MethodReference)Current.Operand));
-    }
-
-    private bool ParseIndex3DCallExpression(MethodReference methodReference)
-    {
-        // TODO: get rid of this method, parse general struct declarations and member functions instead
-        if (methodReference.DeclaringType.FullName != typeof(Index3D).FullName)
-        {
-            return false;
-        }
-
-        switch (methodReference.Name)
-        {
-            case "get_X":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "x"));
-                break;
-            case "get_Y":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "y"));
-                break;
-            case "get_Z":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "z"));
-                break;
-            default:
-                throw new InvalidOperationException($"Unknown instruction: {Current}");
-        }
-
-        NextInstruction();
-        return true;
     }
 
     private bool ParseIntrinsicCallExpression(MethodReference methodReference)
@@ -411,6 +385,20 @@ internal class SyntaxTree
                 return false;
         }
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseFieldExpression()
+    {
+        if (Current!.OpCode.Code != Code.Ldfld)
+        {
+            return false;
+        }
+
+        var field = (FieldReference)Current!.Operand!;
+        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
+        stack.Push(new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower()));
         NextInstruction();
         return true;
     }
