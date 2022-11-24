@@ -23,25 +23,20 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
             yield break;
         }
 
-        foreach (var statement in block.Statements)
-        {
-            if (statement is LabelStatementSyntax or GotoStatementSyntax or ConditionalGotoStatementSyntax)
-            {
-                continue;
-            }
-
-            yield return statement;
-        }
-
         switch (block.Outgoing.Count)
         {
             case 0:
+                foreach (var statement in FilterStatements(block.Statements))
+                {
+                    yield return statement;
+                }
+
                 yield break;
             case 1:
                 var branch = block.Outgoing.Single();
                 Debug.Assert(branch.Condition is null);
 
-                foreach (var statement in WriteBlock(branch.To, stopBlocks))
+                foreach (var statement in FilterStatements(block.Statements).Concat(WriteBlock(branch.To, stopBlocks)))
                 {
                     yield return statement;
                 }
@@ -53,16 +48,39 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
                 var secondaryBranch = block.Outgoing.Single(x => !x.IsPrimary);
 
                 var commonBlock = FindFirstCommonBlock(block.Outgoing[0].To, block.Outgoing[1].To);
-                stopBlocks.Push(commonBlock);
-                stopBlocks.Push(commonBlock);
 
-                var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks));
-                var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To, stopBlocks));
-                var elseClause = elseBlock.Statements.Any()
-                    ? new ElseClauseSyntax(elseBlock)
-                    : null;
+                var primaryLoop = DetectLoop(primaryBranch.To, block, commonBlock);
+                var secondaryLoop = DetectLoop(secondaryBranch.To, block, commonBlock);
+                if (!primaryLoop && !secondaryLoop)
+                {
+                    stopBlocks.Push(commonBlock);
+                    stopBlocks.Push(commonBlock);
 
-                yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseClause);
+                    var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks));
+                    var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To, stopBlocks));
+                    var elseClause = elseBlock.Statements.Any()
+                        ? new ElseClauseSyntax(elseBlock)
+                        : null;
+
+                    foreach (var statement in FilterStatements(block.Statements))
+                    {
+                        yield return statement;
+                    }
+
+                    yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseClause);
+                }
+                else
+                {
+                    stopBlocks.Push(block);
+                    var loopBranch = primaryLoop ? primaryBranch : secondaryBranch;
+                    var otherBranch = secondaryLoop ? primaryBranch : secondaryBranch;
+                    var loopBreak = new IfStatementSyntax(otherBranch.Condition!,
+                        new BlockStatementSyntax(new BreakStatementSyntax()), null);
+                    var loopBlock = new BlockStatementSyntax(FilterStatements(block.Statements)
+                        .Concat(Enumerable.Repeat<StatementSyntax>(loopBreak, 1))
+                        .Concat(WriteBlock(loopBranch.To, stopBlocks)));
+                    yield return WhileStatementSyntax.CreateInfinite(loopBlock);
+                }
 
                 foreach (var statement in WriteBlock(commonBlock, stopBlocks))
                 {
@@ -71,6 +89,31 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
 
                 break;
         }
+    }
+
+    private static IEnumerable<StatementSyntax> FilterStatements(IEnumerable<StatementSyntax> statements)
+    {
+        return statements.Where(statement =>
+            statement is not (LabelStatementSyntax or GotoStatementSyntax or ConditionalGotoStatementSyntax));
+    }
+
+    private static bool DetectLoop(ControlFlowGraph.BasicBlock block, ControlFlowGraph.BasicBlock parent,
+        ControlFlowGraph.BasicBlock stopBlock)
+    {
+        foreach (var basicBlock in ControlFlowGraph.BreadthSearch(block))
+        {
+            if (basicBlock == parent)
+            {
+                return true;
+            }
+
+            if (basicBlock == stopBlock)
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     private static ControlFlowGraph.BasicBlock FindFirstCommonBlock(ControlFlowGraph.BasicBlock leftBranch,
