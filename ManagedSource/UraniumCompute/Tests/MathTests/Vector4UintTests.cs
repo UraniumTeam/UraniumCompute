@@ -79,6 +79,7 @@ public class Vector4UintTests
 
     [TestCase(new uint[] { 0, 0, 0, 0 }, new uint[] { 0, 0, 0, 0 }, new uint[] { 0, 0, 0, 0 })]
     [TestCase(new uint[] { 1, 1, 1, 1 }, new uint[] { 1, 1, 1, 1 }, new uint[] { 2, 2, 2, 2 })]
+    [TestCase(new uint[] { 3, 5, 10, 4 }, new uint[] { 1, 2, 3, 0 }, new uint[] { 4, 7, 13, 4 })]
     public void Addition(uint[] vector1, uint[] vector2, uint[] result)
     {
         Assert.Multiple(() =>
@@ -90,6 +91,7 @@ public class Vector4UintTests
 
     [TestCase(new uint[] { 0, 0, 0, 0 }, new uint[] { 0, 0, 0, 0 }, new uint[] { 0, 0, 0, 0 })]
     [TestCase(new uint[] { 1, 1, 1, 1 }, new uint[] { 1, 1, 1, 1 }, new uint[] { 0, 0, 0, 0 })]
+    [TestCase(new uint[] { 3, 5, 10, 4 }, new uint[] { 1, 2, 3, 0 }, new uint[] { 2, 3, 7, 4 })]
     public void Subtraction(uint[] vector1, uint[] vector2, uint[] result)
     {
         Assert.Multiple(() =>
