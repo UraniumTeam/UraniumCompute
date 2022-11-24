@@ -1,4 +1,6 @@
-﻿using Mono.Cecil;
+﻿using System.Reflection;
+using Mono.Cecil;
+using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Disassembling;
 using UraniumCompute.Compiler.Syntax;
 
@@ -8,9 +10,11 @@ public sealed class MethodCompilation
 {
     private string MethodName { get; }
     private MethodDefinition MethodDefinition { get; }
+    private MethodInfo MethodInfo { get; }
 
-    private MethodCompilation(string methodName, MethodDefinition definition)
+    private MethodCompilation(string methodName, MethodInfo methodInfo, MethodDefinition definition)
     {
+        MethodInfo = methodInfo;
         MethodName = methodName;
         MethodDefinition = definition;
     }
@@ -22,22 +26,22 @@ public sealed class MethodCompilation
         var tr = a.MainModule.ImportReference(type)!;
         var td = tr.Resolve()!;
 
-        return new MethodCompilation(
-            methodName,
-            td.Methods.Single(x => x.Name == d.Method.Name && x.Parameters.Count == d.Method.GetParameters().Length));
+        var definition = td.Methods.Single(x => x.Name == d.Method.Name && x.Parameters.Count == d.Method.GetParameters().Length);
+        return new MethodCompilation(methodName, d.Method, definition);
     }
 
     public MethodCompilationResult Compile()
     {
-        // 1. Disassemble the method IL using the Disassembler class
-        // 2. Create a syntax tree from classes derived from SyntaxNode
-        // 3. Generate code and aggregate diagnostics
         var disassembler = Disassembler.Create(MethodDefinition);
         var disassemblyResult = disassembler.Disassemble();
-        var syntaxTree = SyntaxTree.Create(disassemblyResult, MethodName);
+        var syntaxTree = SyntaxTree.Create(MethodInfo, disassemblyResult, MethodName);
         syntaxTree.Compile();
         syntaxTree = syntaxTree.Rewrite(SyntaxTree.GetStandardPasses());
 
-        return new MethodCompilationResult(syntaxTree.ToString(), Array.Empty<Diagnostic>());
+        var textWriter = new StringWriter();
+        var codeGenerator = new HlslCodeGenerator(textWriter, 4);
+        syntaxTree.GenerateCode(codeGenerator);
+
+        return new MethodCompilationResult(textWriter.ToString(), Array.Empty<Diagnostic>());
     }
 }

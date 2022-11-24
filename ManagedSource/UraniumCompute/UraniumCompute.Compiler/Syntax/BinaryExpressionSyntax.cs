@@ -36,7 +36,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         };
     }
 
-    private static string GetOperation(BinaryOperationKind kind)
+    internal static string GetOperationString(BinaryOperationKind kind)
     {
         return kind switch
         {
@@ -60,6 +60,6 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
     public override string ToString()
     {
-        return $"({Left} {GetOperation(Kind)} {Right})";
+        return $"({Left} {GetOperationString(Kind)} {Right})";
     }
 }

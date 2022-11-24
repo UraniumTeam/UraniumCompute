@@ -4,21 +4,17 @@ internal sealed class IfStatementSyntax : StatementSyntax
 {
     public ExpressionSyntax Condition { get; }
     public BlockStatementSyntax ThenBlock { get; }
-    public BlockStatementSyntax? ElseBlock { get; }
+    public ElseClauseSyntax? ElseClause { get; }
 
-    public bool HasElseBlock => ElseBlock?.Statements.Any() ?? false;
-
-    public IfStatementSyntax(ExpressionSyntax condition, BlockStatementSyntax thenBlock, BlockStatementSyntax? elseBlock)
+    public IfStatementSyntax(ExpressionSyntax condition, BlockStatementSyntax thenBlock, ElseClauseSyntax? elseClause)
     {
         Condition = condition;
         ThenBlock = thenBlock;
-        ElseBlock = elseBlock;
+        ElseClause = elseClause;
     }
 
     public override string ToString()
     {
-        return HasElseBlock
-            ? $"if ({Condition}) {ThenBlock} else {ElseBlock}"
-            : $"if ({Condition}) {ThenBlock}";
+        return $"if ({Condition}) {ThenBlock} {ElseClause}";
     }
 }
