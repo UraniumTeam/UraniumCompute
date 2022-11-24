@@ -1,4 +1,7 @@
-﻿using Mono.Cecil;
+﻿using System.Numerics;
+using Mono.Cecil;
+using Mono.Collections.Generic;
+using UraniumCompute.Common;
 using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Compiler.Decompiling;
@@ -22,7 +25,9 @@ internal static class TypeResolver
             nameof(Single) => "float",
             nameof(Double) => "double",
             nameof(Boolean) => "bool",
-            nameof(Index3D) => "uint3",
+            nameof(Vector2) => "float2",
+            nameof(Vector3) => "float3",
+            nameof(Vector4) => "float4",
             _ => throw new Exception($"Unknown type: {tr.Name}")
         };
     }
@@ -43,6 +48,21 @@ internal static class TypeResolver
             throw new Exception($"Unknown namespace: {instance.Namespace}");
         }
 
-        return ConvertPrimitiveType(tr);
+        var customAttributes = tr.Resolve().CustomAttributes;
+        var attribute = customAttributes
+            .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?
+            .ConstructorArguments[0].Value;
+
+        if (attribute is string typeName)
+        {
+            return typeName;
+        }
+
+        if (tr.Namespace == typeof(int).Namespace)
+        {
+            return ConvertPrimitiveType(tr);
+        }
+
+        throw new Exception($"Unknown type: {tr}");
     }
 }

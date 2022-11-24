@@ -2,8 +2,9 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
-namespace UraniumCompute.Common;
+namespace UraniumCompute.Common.Math;
 
+[DeviceType("uint3")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Vector3Uint : IEquatable<Vector3Uint>
 {

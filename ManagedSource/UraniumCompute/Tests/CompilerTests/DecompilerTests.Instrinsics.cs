@@ -1,4 +1,5 @@
-﻿using UraniumCompute.Compiler.InterimStructs;
+﻿using System.Numerics;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;
 
@@ -19,21 +20,21 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         AssertFunc((Span<int> a) =>
         {
             var index = GpuIntrinsic.GetGlobalInvocationId();
-            a[index.X] *= 2;
+            a[(int)index.X] *= 2;
         }, expectedResult);
     }
 
     [Test]
-    public void CompilesIndex3D_GetXYZ()
+    public void CompilesVector3Uint_GetXYZ()
     {
         var expectedResult = @"[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
+uint main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     uint3 V_0;
-    int V_1;
-    int V_2;
-    int V_3;
-    int V_4;
+    uint V_1;
+    uint V_2;
+    uint V_3;
+    uint V_4;
     V_0 = globalInvocationID;
     V_1 = V_0.x;
     V_2 = V_0.y;
@@ -42,7 +43,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     return V_4;
 }
 ";
-        AssertFunc((Func<int>)(() =>
+        AssertFunc((Func<uint>)(() =>
         {
             var index = GpuIntrinsic.GetGlobalInvocationId();
             var x = index.X;

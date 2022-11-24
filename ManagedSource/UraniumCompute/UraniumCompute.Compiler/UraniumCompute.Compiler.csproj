@@ -10,4 +10,8 @@
         <PackageReference Include="Mono.Cecil" Version="0.11.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\UraniumCompute.Common\UraniumCompute.Common.csproj" />
+    </ItemGroup>
+
 </Project>
