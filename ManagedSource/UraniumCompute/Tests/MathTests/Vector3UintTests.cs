@@ -121,6 +121,7 @@ public class Vector3UintTests
         });
     }
 
+    [TestCase(new uint[] { 4, 4, 4 }, (uint)0, new uint[] { 0, 0, 0 })]
     [TestCase(new uint[] { 1, 1, 1 }, (uint)1, new uint[] { 1, 1, 1 })]
     [TestCase(new uint[] { 4, 4, 4 }, (uint)2, new uint[] { 8, 8, 8 })]
     [TestCase(new uint[] { 2, 11, 8 }, (uint)3, new uint[] { 6, 33, 24 })]

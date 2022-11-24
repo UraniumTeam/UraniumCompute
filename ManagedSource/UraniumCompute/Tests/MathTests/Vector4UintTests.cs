@@ -125,6 +125,7 @@ public class Vector4UintTests
 
     [TestCase(new uint[] { 1, 1, 1, 1 }, (uint)1, new uint[] { 1, 1, 1, 1 })]
     [TestCase(new uint[] { 4, 4, 4, 4 }, (uint)2, new uint[] { 8, 8, 8, 8 })]
+    [TestCase(new uint[] { 4, 4, 4, 4 }, (uint)0, new uint[] { 0, 0, 0, 0 })]
     public void ScalarMultiplication(uint[] vector1, uint scalar, uint[] result)
     {
         Assert.Multiple(() =>
