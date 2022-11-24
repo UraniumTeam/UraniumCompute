@@ -33,21 +33,6 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         EmitStatement(syntax.Block, 0);
     }
 
-    private void EmitNode(SyntaxNode node, int indent)
-    {
-        switch (node)
-        {
-            case ExpressionSyntax syntax:
-                EmitExpression(syntax);
-                break;
-            case StatementSyntax syntax:
-                EmitStatement(syntax, indent);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(node));
-        }
-    }
-
     private void EmitStatement(StatementSyntax statement, int indent)
     {
         switch (statement)
@@ -65,6 +50,12 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
                 Emit(syntax, indent);
                 break;
             case IfStatementSyntax syntax:
+                Emit(syntax, indent);
+                break;
+            case WhileStatementSyntax syntax:
+                Emit(syntax, indent);
+                break;
+            case BreakStatementSyntax syntax:
                 Emit(syntax, indent);
                 break;
             case LabelStatementSyntax syntax:
@@ -206,7 +197,16 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         }
     }
 
-    public void Emit(IndexerExpressionSyntax syntax)
+    private void Emit(WhileStatementSyntax syntax, int indent)
+    {
+        WriteIndent(indent);
+        Output.Write("while (");
+        EmitExpression(syntax.Condition);
+        Output.WriteLine(")");
+        Emit(syntax.Block, indent);
+    }
+
+    private void Emit(IndexerExpressionSyntax syntax)
     {
         EmitExpression(syntax.IndexedExpression);
         Output.Write('[');
@@ -214,29 +214,35 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.Write(']');
     }
 
-    public void Emit(LabelStatementSyntax syntax, int indent)
+    private void Emit(BreakStatementSyntax syntax, int indent)
+    {
+        WriteIndent(indent);
+        Output.WriteLine("break;");
+    }
+
+    private void Emit(LabelStatementSyntax syntax, int indent)
     {
         WriteIndent(indent - 1);
         Output.WriteLine($"lbl_{syntax.Offset}:");
     }
 
-    public void Emit(LiteralExpressionSyntax syntax)
+    private void Emit(LiteralExpressionSyntax syntax)
     {
         Output.Write(syntax);
     }
 
-    public void Emit(ParameterDeclarationSyntax syntax)
+    private void Emit(ParameterDeclarationSyntax syntax)
     {
         Output.WriteLine($"{syntax.ToStringWithType()} : register(u{syntax.BindingIndex});");
     }
 
-    public void Emit(PropertyExpressionSyntax syntax)
+    private void Emit(PropertyExpressionSyntax syntax)
     {
         EmitExpression(syntax.Instance);
         Output.Write($".{syntax.PropertyName}");
     }
 
-    public void Emit(ReturnStatementSyntax syntax, int indent)
+    private void Emit(ReturnStatementSyntax syntax, int indent)
     {
         WriteIndent(indent);
         Output.Write("return ");
@@ -244,13 +250,13 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.WriteLine(';');
     }
 
-    public void Emit(UnaryExpressionSyntax syntax)
+    private void Emit(UnaryExpressionSyntax syntax)
     {
         Output.Write(UnaryExpressionSyntax.GetOperationString(syntax.Kind));
         EmitExpression(syntax.Expression);
     }
 
-    public void Emit(VariableExpressionSyntax syntax)
+    private void Emit(VariableExpressionSyntax syntax)
     {
         Output.Write($"V_{syntax.Index}");
     }

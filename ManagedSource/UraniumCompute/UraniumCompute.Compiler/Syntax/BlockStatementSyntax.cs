@@ -16,6 +16,11 @@ internal sealed class BlockStatementSyntax : StatementSyntax
         Statements = statements.ToList();
     }
 
+    public BlockStatementSyntax(StatementSyntax statement)
+    {
+        Statements = new List<StatementSyntax> { statement };
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();

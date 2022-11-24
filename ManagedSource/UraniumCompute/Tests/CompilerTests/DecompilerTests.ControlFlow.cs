@@ -168,7 +168,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     return V_5;
 }
 ";
-        
+
         AssertFunc((Span<int> a) =>
         {
             var result = 0;
@@ -203,7 +203,46 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
                     result -= 1200;
                 }
             }
-            
+
+            return result;
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesWhileLoop()
+    {
+        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
+[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    bool V_1;
+    int V_2;
+    V_0 = 0;
+    while (true)
+    {
+        V_1 = (a[0] > 10);
+        if (!(V_1 == true))
+        {
+            break;
+        }
+        a[0] = (a[0] / 2);
+        V_0 = (V_0 + 1);
+    }
+    V_2 = V_0;
+    return V_2;
+}
+";
+
+        AssertFunc((Span<int> a) =>
+        {
+            var result = 0;
+            while (a[0] > 10)
+            {
+                a[0] /= 2;
+                result++;
+            }
+
             return result;
         }, expectedResult);
     }
