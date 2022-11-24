@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -35,6 +35,11 @@
             <Link>UnCompute.so</Link>
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\UraniumCompute.Common\UraniumCompute.Common.csproj" />
+      <ProjectReference Include="..\UraniumCompute.Compiler\UraniumCompute.Compiler.csproj" />
     </ItemGroup>
 
 </Project>

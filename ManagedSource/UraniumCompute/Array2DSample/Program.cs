@@ -9,14 +9,14 @@ using SixLabors.ImageSharp.Processing;
 const float fullFractalSize = 2.5f;
 
 const int maxIter = 64;
-const int imageScale = 8;
+const int imageScale = 2;
 const int width = imageScale * 1024;
 
 // using IFractalGenerator generator = new CpuFractalGenerator();
 using IFractalGenerator generator = new GpuFractalGenerator("Mandelbrot Set Sample");
 
-// generator.Init(maxIter, width, new Vector2(-2.0f, -1.125f), fullFractalSize);
-generator.Init(maxIter, width, new Vector2(-0.56f, 0.57f), 0.03f);
+generator.Init(maxIter, width, new Vector2(-2.0f, -1.125f), fullFractalSize);
+// generator.Init(maxIter, width, new Vector2(-0.56f, 0.57f), 0.03f);
 
 var fractalScale = fullFractalSize / generator.FractalSize;
 var text = $"UraniumCompute v0.1\nMandelbrot Set {width} x {width} px\nFractal scale: {fractalScale:F2}x";
