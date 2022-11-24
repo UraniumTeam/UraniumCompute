@@ -246,4 +246,134 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
             return result;
         }, expectedResult);
     }
+
+    [Test]
+    public void CompilesForLoop()
+    {
+        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    bool V_1;
+    V_0 = 0;
+    while (true)
+    {
+        V_1 = (V_0 < 10);
+        if (!(V_1 == true))
+        {
+            break;
+        }
+        a[V_0] = V_0;
+        V_0 = (V_0 + 1);
+    }
+}
+";
+
+        AssertFunc((Span<int> a) =>
+        {
+            for (var i = 0; i < 10; ++i)
+            {
+                a[i] = i;
+            }
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesNestedLoops()
+    {
+        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    int V_1;
+    bool V_2;
+    bool V_3;
+    V_0 = 0;
+    while (true)
+    {
+        V_3 = (V_0 < 10);
+        if (!(V_3 == true))
+        {
+            break;
+        }
+        V_1 = 0;
+        while (true)
+        {
+            V_2 = (V_1 < 10);
+            if (!(V_2 == true))
+            {
+                break;
+            }
+            a[(V_0 + V_1)] = (a[(V_0 + V_1)] + (V_0 + V_1));
+            V_1 = (V_1 + 1);
+        }
+        V_0 = (V_0 + 1);
+    }
+}
+";
+
+        AssertFunc((Span<int> a) =>
+        {
+            for (var i = 0; i < 10; i++)
+            for (var j = 0; j < 10; j++)
+            {
+                a[i + j] += i + j;
+            }
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesNestedLoopAndIf()
+    {
+        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    int V_1;
+    bool V_2;
+    bool V_3;
+    bool V_4;
+    V_0 = 0;
+    while (true)
+    {
+        V_4 = (V_0 < 10);
+        if (!(V_4 == true))
+        {
+            break;
+        }
+        V_1 = 0;
+        while (true)
+        {
+            V_3 = (V_1 < 10);
+            if (!(V_3 == true))
+            {
+                break;
+            }
+            V_2 = (V_0 == a[V_0]);
+            if (!(V_2 == false))
+            {
+                a[(V_0 + V_1)] = (a[(V_0 + V_1)] + (V_0 + V_1));
+            }
+            V_1 = (V_1 + 1);
+        }
+        V_0 = (V_0 + 1);
+    }
+}
+";
+
+        AssertFunc((Span<int> a) =>
+        {
+            for (var i = 0; i < 10; i++)
+            for (var j = 0; j < 10; j++)
+            {
+                if (i == a[i])
+                {
+                    a[i + j] += i + j;
+                }
+            }
+        }, expectedResult);
+    }
 }
