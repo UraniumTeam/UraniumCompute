@@ -5,12 +5,12 @@ namespace UraniumCompute.Compiler.Syntax;
 internal class LiteralExpressionSyntax : ExpressionSyntax
 {
     internal object Value { get; }
-    internal TypeSymbol LiteralType { get; }
+    public override TypeSymbol ExpressionType { get; }
 
     internal LiteralExpressionSyntax(object value)
     {
         Value = value;
-        LiteralType = TypeResolver.CreateType(value.GetType());
+        ExpressionType = TypeResolver.CreateType(value.GetType());
     }
 
     public override string ToString()

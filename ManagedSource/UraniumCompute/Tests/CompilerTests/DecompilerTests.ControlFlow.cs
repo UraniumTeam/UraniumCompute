@@ -15,7 +15,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_2;
     V_0 = 0;
     V_1 = (globalInvocationID.x > 10);
-    if (!(V_1 == false))
+    if ((!(!V_1)))
     {
         V_0 = 1;
     }
@@ -47,11 +47,11 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_3;
     V_0 = 0;
     V_1 = (globalInvocationID.x > 10);
-    if (!(V_1 == false))
+    if ((!(!V_1)))
     {
         V_0 = 1;
         V_2 = (globalInvocationID.x > 100);
-        if (!(V_2 == false))
+        if ((!(!V_2)))
         {
             V_0 = 2;
         }
@@ -132,11 +132,11 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_5;
     V_0 = 0;
     V_1 = (a[0] < 10);
-    if (!(V_1 == false))
+    if ((!(!V_1)))
     {
         V_0 = (V_0 + 1);
         V_2 = (a[0] > 1);
-        if (!(V_2 == false))
+        if ((!(!V_2)))
         {
             V_0 = (V_0 + 2);
         }
@@ -150,7 +150,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     {
         V_0 = (V_0 + 4);
         V_3 = (a[0] > 100);
-        if (!(V_3 == false))
+        if ((!(!V_3)))
         {
             V_0 = (V_0 + 1);
         }
@@ -159,7 +159,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
             V_0 = (V_0 + 10);
         }
         V_4 = (a[V_0] > 1);
-        if (!(V_4 == false))
+        if ((!(!V_4)))
         {
             V_0 = (V_0 - 1200);
         }
@@ -222,7 +222,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     while (true)
     {
         V_1 = (a[0] > 10);
-        if (!(V_1 == true))
+        if ((!V_1))
         {
             break;
         }
@@ -294,7 +294,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     while (true)
     {
         V_3 = (V_0 < 10);
-        if (!(V_3 == true))
+        if ((!V_3))
         {
             break;
         }
@@ -302,7 +302,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         while (true)
         {
             V_2 = (V_1 < 10);
-            if (!(V_2 == true))
+            if ((!V_2))
             {
                 break;
             }
@@ -353,7 +353,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
                 break;
             }
             V_2 = ((V_0 == V_1) == false);
-            if (!(V_2 == false))
+            if ((!(!V_2)))
             {
                 a[(V_0 + V_1)] = (a[(V_0 + V_1)] + (V_0 + V_1));
             }
