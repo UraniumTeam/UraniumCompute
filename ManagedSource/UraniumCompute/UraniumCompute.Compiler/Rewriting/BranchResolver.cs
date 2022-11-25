@@ -23,33 +23,23 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
         if (stopBlocks.Any() && block == stopBlocks.Peek())
         {
             stopBlocks.Pop();
-            yield break;
+            return Enumerable.Empty<StatementSyntax>();
         }
-        
+
         if (!visited.Add(block))
         {
-            yield break;
+            return Enumerable.Empty<StatementSyntax>();
         }
 
         switch (block.Outgoing.Count)
         {
             case 0:
-                foreach (var statement in FilterStatements(block.Statements))
-                {
-                    yield return statement;
-                }
-
-                yield break;
+                return FilterStatements(block.Statements);
             case 1:
                 var branch = block.Outgoing.Single();
                 Debug.Assert(branch.Condition is null);
-
-                foreach (var statement in FilterStatements(block.Statements).Concat(WriteBlock(branch.To)))
-                {
-                    yield return statement;
-                }
-
-                break;
+                return FilterStatements(block.Statements)
+                    .Concat(WriteBlock(branch.To));
             case 2:
                 Debug.Assert(block.Outgoing.All(x => x.Condition is not null));
                 var primaryBranch = block.Outgoing.Single(x => x.IsPrimary);
@@ -70,35 +60,26 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
                         ? new ElseClauseSyntax(elseBlock)
                         : null;
 
-                    foreach (var statement in FilterStatements(block.Statements))
-                    {
-                        yield return statement;
-                    }
-
-                    yield return new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseClause);
-                }
-                else
-                {
-                    outerLoops.Add(block);
-                    stopBlocks.Push(block);
-                    var loopBranch = primaryLoop ? primaryBranch : secondaryBranch;
-                    var otherBranch = secondaryLoop ? primaryBranch : secondaryBranch;
-                    commonBlock = otherBranch.To;
-                    var loopBreak = new IfStatementSyntax(otherBranch.Condition!,
-                        new BlockStatementSyntax(new BreakStatementSyntax()), null);
-                    var loopBlock = new BlockStatementSyntax(FilterStatements(block.Statements)
-                        .Concat(Enumerable.Repeat<StatementSyntax>(loopBreak, 1))
-                        .Concat(WriteBlock(loopBranch.To)));
-                    outerLoops.Remove(block);
-                    yield return WhileStatementSyntax.CreateInfinite(loopBlock);
+                    return FilterStatements(block.Statements)
+                        .Append(new IfStatementSyntax(primaryBranch.Condition!, thenBlock, elseClause))
+                        .Concat(WriteBlock(commonBlock));
                 }
 
-                foreach (var statement in WriteBlock(commonBlock))
-                {
-                    yield return statement;
-                }
+                outerLoops.Add(block);
+                stopBlocks.Push(block);
+                var loopBranch = primaryLoop ? primaryBranch : secondaryBranch;
+                var otherBranch = secondaryLoop ? primaryBranch : secondaryBranch;
+                var loopBreak = new IfStatementSyntax(otherBranch.Condition!,
+                    new BlockStatementSyntax(new BreakStatementSyntax()), null);
+                var loopBlock = new BlockStatementSyntax(FilterStatements(block.Statements)
+                    .Concat(Enumerable.Repeat<StatementSyntax>(loopBreak, 1))
+                    .Concat(WriteBlock(loopBranch.To)));
+                outerLoops.Remove(block);
 
-                break;
+                return Enumerable.Repeat(WhileStatementSyntax.CreateInfinite(loopBlock), 1)
+                    .Concat(WriteBlock(otherBranch.To));
+            default:
+                throw new InvalidOperationException($"A basic block has {block.Outgoing.Count} (more than 2) branches");
         }
     }
 
