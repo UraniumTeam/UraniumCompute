@@ -357,6 +357,10 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             {
                 a[(V_0 + V_1)] = (a[(V_0 + V_1)] + (V_0 + V_1));
             }
+            else
+            {
+                a[(V_0 + V_1)] = -1;
+            }
             V_1 = (V_1 + 1);
         }
         V_0 = (V_0 + 1);
@@ -373,7 +377,84 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
                 {
                     a[i + j] += i + j;
                 }
+                else
+                {
+                    a[i + j] = -1;
+                }
             }
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesNestedLoopIfElse()
+    {
+        var expectedResult = @"[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    int V_1;
+    bool V_2;
+    bool V_3;
+    bool V_4;
+    int V_5;
+    V_0 = 0;
+    V_1 = 0;
+    while (true)
+    {
+        V_4 = (V_1 < 10);
+        if ((!V_4))
+        {
+            break;
+        }
+        while (true)
+        {
+            V_3 = (globalInvocationID.x > 5);
+            if ((!V_3))
+            {
+                break;
+            }
+            V_2 = (V_1 > 3);
+            if ((!(!V_2)))
+            {
+                V_0 = (V_0 + 1);
+            }
+            else
+            {
+                V_0 = (V_0 + 2);
+            }
+            V_0 = (V_0 / 10);
+        }
+        V_0 = (V_0 * 20);
+        V_1 = (V_1 + 1);
+    }
+    V_5 = V_0;
+    return V_5;
+}
+";
+
+        AssertFunc(() =>
+        {
+            var a = 0;
+            for (var i = 0; i < 10; ++i)
+            {
+                while (GpuIntrinsic.GetGlobalInvocationId().X > 5)
+                {
+                    if (i > 3)
+                    {
+                        a++;
+                    }
+                    else
+                    {
+                        a += 2;
+                    }
+
+                    a /= 10;
+                }
+
+                a *= 20;
+            }
+
+            return a;
         }, expectedResult);
     }
 }

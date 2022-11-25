@@ -173,6 +173,7 @@ internal class SyntaxTree
         return Current!.OpCode.Code switch
         {
             Code.Ldnull => throw new InvalidOperationException("null is not supported by GPU"),
+            Code.Ldc_I4_M1 => new LiteralExpressionSyntax(-1),
             Code.Ldc_I4_0 => new LiteralExpressionSyntax(0),
             Code.Ldc_I4_1 => new LiteralExpressionSyntax(1),
             Code.Ldc_I4_2 => new LiteralExpressionSyntax(2),
