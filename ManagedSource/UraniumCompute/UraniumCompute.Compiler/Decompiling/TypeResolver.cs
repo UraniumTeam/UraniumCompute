@@ -1,17 +1,57 @@
 ﻿using System.Numerics;
 using Mono.Cecil;
-using Mono.Collections.Generic;
 using UraniumCompute.Common;
-using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
-    private static string ConvertPrimitiveType(TypeReference tr)
+    internal static TypeSymbol CreateType(Type type)
+    {
+        var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
+        var tr = a.MainModule.ImportReference(type)!;
+        return CreateType(tr);
+    }
+    
+    internal static TypeSymbol CreateType(TypeReference tr)
+    {
+        if (tr is GenericInstanceType instance)
+        {
+            if (instance.Namespace == "System")
+            {
+                var argument = CreateType(instance.GenericArguments[0]);
+                return instance.Name switch
+                {
+                    "Span`1" => new GenericTypeSymbol("RWStructuredBuffer", argument),
+                    _ => throw new ArgumentException($"Unknown generic type: {instance.Name}")
+                };
+            }
+
+            throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
+        }
+
+        var customAttributes = tr.Resolve().CustomAttributes;
+        var attribute = customAttributes
+            .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?
+            .ConstructorArguments[0].Value;
+
+        if (attribute is string typeName)
+        {
+            return new PrimitiveTypeSymbol(typeName);
+        }
+
+        if (tr.Namespace == typeof(int).Namespace)
+        {
+            return CreatePrimitiveType(tr);
+        }
+
+        throw new Exception($"Unknown type: {tr}");
+    }
+    
+    private static PrimitiveTypeSymbol CreatePrimitiveType(TypeReference tr)
     {
         // TODO: handle errors without exceptions (use Diagnostics)
-        return tr.Name switch
+        var name = tr.Name switch
         {
             "Void" => "void",
             nameof(Byte) or nameof(SByte) =>
@@ -30,39 +70,7 @@ internal static class TypeResolver
             nameof(Vector4) => "float4",
             _ => throw new Exception($"Unknown type: {tr.Name}")
         };
-    }
 
-    internal static string ConvertType(TypeReference tr)
-    {
-        if (tr is GenericInstanceType instance)
-        {
-            if (instance.Namespace == "System")
-            {
-                return instance.Name switch
-                {
-                    "Span`1" => $"RWStructuredBuffer<{ConvertPrimitiveType(instance.GenericArguments[0])}>",
-                    _ => throw new Exception($"Unknown generic type: {instance.Name}")
-                };
-            }
-
-            throw new Exception($"Unknown namespace: {instance.Namespace}");
-        }
-
-        var customAttributes = tr.Resolve().CustomAttributes;
-        var attribute = customAttributes
-            .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?
-            .ConstructorArguments[0].Value;
-
-        if (attribute is string typeName)
-        {
-            return typeName;
-        }
-
-        if (tr.Namespace == typeof(int).Namespace)
-        {
-            return ConvertPrimitiveType(tr);
-        }
-
-        throw new Exception($"Unknown type: {tr}");
+        return new PrimitiveTypeSymbol(name);
     }
 }

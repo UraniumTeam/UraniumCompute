@@ -29,7 +29,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         var parameters = syntax.IsEntryPoint
             ? "uint3 globalInvocationID : SV_DispatchThreadID"
             : string.Join(", ", syntax.Parameters);
-        Output.WriteLine($"{TypeResolver.ConvertType(syntax.ReturnType)} {syntax.FunctionName}({parameters})");
+        Output.WriteLine($"{syntax.ReturnType} {syntax.FunctionName}({parameters})");
         EmitStatement(syntax.Block, 0);
     }
 
@@ -108,7 +108,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     private void Emit(VariableDeclarationStatementSyntax syntax, int indent)
     {
         WriteIndent(indent);
-        Output.WriteLine($"{TypeResolver.ConvertType(syntax.VariableType)} {syntax.Name};");
+        Output.WriteLine($"{syntax.VariableType} {syntax.Name};");
     }
 
     private void Emit(KernelAttribute kernelAttribute, int indent)
@@ -214,6 +214,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.Write(']');
     }
 
+    // ReSharper disable once UnusedParameter.Local
     private void Emit(BreakStatementSyntax syntax, int indent)
     {
         WriteIndent(indent);
@@ -252,8 +253,10 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
 
     private void Emit(UnaryExpressionSyntax syntax)
     {
+        Output.Write('(');
         Output.Write(UnaryExpressionSyntax.GetOperationString(syntax.Kind));
         EmitExpression(syntax.Expression);
+        Output.Write(')');
     }
 
     private void Emit(VariableExpressionSyntax syntax)

@@ -9,12 +9,12 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
 {
     public KernelAttribute? KernelAttribute { get; }
     public string FunctionName { get; }
-    public TypeReference ReturnType { get; }
+    public TypeSymbol ReturnType { get; }
     public List<ParameterDeclarationSyntax> Parameters { get; }
     public BlockStatementSyntax Block { get; }
     public bool IsEntryPoint => KernelAttribute is not null;
 
-    public FunctionDeclarationSyntax(KernelAttribute? kernelAttribute, string functionName, TypeReference returnType,
+    public FunctionDeclarationSyntax(KernelAttribute? kernelAttribute, string functionName, TypeSymbol returnType,
         List<ParameterDeclarationSyntax> parameters, BlockStatementSyntax block)
     {
         KernelAttribute = kernelAttribute;
@@ -22,6 +22,11 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
         ReturnType = returnType;
         Parameters = parameters;
         Block = block;
+    }
+
+    public FunctionDeclarationSyntax(KernelAttribute? kernelAttribute, string functionName, TypeSymbol returnType)
+        : this(kernelAttribute, functionName, returnType, new List<ParameterDeclarationSyntax>(), new BlockStatementSyntax())
+    {
     }
 
     public FunctionDeclarationSyntax WithStatements(IEnumerable<StatementSyntax> statements)
@@ -40,7 +45,7 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
         }
 
         var parameters = IsEntryPoint ? "uint3 globalInvocationID : SV_DispatchThreadID" : string.Join(", ", Parameters);
-        sb.Append($"{TypeResolver.ConvertType(ReturnType)} {FunctionName}({parameters}) {Block}");
+        sb.Append($"{ReturnType} {FunctionName}({parameters}) {Block}");
         return sb.ToString();
     }
 }
