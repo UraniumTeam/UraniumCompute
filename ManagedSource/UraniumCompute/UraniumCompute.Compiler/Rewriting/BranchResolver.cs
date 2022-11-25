@@ -7,19 +7,27 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
 {
     private readonly List<StatementSyntax> statements = new();
 
+    private readonly Stack<ControlFlowGraph.BasicBlock> stopBlocks = new();
+    private readonly HashSet<ControlFlowGraph.BasicBlock> outerLoops = new();
+    private readonly HashSet<ControlFlowGraph.BasicBlock> visited = new();
+
     public SyntaxTree Rewrite(SyntaxTree syntaxTree)
     {
         var cfg = ControlFlowGraph.Create(syntaxTree.Function!.Block);
-        statements.AddRange(WriteBlock(cfg.Start, new Stack<ControlFlowGraph.BasicBlock>()));
+        statements.AddRange(WriteBlock(cfg.Start));
         return syntaxTree.WithStatements(statements);
     }
 
-    private static IEnumerable<StatementSyntax> WriteBlock(ControlFlowGraph.BasicBlock block,
-        Stack<ControlFlowGraph.BasicBlock> stopBlocks)
+    private IEnumerable<StatementSyntax> WriteBlock(ControlFlowGraph.BasicBlock block)
     {
         if (stopBlocks.Any() && block == stopBlocks.Peek())
         {
             stopBlocks.Pop();
+            yield break;
+        }
+        
+        if (!visited.Add(block))
+        {
             yield break;
         }
 
@@ -36,7 +44,7 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
                 var branch = block.Outgoing.Single();
                 Debug.Assert(branch.Condition is null);
 
-                foreach (var statement in FilterStatements(block.Statements).Concat(WriteBlock(branch.To, stopBlocks)))
+                foreach (var statement in FilterStatements(block.Statements).Concat(WriteBlock(branch.To)))
                 {
                     yield return statement;
                 }
@@ -56,8 +64,8 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
                     stopBlocks.Push(commonBlock);
                     stopBlocks.Push(commonBlock);
 
-                    var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To, stopBlocks));
-                    var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To, stopBlocks));
+                    var thenBlock = new BlockStatementSyntax(WriteBlock(primaryBranch.To));
+                    var elseBlock = new BlockStatementSyntax(WriteBlock(secondaryBranch.To));
                     var elseClause = elseBlock.Statements.Any()
                         ? new ElseClauseSyntax(elseBlock)
                         : null;
@@ -71,18 +79,21 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
                 }
                 else
                 {
+                    outerLoops.Add(block);
                     stopBlocks.Push(block);
                     var loopBranch = primaryLoop ? primaryBranch : secondaryBranch;
                     var otherBranch = secondaryLoop ? primaryBranch : secondaryBranch;
+                    commonBlock = otherBranch.To;
                     var loopBreak = new IfStatementSyntax(otherBranch.Condition!,
                         new BlockStatementSyntax(new BreakStatementSyntax()), null);
                     var loopBlock = new BlockStatementSyntax(FilterStatements(block.Statements)
                         .Concat(Enumerable.Repeat<StatementSyntax>(loopBreak, 1))
-                        .Concat(WriteBlock(loopBranch.To, stopBlocks)));
+                        .Concat(WriteBlock(loopBranch.To)));
+                    outerLoops.Remove(block);
                     yield return WhileStatementSyntax.CreateInfinite(loopBlock);
                 }
 
-                foreach (var statement in WriteBlock(commonBlock, stopBlocks))
+                foreach (var statement in WriteBlock(commonBlock))
                 {
                     yield return statement;
                 }
@@ -97,11 +108,16 @@ internal sealed class BranchResolver : ISyntaxTreeRewriter
             statement is not (LabelStatementSyntax or GotoStatementSyntax or ConditionalGotoStatementSyntax));
     }
 
-    private static bool DetectLoop(ControlFlowGraph.BasicBlock block, ControlFlowGraph.BasicBlock parent,
+    private bool DetectLoop(ControlFlowGraph.BasicBlock block, ControlFlowGraph.BasicBlock parent,
         ControlFlowGraph.BasicBlock stopBlock)
     {
         foreach (var basicBlock in ControlFlowGraph.BreadthSearch(block))
         {
+            if (outerLoops.Contains(basicBlock))
+            {
+                return false;
+            }
+
             if (basicBlock == parent)
             {
                 return true;
