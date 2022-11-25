@@ -110,7 +110,7 @@ internal static class Program
 
         var compilation = MethodCompilation.Create((Span<float> values) =>
         {
-            values[GpuIntrinsic.GetGlobalInvocationId().X] *= 2;
+            values[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2;
         });
         var kernelSource = compilation.Compile().HlslCode!;
 
