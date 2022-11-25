@@ -168,24 +168,24 @@ internal class SyntaxTree
         return expressionParsers.Any(parser => parser());
     }
 
-    private object GetLiteralValue()
+    private LiteralExpressionSyntax CreateLiteral()
     {
         return Current!.OpCode.Code switch
         {
             Code.Ldnull => throw new InvalidOperationException("null is not supported by GPU"),
-            Code.Ldc_I4_0 => 0,
-            Code.Ldc_I4_1 => 1,
-            Code.Ldc_I4_2 => 2,
-            Code.Ldc_I4_3 => 3,
-            Code.Ldc_I4_4 => 4,
-            Code.Ldc_I4_5 => 5,
-            Code.Ldc_I4_6 => 6,
-            Code.Ldc_I4_7 => 7,
-            Code.Ldc_I4_8 => 8,
-            Code.Ldc_I4_S => (sbyte)Current!.Operand & 0xff,
-            Code.Ldc_I4 => (int)Current!.Operand,
-            Code.Ldc_R4 => (float)Current!.Operand,
-            Code.Ldc_R8 => (double)Current!.Operand,
+            Code.Ldc_I4_0 => new LiteralExpressionSyntax(0),
+            Code.Ldc_I4_1 => new LiteralExpressionSyntax(1),
+            Code.Ldc_I4_2 => new LiteralExpressionSyntax(2),
+            Code.Ldc_I4_3 => new LiteralExpressionSyntax(3),
+            Code.Ldc_I4_4 => new LiteralExpressionSyntax(4),
+            Code.Ldc_I4_5 => new LiteralExpressionSyntax(5),
+            Code.Ldc_I4_6 => new LiteralExpressionSyntax(6),
+            Code.Ldc_I4_7 => new LiteralExpressionSyntax(7),
+            Code.Ldc_I4_8 => new LiteralExpressionSyntax(8),
+            Code.Ldc_I4_S => new LiteralExpressionSyntax((sbyte)Current!.Operand & 0xff),
+            Code.Ldc_I4 => new LiteralExpressionSyntax((int)Current!.Operand),
+            Code.Ldc_R4 => new LiteralExpressionSyntax((float)Current!.Operand),
+            Code.Ldc_R8 => new LiteralExpressionSyntax((double)Current!.Operand),
             Code.Ldc_I8 => throw new InvalidOperationException("64-bit ints are not supported by GPU"),
             _ => throw new Exception($"Unknown literal: {Current}")
         };
@@ -198,8 +198,7 @@ internal class SyntaxTree
             return false;
         }
 
-        var value = GetLiteralValue();
-        stack.Push(new LiteralExpressionSyntax(value));
+        stack.Push(CreateLiteral());
         NextInstruction();
         return true;
     }
@@ -248,9 +247,11 @@ internal class SyntaxTree
             return false;
         }
 
+        var variableIndex = GetVariableIndex();
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
-            new VariableExpressionSyntax(GetVariableIndex())));
+            new VariableExpressionSyntax(variableIndex, variableType)));
         NextInstruction();
         return true;
     }
@@ -262,7 +263,9 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new VariableExpressionSyntax(GetVariableIndex()));
+        var variableIndex = GetVariableIndex();
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
         return true;
     }

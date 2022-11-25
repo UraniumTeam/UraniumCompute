@@ -5,12 +5,12 @@ namespace UraniumCompute.Compiler.Syntax;
 internal class ArgumentExpressionSyntax : ExpressionSyntax
 {
     internal string Name { get; }
-    internal TypeSymbol ArgumentType { get; }
+    public override TypeSymbol ExpressionType { get; }
     
     public ArgumentExpressionSyntax(string name, TypeSymbol argumentType)
     {
         Name = name;
-        ArgumentType = argumentType;
+        ExpressionType = argumentType;
     }
 
     public override string ToString()

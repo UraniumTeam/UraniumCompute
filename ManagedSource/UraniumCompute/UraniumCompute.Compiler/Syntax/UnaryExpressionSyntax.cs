@@ -1,9 +1,12 @@
-﻿namespace UraniumCompute.Compiler.Syntax;
+﻿using UraniumCompute.Compiler.Decompiling;
+
+namespace UraniumCompute.Compiler.Syntax;
 
 internal class UnaryExpressionSyntax : ExpressionSyntax
 {
     internal UnaryOperationKind Kind { get; }
     internal ExpressionSyntax Expression { get; }
+    public override TypeSymbol ExpressionType => Expression.ExpressionType;
 
     internal UnaryExpressionSyntax(UnaryOperationKind kind, ExpressionSyntax expression)
     {
