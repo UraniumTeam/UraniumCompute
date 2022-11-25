@@ -88,7 +88,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_2;
     V_0 = 0;
     V_1 = (globalInvocationID.x > 10);
-    if (!(V_1 == false))
+    if ((!(!V_1)))
     {
         V_0 = 1;
     }
@@ -260,7 +260,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     while (true)
     {
         V_1 = (V_0 < 10);
-        if (!(V_1 == true))
+        if ((!V_1))
         {
             break;
         }
@@ -340,7 +340,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     while (true)
     {
         V_4 = (V_0 < 10);
-        if (!(V_4 == true))
+        if ((!V_4))
         {
             break;
         }
@@ -348,11 +348,11 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         while (true)
         {
             V_3 = (V_1 < 10);
-            if (!(V_3 == true))
+            if ((!V_3))
             {
                 break;
             }
-            V_2 = (V_0 == a[V_0]);
+            V_2 = ((V_0 == V_1) == false);
             if (!(V_2 == false))
             {
                 a[(V_0 + V_1)] = (a[(V_0 + V_1)] + (V_0 + V_1));
@@ -369,7 +369,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             for (var i = 0; i < 10; i++)
             for (var j = 0; j < 10; j++)
             {
-                if (i == a[i])
+                if (i != j)
                 {
                     a[i + j] += i + j;
                 }

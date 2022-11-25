@@ -62,8 +62,7 @@ internal class SyntaxTree
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
         var attribute = method.GetCustomAttribute<KernelAttribute>() ?? new KernelAttribute();
-        Function = new FunctionDeclarationSyntax(attribute, methodName, dr.ReturnType, new List<ParameterDeclarationSyntax>(),
-            new BlockStatementSyntax());
+        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType));
     }
 
     internal static SyntaxTree Create(MethodInfo method, DisassemblyResult dr, string methodName = "main")
@@ -78,7 +77,7 @@ internal class SyntaxTree
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
-            AddStatement(new VariableDeclarationStatementSyntax(VariableTypes[i], $"V_{i}"));
+            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i]), $"V_{i}"));
         }
 
         while (Current is not null)
@@ -108,7 +107,7 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = TypeResolver.ConvertType(parameter.ParameterType);
+            var parameterType = TypeResolver.CreateType(parameter.ParameterType);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
@@ -169,12 +168,11 @@ internal class SyntaxTree
         return expressionParsers.Any(parser => parser());
     }
 
-    private object? GetLiteralValue()
+    private object GetLiteralValue()
     {
         return Current!.OpCode.Code switch
         {
-            Code.Ldnull => null,
-            Code.Ldc_I4_M1 => null,
+            Code.Ldnull => throw new InvalidOperationException("null is not supported by GPU"),
             Code.Ldc_I4_0 => 0,
             Code.Ldc_I4_1 => 1,
             Code.Ldc_I4_2 => 2,
@@ -189,7 +187,7 @@ internal class SyntaxTree
             Code.Ldc_R4 => (float)Current!.Operand,
             Code.Ldc_R8 => (double)Current!.Operand,
             Code.Ldc_I8 => throw new InvalidOperationException("64-bit ints are not supported by GPU"),
-            _ => throw new Exception()
+            _ => throw new Exception($"Unknown literal: {Current}")
         };
     }
 
@@ -200,7 +198,8 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new LiteralExpressionSyntax(GetLiteralValue()));
+        var value = GetLiteralValue();
+        stack.Push(new LiteralExpressionSyntax(value));
         NextInstruction();
         return true;
     }
@@ -287,9 +286,14 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new ArgumentExpressionSyntax($"{Current.Operand}"));
-        NextInstruction();
-        return true;
+        if (Current.Operand is ParameterDefinition parameter)
+        {
+            stack.Push(new ArgumentExpressionSyntax($"{parameter.Name}", TypeResolver.CreateType(parameter.ParameterType)));
+            NextInstruction();
+            return true;
+        }
+
+        throw new Exception($"Unknown instruction: {Current}");
     }
 
     private bool ParseCallExpression()
@@ -318,7 +322,7 @@ internal class SyntaxTree
         switch (methodReference.Name)
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
-                stack.Push(new ArgumentExpressionSyntax("globalInvocationID"));
+                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", new PrimitiveTypeSymbol("uint3")));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -376,9 +380,9 @@ internal class SyntaxTree
             case Code.Brfalse_S:
             case Code.Brtrue:
             case Code.Brtrue_S:
-                var comparison = new BinaryExpressionSyntax(BinaryOperationKind.Eq,
-                    new LiteralExpressionSyntax(opCode is Code.Brtrue or Code.Brtrue_S),
-                    stack.Pop());
+                var comparison = opCode is Code.Brtrue or Code.Brtrue_S
+                    ? stack.Pop()
+                    : new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, stack.Pop());
                 AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
                 break;
             default:

@@ -5,10 +5,10 @@ namespace UraniumCompute.Compiler.Syntax;
 
 internal sealed class VariableDeclarationStatementSyntax : StatementSyntax
 {
-    public TypeReference VariableType { get; }
+    public TypeSymbol VariableType { get; }
     public string Name { get; }
 
-    public VariableDeclarationStatementSyntax(TypeReference variableType, string name)
+    public VariableDeclarationStatementSyntax(TypeSymbol variableType, string name)
     {
         VariableType = variableType;
         Name = name;
@@ -16,6 +16,6 @@ internal sealed class VariableDeclarationStatementSyntax : StatementSyntax
 
     public override string ToString()
     {
-        return $"{TypeResolver.ConvertType(VariableType)} {Name};";
+        return $"{VariableType} {Name};";
     }
 }
