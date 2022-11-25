@@ -18,6 +18,18 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     }
 
     [Test]
+    public void CompilesKernelAttribute()
+    {
+        var expectedResult = @"[numthreads(3, 4, 5)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    return 100000;
+}
+";
+        AssertFunc([Kernel(X = 3, Y = 4, Z = 5)]() => 100000, expectedResult);
+    }
+
+    [Test]
     public void CompilesExplicitReturn()
     {
         var expectedResult = @"[numthreads(1, 1, 1)]

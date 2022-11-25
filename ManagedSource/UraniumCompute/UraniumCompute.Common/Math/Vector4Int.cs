@@ -1,10 +1,10 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 
-namespace UraniumCompute.Common;
+namespace UraniumCompute.Common.Math;
 
+[DeviceType("int4")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Vector4Int : IEquatable<Vector4Int>
 {

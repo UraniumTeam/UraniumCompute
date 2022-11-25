@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.Disassembling;
@@ -61,8 +62,7 @@ internal class SyntaxTree
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
         var attribute = method.GetCustomAttribute<KernelAttribute>() ?? new KernelAttribute();
-        Function = new FunctionDeclarationSyntax(attribute, methodName, dr.ReturnType, new List<ParameterDeclarationSyntax>(),
-            new BlockStatementSyntax());
+        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType));
     }
 
     internal static SyntaxTree Create(MethodInfo method, DisassemblyResult dr, string methodName = "main")
@@ -77,7 +77,7 @@ internal class SyntaxTree
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
-            AddStatement(new VariableDeclarationStatementSyntax(VariableTypes[i], $"V_{i}"));
+            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i]), $"V_{i}"));
         }
 
         while (Current is not null)
@@ -107,7 +107,7 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = TypeResolver.ConvertType(parameter.ParameterType);
+            var parameterType = TypeResolver.CreateType(parameter.ParameterType);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
@@ -161,33 +161,34 @@ internal class SyntaxTree
             ParseAssignmentArgExpression,
             ParseArgumentExpression,
             ParseCallExpression,
-            ParseBranchExpression
+            ParseBranchExpression,
+            ParseFieldExpression
         };
 
         return expressionParsers.Any(parser => parser());
     }
 
-    private object? GetLiteralValue()
+    private LiteralExpressionSyntax CreateLiteral()
     {
         return Current!.OpCode.Code switch
         {
-            Code.Ldnull => null,
-            Code.Ldc_I4_M1 => null,
-            Code.Ldc_I4_0 => 0,
-            Code.Ldc_I4_1 => 1,
-            Code.Ldc_I4_2 => 2,
-            Code.Ldc_I4_3 => 3,
-            Code.Ldc_I4_4 => 4,
-            Code.Ldc_I4_5 => 5,
-            Code.Ldc_I4_6 => 6,
-            Code.Ldc_I4_7 => 7,
-            Code.Ldc_I4_8 => 8,
-            Code.Ldc_I4_S => (sbyte)Current!.Operand & 0xff,
-            Code.Ldc_I4 => (int)Current!.Operand,
-            Code.Ldc_R4 => (float)Current!.Operand,
-            Code.Ldc_R8 => (double)Current!.Operand,
+            Code.Ldnull => throw new InvalidOperationException("null is not supported by GPU"),
+            Code.Ldc_I4_M1 => new LiteralExpressionSyntax(-1),
+            Code.Ldc_I4_0 => new LiteralExpressionSyntax(0),
+            Code.Ldc_I4_1 => new LiteralExpressionSyntax(1),
+            Code.Ldc_I4_2 => new LiteralExpressionSyntax(2),
+            Code.Ldc_I4_3 => new LiteralExpressionSyntax(3),
+            Code.Ldc_I4_4 => new LiteralExpressionSyntax(4),
+            Code.Ldc_I4_5 => new LiteralExpressionSyntax(5),
+            Code.Ldc_I4_6 => new LiteralExpressionSyntax(6),
+            Code.Ldc_I4_7 => new LiteralExpressionSyntax(7),
+            Code.Ldc_I4_8 => new LiteralExpressionSyntax(8),
+            Code.Ldc_I4_S => new LiteralExpressionSyntax((sbyte)Current!.Operand & 0xff),
+            Code.Ldc_I4 => new LiteralExpressionSyntax((int)Current!.Operand),
+            Code.Ldc_R4 => new LiteralExpressionSyntax((float)Current!.Operand),
+            Code.Ldc_R8 => new LiteralExpressionSyntax((double)Current!.Operand),
             Code.Ldc_I8 => throw new InvalidOperationException("64-bit ints are not supported by GPU"),
-            _ => throw new Exception()
+            _ => throw new Exception($"Unknown literal: {Current}")
         };
     }
 
@@ -198,7 +199,7 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new LiteralExpressionSyntax(GetLiteralValue()));
+        stack.Push(CreateLiteral());
         NextInstruction();
         return true;
     }
@@ -247,9 +248,11 @@ internal class SyntaxTree
             return false;
         }
 
+        var variableIndex = GetVariableIndex();
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
-            new VariableExpressionSyntax(GetVariableIndex())));
+            new VariableExpressionSyntax(variableIndex, variableType)));
         NextInstruction();
         return true;
     }
@@ -261,7 +264,9 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new VariableExpressionSyntax(GetVariableIndex()));
+        var variableIndex = GetVariableIndex();
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
         return true;
     }
@@ -285,9 +290,14 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new ArgumentExpressionSyntax($"{Current.Operand}"));
-        NextInstruction();
-        return true;
+        if (Current.Operand is ParameterDefinition parameter)
+        {
+            stack.Push(new ArgumentExpressionSyntax($"{parameter.Name}", TypeResolver.CreateType(parameter.ParameterType)));
+            NextInstruction();
+            return true;
+        }
+
+        throw new Exception($"Unknown instruction: {Current}");
     }
 
     private bool ParseCallExpression()
@@ -300,38 +310,10 @@ internal class SyntaxTree
         var callParsers = new List<Func<MethodReference, bool>>
         {
             ParseSystemCallExpression,
-            ParseIntrinsicCallExpression,
-            ParseIndex3DCallExpression
+            ParseIntrinsicCallExpression
         };
 
         return callParsers.Any(parser => parser((MethodReference)Current.Operand));
-    }
-
-    private bool ParseIndex3DCallExpression(MethodReference methodReference)
-    {
-        // TODO: get rid of this method, parse general struct declarations and member functions instead
-        if (methodReference.DeclaringType.FullName != typeof(Index3D).FullName)
-        {
-            return false;
-        }
-
-        switch (methodReference.Name)
-        {
-            case "get_X":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "x"));
-                break;
-            case "get_Y":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "y"));
-                break;
-            case "get_Z":
-                stack.Push(new PropertyExpressionSyntax(stack.Pop(), "z"));
-                break;
-            default:
-                throw new InvalidOperationException($"Unknown instruction: {Current}");
-        }
-
-        NextInstruction();
-        return true;
     }
 
     private bool ParseIntrinsicCallExpression(MethodReference methodReference)
@@ -344,7 +326,7 @@ internal class SyntaxTree
         switch (methodReference.Name)
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
-                stack.Push(new ArgumentExpressionSyntax("globalInvocationID"));
+                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", new PrimitiveTypeSymbol("uint3")));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -402,15 +384,29 @@ internal class SyntaxTree
             case Code.Brfalse_S:
             case Code.Brtrue:
             case Code.Brtrue_S:
-                var comparison = new BinaryExpressionSyntax(BinaryOperationKind.Eq,
-                    new LiteralExpressionSyntax(opCode is Code.Brtrue or Code.Brtrue_S),
-                    stack.Pop());
+                var comparison = opCode is Code.Brtrue or Code.Brtrue_S
+                    ? stack.Pop()
+                    : new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, stack.Pop());
                 AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
                 break;
             default:
                 return false;
         }
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseFieldExpression()
+    {
+        if (Current!.OpCode.Code != Code.Ldfld)
+        {
+            return false;
+        }
+
+        var field = (FieldReference)Current!.Operand!;
+        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
+        stack.Push(new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower()));
         NextInstruction();
         return true;
     }
