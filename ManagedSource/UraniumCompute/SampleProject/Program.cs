@@ -107,6 +107,7 @@ internal static class Program
 
         using var kernelCompiler = factory.CreateKernelCompiler();
         kernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
+        
         using var resourceBinding = device.CreateResourceBinding();
         using var kernel = device.CreateKernel();
 
