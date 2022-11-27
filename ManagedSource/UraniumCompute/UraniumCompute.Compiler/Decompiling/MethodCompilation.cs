@@ -10,16 +10,39 @@ public sealed class MethodCompilation
 {
     private string MethodName { get; }
     private MethodDefinition MethodDefinition { get; }
-    private MethodInfo MethodInfo { get; }
+    private KernelAttribute? Attribute { get; }
 
-    private MethodCompilation(string methodName, MethodInfo methodInfo, MethodDefinition definition)
+    private MethodCompilation(string methodName, KernelAttribute? attribute, MethodDefinition definition)
     {
-        MethodInfo = methodInfo;
+        Attribute = attribute;
         MethodName = methodName;
         MethodDefinition = definition;
     }
 
-    public static MethodCompilation Create(Delegate d, string methodName = "main")
+    internal static string DecorateMethodName(string methodName)
+    {
+        return "un_user_func_" + methodName;
+    }
+
+    public static string Compile(Delegate method)
+    {
+        var results = new List<MethodCompilationResult>();
+        var methods = new Stack<MethodCompilation>();
+        methods.Push(Create(method));
+
+        while (methods.Any())
+        {
+            var result = methods.Pop().Compile(x =>
+                methods.Push(new MethodCompilation(DecorateMethodName(x.Name), null, x.Resolve())));
+            results.Add(result);
+        }
+
+        var declarations = results.Select(x => x.Declaration).Where(x => x is not null);
+        var code = results.Select(x => x.Code!);
+        return string.Join(Environment.NewLine, declarations.Concat(code));
+    }
+
+    private static MethodCompilation Create(Delegate d)
     {
         var type = d.Method.DeclaringType!;
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
@@ -27,14 +50,15 @@ public sealed class MethodCompilation
         var td = tr.Resolve()!;
 
         var definition = td.Methods.Single(x => x.Name == d.Method.Name && x.Parameters.Count == d.Method.GetParameters().Length);
-        return new MethodCompilation(methodName, d.Method, definition);
+        var kernelAttribute = d.Method.GetCustomAttribute<KernelAttribute>() ?? new KernelAttribute();
+        return new MethodCompilation("main", kernelAttribute, definition);
     }
 
-    public MethodCompilationResult Compile()
+    private MethodCompilationResult Compile(Action<MethodReference> userFunctionCallback)
     {
         var disassembler = Disassembler.Create(MethodDefinition);
         var disassemblyResult = disassembler.Disassemble();
-        var syntaxTree = SyntaxTree.Create(MethodInfo, disassemblyResult, MethodName);
+        var syntaxTree = SyntaxTree.Create(userFunctionCallback, Attribute, disassemblyResult, MethodName);
         syntaxTree.Compile();
         syntaxTree = syntaxTree.Rewrite(SyntaxTree.GetStandardPasses());
 
@@ -42,6 +66,9 @@ public sealed class MethodCompilation
         var codeGenerator = new HlslCodeGenerator(textWriter, 4);
         syntaxTree.GenerateCode(codeGenerator);
 
-        return new MethodCompilationResult(textWriter.ToString(), Array.Empty<Diagnostic>());
+        var declaration = !syntaxTree.Function?.IsEntryPoint ?? false
+            ? codeGenerator.CreateForwardDeclaration(syntaxTree.Function!)
+            : null;
+        return new MethodCompilationResult(textWriter.ToString(), declaration, Array.Empty<Diagnostic>());
     }
 }

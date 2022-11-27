@@ -25,8 +25,7 @@ internal static class Program
     private static void Main()
     {
         Func<int> simpleMethod = SimpleMethod;
-        var compilation = MethodCompilation.Create(simpleMethod, nameof(SimpleMethod));
-        var result = compilation.Compile();
-        Console.WriteLine(result.HlslCode);
+        var result = MethodCompilation.Compile(simpleMethod);
+        Console.WriteLine(result);
     }
 }

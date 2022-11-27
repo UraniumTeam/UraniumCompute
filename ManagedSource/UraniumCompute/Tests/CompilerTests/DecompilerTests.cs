@@ -118,8 +118,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
 
     private static void AssertFunc(Delegate func, string expectedHlslCode)
     {
-        var compilation = MethodCompilation.Create(func);
-        var actualCode = compilation.Compile().HlslCode!;
+        var actualCode = MethodCompilation.Compile(func);
         Assert.That(NormalizeCode(actualCode), Is.EqualTo(NormalizeCode(expectedHlslCode)));
     }
 
