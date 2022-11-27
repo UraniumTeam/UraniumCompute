@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using Mono.Cecil;
 using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Disassembling;
@@ -21,7 +23,21 @@ public sealed class MethodCompilation
 
     internal static string DecorateMethodName(string methodName)
     {
-        return "un_user_func_" + methodName;
+        var sb = new StringBuilder();
+        sb.Append("un_user_func_");
+        foreach (var c in methodName)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                sb.Append(c);
+            }
+            else
+            {
+                sb.Append($"c_{(int)c:X}");
+            }
+        }
+
+        return sb.ToString();
     }
 
     public static string Compile(Delegate method)
