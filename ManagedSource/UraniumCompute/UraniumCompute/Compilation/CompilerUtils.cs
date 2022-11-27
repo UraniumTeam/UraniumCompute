@@ -8,10 +8,7 @@ public static class CompilerUtils
     public static void CompileKernel(Delegate kernelMethod, KernelCompiler compiler, Kernel kernel,
         ResourceBinding resourceBinding)
     {
-        var compilation = MethodCompilation.Create(kernelMethod);
-        var result = compilation.Compile();
-        var sourceCode = result.HlslCode!;
-
+        var sourceCode = MethodCompilation.Compile(kernelMethod);
         using var bytecode = compiler.Compile(new KernelCompiler.Args(sourceCode, CompilerOptimizationLevel.Max, "main"));
 
         var parameters = kernelMethod.Method.GetParameters();

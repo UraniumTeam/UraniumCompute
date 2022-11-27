@@ -111,7 +111,7 @@ internal static class Program
         using var resourceBinding = device.CreateResourceBinding();
         using var kernel = device.CreateKernel();
 
-        CompilerUtils.CompileKernel((Span<float> values) => { values[GpuIntrinsic.GetGlobalInvocationId().X] *= 2; },
+        CompilerUtils.CompileKernel((Span<float> values) => { values[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2; },
             kernelCompiler, kernel, resourceBinding);
 
         resourceBinding.SetVariable(0, deviceBuffer);
