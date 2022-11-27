@@ -19,10 +19,10 @@ internal class SyntaxTree
     public FunctionDeclarationSyntax? Function { get; init; }
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters => Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
 
-    private readonly MethodInfo method;
     private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
     private readonly Instruction[] instructions;
+    private readonly Action<MethodReference> userFunctionCallback;
 
     private readonly Dictionary<int, LabelStatementSyntax> labels = new();
 
@@ -31,7 +31,8 @@ internal class SyntaxTree
 
     public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
     {
-        return new SyntaxTree(method, disassemblyResult, instructions, instructionIndex, MethodName, VariableTypes)
+        return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
+            VariableTypes)
         {
             Function = Function?.WithStatements(statements)
         };
@@ -42,11 +43,10 @@ internal class SyntaxTree
         instructionIndex++;
     }
 
-    private SyntaxTree(MethodInfo method, DisassemblyResult disassemblyResult, Instruction[] instructions, int instructionIndex,
-        string methodName,
-        IReadOnlyList<TypeReference> variableTypes)
+    private SyntaxTree(Action<MethodReference> userFunctionCallback, DisassemblyResult disassemblyResult,
+        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes)
     {
-        this.method = method;
+        this.userFunctionCallback = userFunctionCallback;
         this.disassemblyResult = disassemblyResult;
         this.instructions = instructions;
         this.instructionIndex = instructionIndex;
@@ -54,20 +54,22 @@ internal class SyntaxTree
         VariableTypes = variableTypes;
     }
 
-    private SyntaxTree(MethodInfo method, string methodName, DisassemblyResult dr)
+    private SyntaxTree(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute, string methodName,
+        DisassemblyResult dr)
     {
-        this.method = method;
+        this.userFunctionCallback = userFunctionCallback;
         MethodName = methodName;
         disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
-        var attribute = method.GetCustomAttribute<KernelAttribute>() ?? new KernelAttribute();
         Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType));
     }
 
-    internal static SyntaxTree Create(MethodInfo method, DisassemblyResult dr, string methodName = "main")
+    internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
+        DisassemblyResult dr,
+        string methodName = "main")
     {
-        return new SyntaxTree(method, methodName, dr);
+        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr);
     }
 
     internal void Compile()
@@ -156,9 +158,10 @@ internal class SyntaxTree
         {
             ParseLiteralExpression,
             ParseBinaryExpression,
-            ParseAssignmentVarExpression,
             ParseVariableExpression,
-            ParseAssignmentArgExpression,
+            ParseAssignmentVariableExpression,
+            ParseAssignmentIndirectExpression,
+            ParseAssignmentArgumentExpression,
             ParseArgumentExpression,
             ParseCallExpression,
             ParseBranchExpression,
@@ -241,7 +244,7 @@ internal class SyntaxTree
         throw new InvalidOperationException($"Invalid instruction: {Current}");
     }
 
-    private bool ParseAssignmentVarExpression()
+    private bool ParseAssignmentVariableExpression()
     {
         if (!Current!.OpCode.Name.StartsWith("stloc"))
         {
@@ -271,7 +274,7 @@ internal class SyntaxTree
         return true;
     }
 
-    private bool ParseAssignmentArgExpression()
+    private bool ParseAssignmentIndirectExpression()
     {
         if (!Current!.OpCode.Name.StartsWith("stind"))
         {
@@ -283,21 +286,56 @@ internal class SyntaxTree
         return true;
     }
 
-    private bool ParseArgumentExpression()
+    private bool ParseAssignmentArgumentExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("ldarga"))
+        if (!Current!.OpCode.Name.StartsWith("starg"))
         {
             return false;
         }
 
-        if (Current.Operand is ParameterDefinition parameter)
+        var index = GetArgumentIndex();
+        var name = Parameters[index].Name;
+        var type = Parameters[index].ParameterType;
+        AddStatement(new AssignmentStatementSyntax(
+            stack.Pop(),
+            new ArgumentExpressionSyntax(name, type)));
+
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseArgumentExpression()
+    {
+        if (!Current!.OpCode.Name.StartsWith("ldarg"))
         {
-            stack.Push(new ArgumentExpressionSyntax($"{parameter.Name}", TypeResolver.CreateType(parameter.ParameterType)));
-            NextInstruction();
-            return true;
+            return false;
         }
 
-        throw new Exception($"Unknown instruction: {Current}");
+        var index = GetArgumentIndex();
+        var name = Parameters[index].Name;
+        var type = Parameters[index].ParameterType;
+        stack.Push(new ArgumentExpressionSyntax(name, type));
+
+        NextInstruction();
+        return true;
+    }
+
+    private int GetArgumentIndex()
+    {
+        if (Current!.Operand is ParameterDefinition parameter)
+        {
+            return parameter.Index;
+        }
+
+        switch (Current!.OpCode.Code)
+        {
+            case Code.Ldarg_0: return 0;
+            case Code.Ldarg_1: return 1;
+            case Code.Ldarg_2: return 2;
+            case Code.Ldarg_3: return 3;
+            default:
+                throw new Exception($"Unknown instruction: {Current}");
+        }
     }
 
     private bool ParseCallExpression()
@@ -310,7 +348,8 @@ internal class SyntaxTree
         var callParsers = new List<Func<MethodReference, bool>>
         {
             ParseSystemCallExpression,
-            ParseIntrinsicCallExpression
+            ParseIntrinsicCallExpression,
+            ParseGeneralCallExpression
         };
 
         return callParsers.Any(parser => parser((MethodReference)Current.Operand));
@@ -371,6 +410,15 @@ internal class SyntaxTree
         return true;
     }
 
+    private bool ParseGeneralCallExpression(MethodReference methodReference)
+    {
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback);
+        var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
+        stack.Push(new CallExpressionSyntax(functionSymbol, arguments));
+        NextInstruction();
+        return true;
+    }
+
     private bool ParseBranchExpression()
     {
         var opCode = Current!.OpCode.Code;
@@ -418,7 +466,7 @@ internal class SyntaxTree
 
     public void GenerateCode(ICodeGenerator generator)
     {
-        generator.EmitFunctionDeclaration(Function!);
+        generator.EmitFunction(Function!);
     }
 
     public override string ToString()
