@@ -107,29 +107,14 @@ internal static class Program
 
         using var kernelCompiler = factory.CreateKernelCompiler();
         kernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-
-        var kernelSource = MethodCompilation.Compile((Span<float> values) =>
-        {
-            values[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2;
-        });
-
-        Console.WriteLine(new string('=', 128));
-        Console.WriteLine("Compiled kernel: ");
-        Console.WriteLine(kernelSource);
-        Console.WriteLine(new string('=', 128));
-
-        using var bytecode = kernelCompiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main"));
-
+        
         using var resourceBinding = device.CreateResourceBinding();
-        resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
-        {
-            new KernelResourceDesc(0, KernelResourceKind.RWBuffer)
-        }));
+        using var kernel = device.CreateKernel();
+
+        CompilerUtils.CompileKernel((Span<float> values) => { values[GpuIntrinsic.GetGlobalInvocationId().X] *= 2; },
+            kernelCompiler, kernel, resourceBinding);
 
         resourceBinding.SetVariable(0, deviceBuffer);
-
-        using var kernel = device.CreateKernel();
-        kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
 
         commandList.ResetState();
         using (var cmd = commandList.Begin())
