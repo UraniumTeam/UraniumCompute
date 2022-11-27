@@ -1,4 +1,5 @@
 using UraniumCompute.Common;
+using UraniumCompute.Common.Math;
 
 namespace MathTests;
 
