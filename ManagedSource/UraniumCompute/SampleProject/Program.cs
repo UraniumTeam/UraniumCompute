@@ -108,11 +108,10 @@ internal static class Program
         using var kernelCompiler = factory.CreateKernelCompiler();
         kernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
 
-        var compilation = MethodCompilation.Create((Span<float> values) =>
+        var kernelSource = MethodCompilation.Compile((Span<float> values) =>
         {
             values[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2;
         });
-        var kernelSource = compilation.Compile().HlslCode!;
 
         Console.WriteLine(new string('=', 128));
         Console.WriteLine("Compiled kernel: ");
