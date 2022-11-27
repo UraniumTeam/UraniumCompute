@@ -1,6 +1,4 @@
-﻿using Mono.Cecil;
-using UraniumCompute.Compiler.Decompiling;
-using UraniumCompute.Compiler.Syntax;
+﻿using UraniumCompute.Compiler.Syntax;
 
 namespace UraniumCompute.Compiler.CodeGen;
 
@@ -9,5 +7,6 @@ internal interface ICodeGenerator
     TextWriter Output { get; }
     int IndentSize { get; }
 
-    void EmitFunctionDeclaration(FunctionDeclarationSyntax syntax);
+    void EmitFunction(FunctionDeclarationSyntax syntax);
+    string CreateForwardDeclaration(FunctionDeclarationSyntax syntax);
 }
