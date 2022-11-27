@@ -20,11 +20,25 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Sub, typeof(int)),
             new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Mul, typeof(int)),
             new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Div, typeof(int)),
+            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Mod, typeof(int)),
 
             new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Add, typeof(uint)),
             new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Sub, typeof(uint)),
             new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Mul, typeof(uint)),
             new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Div, typeof(uint)),
+            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Mod, typeof(uint)),
+
+            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Add, typeof(int)),
+            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Sub, typeof(int)),
+            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Mul, typeof(int)),
+            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Div, typeof(int)),
+            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Mod, typeof(int)),
+
+            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Add, typeof(int)),
+            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Sub, typeof(int)),
+            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Mul, typeof(int)),
+            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Div, typeof(int)),
+            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Mod, typeof(int)),
 
             new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Add, typeof(float)),
             new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Sub, typeof(float)),

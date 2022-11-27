@@ -6,7 +6,7 @@ namespace UraniumCompute.Compiler.CodeGen;
 
 internal sealed class HlslCodeGenerator : ICodeGenerator
 {
-    public TextWriter Output { get; }
+    public TextWriter Output { get; private set; }
     public int IndentSize { get; }
 
     public HlslCodeGenerator(TextWriter output, int indentSize)
@@ -15,7 +15,25 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         IndentSize = indentSize;
     }
 
-    public void EmitFunctionDeclaration(FunctionDeclarationSyntax syntax)
+    public string CreateForwardDeclaration(FunctionDeclarationSyntax syntax)
+    {
+        var temp = Output;
+        Output = new StringWriter();
+        EmitFunctionDeclarationImpl(syntax);
+        Output.WriteLine(';');
+        var result = Output.ToString();
+        Output = temp;
+        return result!;
+    }
+
+    public void EmitFunction(FunctionDeclarationSyntax syntax)
+    {
+        EmitFunctionDeclarationImpl(syntax);
+        Output.WriteLine();
+        EmitStatement(syntax.Block, 0);
+    }
+
+    private void EmitFunctionDeclarationImpl(FunctionDeclarationSyntax syntax)
     {
         if (syntax.KernelAttribute is not null)
         {
@@ -28,9 +46,8 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
 
         var parameters = syntax.IsEntryPoint
             ? "uint3 globalInvocationID : SV_DispatchThreadID"
-            : string.Join(", ", syntax.Parameters);
-        Output.WriteLine($"{syntax.ReturnType} {syntax.FunctionName}({parameters})");
-        EmitStatement(syntax.Block, 0);
+            : string.Join(", ", syntax.Parameters.Select(x => x.ToStringWithType()));
+        Output.Write($"{syntax.ReturnType} {syntax.FunctionName}({parameters})");
     }
 
     private void EmitStatement(StatementSyntax statement, int indent)
@@ -155,7 +172,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
 
     private void Emit(CallExpressionSyntax syntax)
     {
-        Output.WriteLine($"{syntax.FunctionName}(");
+        Output.Write($"{syntax.CalledFunction.FullName}(");
         foreach (var argument in syntax.Arguments)
         {
             EmitExpression(argument);

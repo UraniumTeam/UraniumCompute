@@ -4,19 +4,18 @@ namespace UraniumCompute.Compiler.Syntax;
 
 internal class CallExpressionSyntax : ExpressionSyntax
 {
-    internal ExpressionSyntax[] Arguments { get; }
-    public override TypeSymbol ExpressionType { get; }
-    internal string FunctionName { get; }
+    public override TypeSymbol ExpressionType => CalledFunction.ReturnType;
+    public FunctionSymbol CalledFunction { get; }
+    public List<ExpressionSyntax> Arguments { get; }
 
-    public CallExpressionSyntax(string functionName, IEnumerable<ExpressionSyntax> arguments, TypeSymbol returnType)
+    public CallExpressionSyntax(FunctionSymbol calledFunction, IEnumerable<ExpressionSyntax> arguments)
     {
-        Arguments = arguments.ToArray();
-        FunctionName = functionName;
-        ExpressionType = returnType;
+        CalledFunction = calledFunction;
+        Arguments = arguments.ToList();
     }
     
     public override string ToString()
     {
-        return $"{FunctionName}{string.Join<ExpressionSyntax>(", ", Arguments)}";
+        return $"{CalledFunction.FullName}({string.Join(", ", Arguments)})";
     }
 }

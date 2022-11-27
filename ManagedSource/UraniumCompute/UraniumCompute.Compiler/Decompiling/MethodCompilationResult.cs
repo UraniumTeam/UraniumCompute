@@ -2,12 +2,14 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 public readonly struct MethodCompilationResult
 {
-    public string? HlslCode { get; }
+    public string? Code { get; }
+    public string? Declaration { get; }
     public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
-    internal MethodCompilationResult(string? hlslCode, IReadOnlyList<Diagnostic> diagnostics)
+    internal MethodCompilationResult(string? code, string? declaration, IReadOnlyList<Diagnostic> diagnostics)
     {
-        HlslCode = hlslCode;
+        Code = code;
+        Declaration = declaration;
         Diagnostics = diagnostics;
     }
 }
