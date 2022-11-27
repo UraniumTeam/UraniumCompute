@@ -1,6 +1,7 @@
 ﻿using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
+using UraniumCompute.Compiler.InterimStructs;
 using UraniumCompute.Utils;
 
 using var factory = DeviceFactory.Create(BackendKind.Vulkan);
@@ -29,20 +30,21 @@ using var deviceMemory = deviceBuffer.AllocateMemory("Device memory", MemoryKind
 deviceBuffer.BindMemory(deviceMemory);
 
 const int workgroupSize = 128;
-const string kernelSource = @"
-RWStructuredBuffer<uint> values : register(u0);
 
-uint fib(uint n)
+static uint Fib(uint n)
 {
     n %= 16;
-    if(n <= 1) return n;
+    if(n <= 1)
+    {
+        return n;
+    }
 
     uint c = 1;
     uint p = 1;
 
     for (uint i = 2; i < n; ++i)
     {
-        uint t = c;
+        var t = c;
         c += p;
         p = t;
     }
@@ -50,29 +52,20 @@ uint fib(uint n)
     return c;
 }
 
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    uint index = globalInvocationID.x;
-    for (uint i = index * WORKGROUP_SIZE; i < (index + 1) * WORKGROUP_SIZE; ++i)
-        values[i] = fib(values[i]);
-}";
-
 using var compiler = factory.CreateKernelCompiler();
 compiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-using var bytecode = compiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main",
-    new[] { new KernelCompiler.Define("WORKGROUP_SIZE", workgroupSize.ToString()) }));
-
 using var resourceBinding = device.CreateResourceBinding();
-resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
+using var kernel = device.CreateKernel();
+CompilerUtils.CompileKernel((Span<uint> values) =>
 {
-    new KernelResourceDesc(0, KernelResourceKind.RWBuffer)
-}));
+    var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
+    for (var i = index * workgroupSize; i < (index + 1) * workgroupSize; ++i)
+    {
+        values[i] = Fib(values[i]);
+    }
+}, compiler, kernel, resourceBinding);
 
 resourceBinding.SetVariable(0, deviceBuffer);
-
-using var kernel = device.CreateKernel();
-kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
 
 using var commandList = device.CreateCommandList();
 commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
