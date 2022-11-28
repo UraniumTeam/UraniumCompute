@@ -158,6 +158,7 @@ internal class SyntaxTree
         {
             ParseLiteralExpression,
             ParseBinaryExpression,
+            ParseConversionExpression,
             ParseVariableExpression,
             ParseAssignmentVariableExpression,
             ParseAssignmentIndirectExpression,
@@ -218,6 +219,62 @@ internal class SyntaxTree
         }
 
         stack.Push(new BinaryExpressionSyntax(kind, stack.Pop(), stack.Pop()));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseConversionExpression()
+    {
+        switch (Current!.OpCode.Code)
+        {
+            case Code.Conv_U1:
+            case Code.Conv_Ovf_U1:
+            case Code.Conv_Ovf_U1_Un:
+            case Code.Conv_I1:
+            case Code.Conv_Ovf_I1:
+            case Code.Conv_Ovf_I1_Un:
+                throw new Exception("8-bit ints are not supported by GPU");
+            case Code.Conv_U2:
+            case Code.Conv_Ovf_U2:
+            case Code.Conv_Ovf_U2_Un:
+            case Code.Conv_I2:
+            case Code.Conv_Ovf_I2:
+            case Code.Conv_Ovf_I2_Un:
+                throw new Exception("16-bit ints are not supported by GPU");
+            case Code.Conv_I4:
+            case Code.Conv_Ovf_I4:
+            case Code.Conv_Ovf_I4_Un:
+            case Code.Conv_I:
+            case Code.Conv_Ovf_I:
+            case Code.Conv_Ovf_I_Un:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<int>()));
+                break;
+            case Code.Conv_I8:
+            case Code.Conv_Ovf_I8:
+            case Code.Conv_Ovf_I8_Un:
+            case Code.Conv_U8:
+            case Code.Conv_Ovf_U8:
+            case Code.Conv_Ovf_U8_Un:
+                throw new Exception("64-bit ints are not supported by GPU");
+            case Code.Conv_U:
+            case Code.Conv_Ovf_U:
+            case Code.Conv_Ovf_U_Un:
+            case Code.Conv_U4:
+            case Code.Conv_Ovf_U4:
+            case Code.Conv_Ovf_U4_Un:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<uint>()));
+                break;
+            case Code.Conv_R_Un:
+            case Code.Conv_R4:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<float>()));
+                break;
+            case Code.Conv_R8:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<double>()));
+                break;
+            default:
+                return false;
+        }
+
         NextInstruction();
         return true;
     }

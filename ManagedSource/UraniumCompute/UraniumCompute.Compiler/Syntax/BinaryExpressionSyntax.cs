@@ -69,7 +69,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         Kind = kind;
         Left = left;
         Right = right;
-        
+
         if (Left.ExpressionType.FullName != "bool" && Right.ExpressionType.FullName != "bool")
         {
             return;
