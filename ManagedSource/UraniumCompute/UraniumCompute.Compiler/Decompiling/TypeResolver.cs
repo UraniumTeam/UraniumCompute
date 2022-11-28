@@ -6,6 +6,11 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
+    internal static TypeSymbol CreateType<T>()
+    {
+        return CreateType(typeof(T));
+    }
+    
     internal static TypeSymbol CreateType(Type type)
     {
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
