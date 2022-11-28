@@ -41,6 +41,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
             {
                 Emit(parameter);
             }
+
             Emit(syntax.KernelAttribute, 0);
         }
 
@@ -99,6 +100,9 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
             case BinaryExpressionSyntax syntax:
                 Emit(syntax);
                 break;
+            case ConversionExpression syntax:
+                Emit(syntax);
+                break;
             case CallExpressionSyntax syntax:
                 Emit(syntax);
                 break;
@@ -154,6 +158,15 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         EmitExpression(syntax.Left);
         Output.Write($" {BinaryExpressionSyntax.GetOperationString(syntax.Kind)} ");
         EmitExpression(syntax.Right);
+        Output.Write(")");
+    }
+
+    private void Emit(ConversionExpression syntax)
+    {
+        Output.Write("((");
+        Output.Write(syntax.ExpressionType);
+        Output.Write(")");
+        EmitExpression(syntax.ConvertedExpression);
         Output.Write(")");
     }
 
