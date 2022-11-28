@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Mono.Cecil;
 using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Disassembling;
@@ -60,6 +59,7 @@ public sealed class MethodCompilation
 
         var declarations = results.Select(x => x.Declaration).Where(x => x is not null);
         var code = results.Select(x => x.Code!);
+        TypeResolver.Reset();
         return string.Join(Environment.NewLine, declarations.Concat(code));
     }
 
@@ -87,9 +87,13 @@ public sealed class MethodCompilation
         var codeGenerator = new HlslCodeGenerator(textWriter, 4);
         syntaxTree.GenerateCode(codeGenerator);
 
-        var declaration = !syntaxTree.Function?.IsEntryPoint ?? false
+        var methodDeclaration = !syntaxTree.Function?.IsEntryPoint ?? false
             ? codeGenerator.CreateForwardDeclaration(syntaxTree.Function!)
             : null;
+        var declarations = syntaxTree.Structs
+            .Select(x => codeGenerator.CreateForwardDeclaration(x))
+            .Append(methodDeclaration);
+        var declaration = string.Join(null, declarations);
         return new MethodCompilationResult(textWriter.ToString(), declaration, Array.Empty<Diagnostic>());
     }
 }

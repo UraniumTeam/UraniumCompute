@@ -6,6 +6,8 @@ namespace UraniumCompute.Compiler.Decompiling;
 internal sealed class StructTypeSymbol : TypeSymbol
 {
     public override string FullName { get; }
+    public IEnumerable<FieldDesc> Fields => fields.Values;
+
     private readonly Dictionary<string, FieldDesc> fields;
 
     private StructTypeSymbol(string fullName, TypeReference typeReference, Func<string, string> fieldNameSelector,

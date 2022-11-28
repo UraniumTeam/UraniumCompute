@@ -8,16 +8,6 @@ public sealed class Buffer2D<T> : Buffer<T>
     where T : unmanaged
 {
     /// <summary>
-    ///     The width of the buffer as <see cref="System.Int64"/>.
-    /// </summary>
-    public ulong LongWidth { get; private set; }
-
-    /// <summary>
-    ///     The height of the buffer as <see cref="System.Int64"/>.
-    /// </summary>
-    public ulong LongHeight { get; private set; }
-
-    /// <summary>
     ///     The width of the buffer.
     /// </summary>
     public int Width => (int)LongWidth;
@@ -26,6 +16,16 @@ public sealed class Buffer2D<T> : Buffer<T>
     ///     The height of the buffer.
     /// </summary>
     public int Height => (int)LongHeight;
+
+    /// <summary>
+    ///     The width of the buffer as <see cref="System.Int64" />.
+    /// </summary>
+    public ulong LongWidth { get; private set; }
+
+    /// <summary>
+    ///     The height of the buffer as <see cref="System.Int64" />.
+    /// </summary>
+    public ulong LongHeight { get; private set; }
 
     internal Buffer2D(IntPtr handle) : base(handle)
     {
@@ -60,10 +60,10 @@ public sealed class Buffer2D<T> : Buffer<T>
     }
 
     /// <summary>
-    ///     Reshape the buffer to a <see cref="Buffer1D{T}"/>.
+    ///     Reshape the buffer to a <see cref="Buffer1D{T}" />.
     /// </summary>
     /// <param name="width">Width of the 1D buffer.</param>
-    /// <returns>An instance of <see cref="Buffer1D{T}"/> that stores the same handle.</returns>
+    /// <returns>An instance of <see cref="Buffer1D{T}" /> that stores the same handle.</returns>
     public Buffer1D<T> Reshape(int width)
     {
         IncrementReferenceCount();

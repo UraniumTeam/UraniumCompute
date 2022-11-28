@@ -41,11 +41,6 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     {
     }
 
-    protected override void InitInternal(in Desc desc)
-    {
-        IFence_Init(Handle, in desc);
-    }
-
     /// <summary>
     ///     Signal the fence.
     /// </summary>
@@ -88,6 +83,11 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     public ResultCode WaitOnCpu(in TimeSpan timeout)
     {
         return IFence_WaitOnCpu_Timeout(Handle, (ulong)(timeout.TotalMilliseconds * 1_000_000));
+    }
+
+    protected override void InitInternal(in Desc desc)
+    {
+        IFence_Init(Handle, in desc);
     }
 
     [DllImport("UnCompute")]

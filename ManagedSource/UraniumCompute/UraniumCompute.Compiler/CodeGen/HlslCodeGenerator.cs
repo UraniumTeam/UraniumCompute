@@ -1,13 +1,12 @@
 ﻿using UraniumCompute.Compiler.Decompiling;
-using UraniumCompute.Compiler.Disassembling;
 using UraniumCompute.Compiler.Syntax;
 
 namespace UraniumCompute.Compiler.CodeGen;
 
 internal sealed class HlslCodeGenerator : ICodeGenerator
 {
-    public TextWriter Output { get; private set; }
     public int IndentSize { get; }
+    public TextWriter Output { get; private set; }
 
     public HlslCodeGenerator(TextWriter output, int indentSize)
     {
@@ -26,11 +25,29 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         return result!;
     }
 
+    public string CreateForwardDeclaration(StructDeclarationSyntax syntax)
+    {
+        return $"struct {syntax.StructType.FullName};{Environment.NewLine}";
+    }
+
     public void EmitFunction(FunctionDeclarationSyntax syntax)
     {
         EmitFunctionDeclarationImpl(syntax);
         Output.WriteLine();
         EmitStatement(syntax.Block, 0);
+    }
+
+    public void EmitStruct(StructDeclarationSyntax syntax)
+    {
+        Output.WriteLine($"struct {syntax.StructType.FullName}");
+        Output.WriteLine("{");
+        foreach (var field in syntax.StructType.Fields)
+        {
+            WriteIndent(1);
+            Output.WriteLine($"{field.FieldType} {field.Name};");
+        }
+
+        Output.WriteLine("};");
     }
 
     private void EmitFunctionDeclarationImpl(FunctionDeclarationSyntax syntax)

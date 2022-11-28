@@ -8,16 +8,6 @@ namespace UraniumCompute.Common.Math;
 [StructLayout(LayoutKind.Explicit)]
 public struct Vector4Uint : IEquatable<Vector4Uint>
 {
-    [FieldOffset(0)] public uint X;
-
-    [FieldOffset(sizeof(uint))] public uint Y;
-
-    [FieldOffset(sizeof(uint) * 2)] public uint Z;
-
-    [FieldOffset(sizeof(uint) * 3)] public uint W;
-
-    [FieldOffset(0)] private Vector128<uint> value;
-
     public static Vector4Uint Zero => default;
 
     public static Vector4Uint One => new(1);
@@ -26,6 +16,15 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
     public static Vector4Uint UnitY => new(0, 1, 0, 0);
     public static Vector4Uint UnitZ => new(0, 0, 1, 0);
     public static Vector4Uint UnitW => new(0, 0, 0, 1);
+    [FieldOffset(0)] public uint X;
+
+    [FieldOffset(sizeof(uint))] public uint Y;
+
+    [FieldOffset(sizeof(uint) * 2)] public uint Z;
+
+    [FieldOffset(sizeof(uint) * 3)] public uint W;
+
+    [FieldOffset(0)] private readonly Vector128<uint> value;
 
     private static readonly unsafe int size = sizeof(Vector4Uint);
 

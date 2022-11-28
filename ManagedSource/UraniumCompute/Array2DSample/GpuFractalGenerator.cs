@@ -13,7 +13,7 @@ public sealed class GpuFractalGenerator : IFractalGenerator
 {
     public Vector2 StartPoint { get; private set; }
     public float FractalSize { get; private set; }
-    
+
     private int Width { get; set; }
     private int MaxIterations { get; set; }
 

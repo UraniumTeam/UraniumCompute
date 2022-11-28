@@ -27,11 +27,6 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     {
     }
 
-    protected override void InitInternal(in Desc desc)
-    {
-        IBuffer_Init(Handle, in desc).ThrowOnError("Couldn't initialize buffer");
-    }
-
     /// <summary>
     ///     Allocate memory compatible with this buffer.
     /// </summary>
@@ -79,6 +74,11 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
         BoundMemory = memorySlice;
         var sliceNative = new DeviceMemorySliceNative(memorySlice.Memory.Handle, memorySlice.Offset, memorySlice.Size);
         return IBuffer_BindMemory(Handle, sliceNative);
+    }
+
+    protected override void InitInternal(in Desc desc)
+    {
+        IBuffer_Init(Handle, in desc).ThrowOnError("Couldn't initialize buffer");
     }
 
     [DllImport("UnCompute")]

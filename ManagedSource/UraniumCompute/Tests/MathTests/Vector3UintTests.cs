@@ -1,5 +1,4 @@
-﻿using UraniumCompute.Common;
-using UraniumCompute.Common.Math;
+﻿using UraniumCompute.Common.Math;
 
 namespace MathTests;
 
@@ -87,7 +86,7 @@ public class Vector3UintTests
 
     [TestCase(new uint[] { 0, 0, 0 }, new uint[] { 0, 0, 0 }, new uint[] { 0, 0, 0 })]
     [TestCase(new uint[] { 1, 1, 1 }, new uint[] { 1, 1, 1 }, new uint[] { 0, 0, 0 })]
-    [TestCase(new uint[] { 3, 5, 10 }, new uint[] { 1, 2, 3}, new uint[] { 2, 3, 7 })]
+    [TestCase(new uint[] { 3, 5, 10 }, new uint[] { 1, 2, 3 }, new uint[] { 2, 3, 7 })]
     public void Subtraction(uint[] vector1, uint[] vector2, uint[] result)
     {
         Assert.Multiple(() =>
