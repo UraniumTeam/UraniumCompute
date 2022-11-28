@@ -127,6 +127,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     uint V_0;
     V_0 = globalInvocationID.x;
     values[V_0] = ((float)((float)V_0));
+    return ;
 }
 ";
         AssertFunc((Span<float> values) =>

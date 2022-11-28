@@ -294,7 +294,11 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     {
         WriteIndent(indent);
         Output.Write("return ");
-        EmitExpression(syntax.Expression);
+        if (syntax.Expression is not null)
+        {
+            EmitExpression(syntax.Expression);
+        }
+
         Output.WriteLine(';');
     }
 

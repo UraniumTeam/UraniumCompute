@@ -14,6 +14,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_0;
     V_0 = globalInvocationID.x;
     values[V_0] = cos(values[V_0]);
+    return ;
 }
 ";
 
@@ -34,6 +35,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_0;
     V_0 = globalInvocationID.x;
     values[V_0] = max(values[V_0], min(1, values[V_0]));
+    return ;
 }";
 
         AssertFunc((Span<float> values) =>
@@ -53,6 +55,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_0;
     V_0 = globalInvocationID.x;
     values[V_0] = (cos(values[V_0]) + sin(values[V_0]));
+    return ;
 }
 ";
 
@@ -75,6 +78,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_0;
     V_0 = globalInvocationID.x;
     values[V_0] = un_user_defined_Fib(values[V_0]);
+    return ;
 }
 
 uint un_user_defined_Fib(uint n)
