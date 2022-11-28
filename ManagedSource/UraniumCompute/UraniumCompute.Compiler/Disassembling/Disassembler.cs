@@ -1,6 +1,4 @@
 ﻿using Mono.Cecil;
-using System.Diagnostics;
-using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Compiler.Disassembling;
 

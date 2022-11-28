@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-using Mono.Cecil;
-using UraniumCompute.Common.Math;
+﻿using Mono.Cecil;
 using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;

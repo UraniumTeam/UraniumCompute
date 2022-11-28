@@ -1,5 +1,4 @@
-﻿using Mono.Cecil;
-using UraniumCompute.Compiler.Decompiling;
+﻿using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;
 

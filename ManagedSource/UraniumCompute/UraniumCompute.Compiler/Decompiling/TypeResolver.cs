@@ -9,6 +9,12 @@ internal static class TypeResolver
     private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
     private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
 
+    internal static void Reset()
+    {
+        typeCache.Clear();
+        typeRefCache.Clear();
+    }
+
     internal static TypeSymbol CreateType<T>()
     {
         return CreateType(typeof(T), _ => { });

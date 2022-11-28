@@ -34,7 +34,7 @@ const int workgroupSize = 128;
 static uint Fib(uint n)
 {
     n %= 16;
-    if(n <= 1)
+    if (n <= 1)
     {
         return n;
     }

@@ -14,11 +14,6 @@ internal abstract class TypeSymbol
         return FullName;
     }
 
-    protected bool Equals(TypeSymbol other)
-    {
-        return FullName == other.FullName;
-    }
-
     public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj))
@@ -52,5 +47,10 @@ internal abstract class TypeSymbol
     public static bool operator !=(TypeSymbol? left, TypeSymbol? right)
     {
         return !Equals(left, right);
+    }
+
+    protected bool Equals(TypeSymbol other)
+    {
+        return FullName == other.FullName;
     }
 }

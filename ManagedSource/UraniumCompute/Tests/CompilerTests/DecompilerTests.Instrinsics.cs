@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using UraniumCompute.Common.Math;
+﻿using UraniumCompute.Common.Math;
 using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;

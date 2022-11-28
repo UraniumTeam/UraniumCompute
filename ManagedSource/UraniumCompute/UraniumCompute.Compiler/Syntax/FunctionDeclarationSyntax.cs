@@ -1,7 +1,5 @@
 ﻿using System.Text;
-using Mono.Cecil;
 using UraniumCompute.Compiler.Decompiling;
-using UraniumCompute.Compiler.Disassembling;
 
 namespace UraniumCompute.Compiler.Syntax;
 

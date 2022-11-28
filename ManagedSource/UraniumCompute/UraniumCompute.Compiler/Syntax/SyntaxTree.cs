@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UraniumCompute.Common.Math;
@@ -16,8 +14,9 @@ internal class SyntaxTree
 {
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
-    public FunctionDeclarationSyntax? Function { get; init; }
+    public List<StructDeclarationSyntax> Structs { get; }
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters => Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
+    public FunctionDeclarationSyntax? Function { get; init; }
 
     private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
@@ -29,33 +28,21 @@ internal class SyntaxTree
     private int instructionIndex;
     private Instruction? Current => instructionIndex < instructions.Length ? instructions[instructionIndex] : null;
 
-    public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
-    {
-        return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
-            VariableTypes)
-        {
-            Function = Function?.WithStatements(statements)
-        };
-    }
-
-    private void NextInstruction()
-    {
-        instructionIndex++;
-    }
-
     private SyntaxTree(Action<MethodReference> userFunctionCallback, DisassemblyResult disassemblyResult,
-        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes)
+        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes,
+        IEnumerable<StructDeclarationSyntax> structs)
     {
         this.userFunctionCallback = userFunctionCallback;
         this.disassemblyResult = disassemblyResult;
         this.instructions = instructions;
         this.instructionIndex = instructionIndex;
+        Structs = structs.ToList();
         MethodName = methodName;
         VariableTypes = variableTypes;
     }
 
     private SyntaxTree(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute, string methodName,
-        DisassemblyResult dr)
+        DisassemblyResult dr, IEnumerable<StructDeclarationSyntax> structs)
     {
         this.userFunctionCallback = userFunctionCallback;
         MethodName = methodName;
@@ -63,13 +50,23 @@ internal class SyntaxTree
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
         Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
+        Structs = structs.ToList();
+    }
+
+    public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
+    {
+        return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
+            VariableTypes, Structs)
+        {
+            Function = Function?.WithStatements(statements)
+        };
     }
 
     internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
         DisassemblyResult dr,
         string methodName = "main")
     {
-        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr);
+        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr, Enumerable.Empty<StructDeclarationSyntax>());
     }
 
     internal void Compile()
@@ -92,6 +89,39 @@ internal class SyntaxTree
 
             ParseStatement();
         }
+    }
+
+    public void GenerateCode(ICodeGenerator generator)
+    {
+        foreach (var s in Structs)
+        {
+            generator.EmitStruct(s);
+        }
+
+        generator.EmitFunction(Function!);
+    }
+
+    public override string ToString()
+    {
+        return Function?.ToString() ?? "<Empty>";
+    }
+
+    public static ISyntaxTreeRewriter[] GetStandardPasses()
+    {
+        return new ISyntaxTreeRewriter[]
+        {
+            new BranchResolver()
+        };
+    }
+
+    public SyntaxTree Rewrite(params ISyntaxTreeRewriter[] passes)
+    {
+        return passes.Aggregate(this, (current, rewriter) => rewriter.Rewrite(current));
+    }
+
+    private void NextInstruction()
+    {
+        instructionIndex++;
     }
 
     private void FindLabels()
@@ -169,7 +199,7 @@ internal class SyntaxTree
             ParseArgumentExpression,
             ParseCallExpression,
             ParseBranchExpression,
-            ParseFieldExpression,
+            ParseFieldExpression
         };
 
         return expressionParsers.Any(parser => parser());
@@ -557,28 +587,6 @@ internal class SyntaxTree
 
     private void UserTypeCallback(TypeReference typeReference)
     {
-    }
-
-    public void GenerateCode(ICodeGenerator generator)
-    {
-        generator.EmitFunction(Function!);
-    }
-
-    public override string ToString()
-    {
-        return Function?.ToString() ?? "<Empty>";
-    }
-
-    public static ISyntaxTreeRewriter[] GetStandardPasses()
-    {
-        return new ISyntaxTreeRewriter[]
-        {
-            new BranchResolver()
-        };
-    }
-
-    public SyntaxTree Rewrite(params ISyntaxTreeRewriter[] passes)
-    {
-        return passes.Aggregate(this, (current, rewriter) => rewriter.Rewrite(current));
+        Structs.Add(new StructDeclarationSyntax(StructTypeSymbol.CreateUserType(typeReference, UserTypeCallback)));
     }
 }

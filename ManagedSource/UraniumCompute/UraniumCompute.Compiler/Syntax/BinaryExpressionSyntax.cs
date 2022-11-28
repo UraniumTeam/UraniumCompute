@@ -12,6 +12,41 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
     private static readonly BinaryOperationDesc[] definedOperations;
 
+    internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
+    {
+        var type = null as TypeSymbol;
+        foreach (var operation in definedOperations)
+        {
+            if (operation.Match(left.ExpressionType, right.ExpressionType, kind))
+            {
+                type = operation.ResultType;
+                break;
+            }
+        }
+
+        ExpressionType = type ?? throw new ArgumentException("Unknown operation on types: " +
+                                                             $"{left.ExpressionType} and {right.ExpressionType}");
+
+        Kind = kind;
+        Left = left;
+        Right = right;
+
+        if (Left.ExpressionType.FullName != "bool" && Right.ExpressionType.FullName != "bool")
+        {
+            return;
+        }
+
+        if (Left is LiteralExpressionSyntax { Value: not bool } l)
+        {
+            Left = new LiteralExpressionSyntax(Convert.ToBoolean(l.Value));
+        }
+
+        if (Right is LiteralExpressionSyntax { Value: not bool } r)
+        {
+            Right = new LiteralExpressionSyntax(Convert.ToBoolean(r.Value));
+        }
+    }
+
     static BinaryExpressionSyntax()
     {
         definedOperations = new[]
@@ -49,41 +84,6 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             new BinaryOperationDesc(null, null, BinaryOperationKind.Gt, typeof(bool)),
             new BinaryOperationDesc(null, null, BinaryOperationKind.Lt, typeof(bool))
         };
-    }
-
-    internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
-    {
-        var type = null as TypeSymbol;
-        foreach (var operation in definedOperations)
-        {
-            if (operation.Match(left.ExpressionType, right.ExpressionType, kind))
-            {
-                type = operation.ResultType;
-                break;
-            }
-        }
-
-        ExpressionType = type ?? throw new ArgumentException("Unknown operation on types: " +
-                                                             $"{left.ExpressionType} and {right.ExpressionType}");
-
-        Kind = kind;
-        Left = left;
-        Right = right;
-
-        if (Left.ExpressionType.FullName != "bool" && Right.ExpressionType.FullName != "bool")
-        {
-            return;
-        }
-
-        if (Left is LiteralExpressionSyntax { Value: not bool } l)
-        {
-            Left = new LiteralExpressionSyntax(Convert.ToBoolean(l.Value));
-        }
-
-        if (Right is LiteralExpressionSyntax { Value: not bool } r)
-        {
-            Right = new LiteralExpressionSyntax(Convert.ToBoolean(r.Value));
-        }
     }
 
     internal static BinaryOperationKind GetOperationKind(Code code)

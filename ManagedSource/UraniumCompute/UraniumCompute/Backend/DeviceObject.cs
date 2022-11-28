@@ -66,15 +66,13 @@ public abstract class DeviceObject : NativeObject
 
 public abstract class DeviceObject<TDesc> : DeviceObject
 {
-    private bool isInitialized;
-    
     /// <summary>
     ///     Device object descriptor.
     /// </summary>
     public abstract TDesc Descriptor { get; }
 
     /// <summary>
-    ///     True if <see cref="Init"/> was called for this object.
+    ///     True if <see cref="Init" /> was called for this object.
     /// </summary>
     public bool IsInitialized
     {
@@ -89,6 +87,8 @@ public abstract class DeviceObject<TDesc> : DeviceObject
             isInitialized = value;
         }
     }
+
+    private bool isInitialized;
 
     protected DeviceObject(IntPtr handle) : base(handle)
     {

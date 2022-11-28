@@ -25,11 +25,6 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     {
     }
 
-    protected override void InitInternal(in Desc desc)
-    {
-        IDeviceMemory_Init(Handle, in desc);
-    }
-
     /// <summary>
     ///     Initialize device memory.
     /// </summary>
@@ -84,6 +79,11 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     public bool IsCompatible(DeviceObject deviceObject)
     {
         return IDeviceMemory_IsCompatible(Handle, deviceObject.Handle);
+    }
+
+    protected override void InitInternal(in Desc desc)
+    {
+        IDeviceMemory_Init(Handle, in desc);
     }
 
     [DllImport("UnCompute")]

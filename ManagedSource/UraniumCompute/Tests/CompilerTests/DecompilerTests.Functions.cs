@@ -122,27 +122,6 @@ uint un_user_defined_Fib(uint n)
         }, expectedResult);
     }
 
-    private static uint Fib(uint n)
-    {
-        n %= 16;
-        if (n <= 1)
-        {
-            return n;
-        }
-
-        var c = 1u;
-        var p = 1u;
-
-        for (uint i = 2; i < n; ++i)
-        {
-            var t = c;
-            c += p;
-            p = t;
-        }
-
-        return c;
-    }
-
     [Test]
     public void CompilesDoubleReferencedFunction()
     {
@@ -176,13 +155,34 @@ int un_user_defined_Foo()
     return V_0;
 }
 ";
-        
+
         AssertFunc(() =>
         {
             var a = Foo();
             var b = Bar();
             return a + b;
         }, expectedResult);
+    }
+
+    private static uint Fib(uint n)
+    {
+        n %= 16;
+        if (n <= 1)
+        {
+            return n;
+        }
+
+        var c = 1u;
+        var p = 1u;
+
+        for (uint i = 2; i < n; ++i)
+        {
+            var t = c;
+            c += p;
+            p = t;
+        }
+
+        return c;
     }
 
     private static int Foo()
