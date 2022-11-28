@@ -18,9 +18,9 @@ internal static class TypeResolver
     {
         if (typeRefCache.ContainsKey(type))
         {
-            return CreateTypeImpl(typeRefCache[type]);
+            return typeCache[typeRefCache[type]];
         }
-        
+
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
         typeRefCache[type] = a.MainModule.ImportReference(type)!;
         return CreateType(typeRefCache[type]);
