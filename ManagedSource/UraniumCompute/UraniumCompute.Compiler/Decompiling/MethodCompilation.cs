@@ -21,11 +21,11 @@ public sealed class MethodCompilation
         MethodDefinition = definition;
     }
 
-    internal static string DecorateMethodName(string methodName)
+    internal static string DecorateName(string name)
     {
         var sb = new StringBuilder();
-        sb.Append("un_user_func_");
-        foreach (var c in methodName)
+        sb.Append("un_user_defined_");
+        foreach (var c in name)
         {
             if (char.IsLetterOrDigit(c))
             {
@@ -53,7 +53,7 @@ public sealed class MethodCompilation
             if (compiledMethods.Add(m.MethodDefinition))
             {
                 var result = m.Compile(x =>
-                    methods.Push(new MethodCompilation(DecorateMethodName(x.Name), null, x.Resolve())));
+                    methods.Push(new MethodCompilation(DecorateName(x.Name), null, x.Resolve())));
                 results.Add(result);
             }
         }

@@ -66,7 +66,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     [Test]
     public void CompilesFunction()
     {
-        var expectedResult = @"uint un_user_func_Fib(uint n);
+        var expectedResult = @"uint un_user_defined_Fib(uint n);
 
 RWStructuredBuffer<uint> values : register(u0);
 [numthreads(1, 1, 1)]
@@ -74,10 +74,10 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     int V_0;
     V_0 = globalInvocationID.x;
-    values[V_0] = un_user_func_Fib(values[V_0]);
+    values[V_0] = un_user_defined_Fib(values[V_0]);
 }
 
-uint un_user_func_Fib(uint n)
+uint un_user_defined_Fib(uint n)
 {
     uint V_0;
     uint V_1;
@@ -146,9 +146,9 @@ uint un_user_func_Fib(uint n)
     [Test]
     public void CompilesDoubleReferencedFunction()
     {
-        var expectedResult = @"int un_user_func_Bar();
+        var expectedResult = @"int un_user_defined_Bar();
 
-int un_user_func_Foo();
+int un_user_defined_Foo();
 
 [numthreads(1, 1, 1)]
 int main(uint3 globalInvocationID : SV_DispatchThreadID)
@@ -156,23 +156,23 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     int V_0;
     int V_1;
     int V_2;
-    V_0 = un_user_func_Foo();
-    V_1 = un_user_func_Bar();
+    V_0 = un_user_defined_Foo();
+    V_1 = un_user_defined_Bar();
     V_2 = (V_0 + V_1);
     return V_2;
 }
 
-int un_user_func_Bar()
+int un_user_defined_Bar()
 {
     int V_0;
     V_0 = 123;
     return V_0;
 }
 
-int un_user_func_Foo()
+int un_user_defined_Foo()
 {
     int V_0;
-    V_0 = (un_user_func_Bar() * 2);
+    V_0 = (un_user_defined_Bar() * 2);
     return V_0;
 }
 ";

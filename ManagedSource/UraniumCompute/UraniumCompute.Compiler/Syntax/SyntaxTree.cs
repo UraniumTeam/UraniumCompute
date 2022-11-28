@@ -62,7 +62,7 @@ internal class SyntaxTree
         disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
-        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType));
+        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
     }
 
     internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
@@ -79,7 +79,8 @@ internal class SyntaxTree
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
-            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i]), $"V_{i}"));
+            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i], UserTypeCallback),
+                $"V_{i}"));
         }
 
         while (Current is not null)
@@ -109,7 +110,7 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = TypeResolver.CreateType(parameter.ParameterType);
+            var parameterType = TypeResolver.CreateType(parameter.ParameterType, UserTypeCallback);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
@@ -311,7 +312,7 @@ internal class SyntaxTree
         }
 
         var variableIndex = GetVariableIndex();
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(variableIndex, variableType)));
@@ -327,7 +328,7 @@ internal class SyntaxTree
         }
 
         var variableIndex = GetVariableIndex();
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
         return true;
@@ -450,7 +451,7 @@ internal class SyntaxTree
         switch (methodReference.Name)
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
-                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", new PrimitiveTypeSymbol("uint3")));
+                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", TypeResolver.CreateType<Vector3Uint>()));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -497,7 +498,7 @@ internal class SyntaxTree
 
     private bool ParseGeneralCallExpression(MethodReference methodReference)
     {
-        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback);
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
         var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
         stack.Push(new CallExpressionSyntax(functionSymbol, arguments));
         NextInstruction();
@@ -546,12 +547,16 @@ internal class SyntaxTree
     {
         var field = (FieldReference)Current!.Operand!;
         // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
-        return new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower());
+        return new PropertyExpressionSyntax(stack.Pop(), field);
     }
 
     private void AddStatement(StatementSyntax statement)
     {
         Function!.Block.Statements.Add(statement);
+    }
+
+    private void UserTypeCallback(TypeReference typeReference)
+    {
     }
 
     public void GenerateCode(ICodeGenerator generator)
