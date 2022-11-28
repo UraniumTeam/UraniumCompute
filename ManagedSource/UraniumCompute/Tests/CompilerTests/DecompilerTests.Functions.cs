@@ -142,4 +142,56 @@ uint un_user_func_Fib(uint n)
 
         return c;
     }
+
+    [Test]
+    public void CompilesDoubleReferencedFunction()
+    {
+        var expectedResult = @"int un_user_func_Bar();
+
+int un_user_func_Foo();
+
+[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int V_0;
+    int V_1;
+    int V_2;
+    V_0 = un_user_func_Foo();
+    V_1 = un_user_func_Bar();
+    V_2 = (V_0 + V_1);
+    return V_2;
+}
+
+int un_user_func_Bar()
+{
+    int V_0;
+    V_0 = 123;
+    return V_0;
+}
+
+int un_user_func_Foo()
+{
+    int V_0;
+    V_0 = (un_user_func_Bar() * 2);
+    return V_0;
+}
+";
+        
+        AssertFunc(() =>
+        {
+            var a = Foo();
+            var b = Bar();
+            return a + b;
+        }, expectedResult);
+    }
+
+    private static int Foo()
+    {
+        return Bar() * 2;
+    }
+
+    private static int Bar()
+    {
+        return 123;
+    }
 }

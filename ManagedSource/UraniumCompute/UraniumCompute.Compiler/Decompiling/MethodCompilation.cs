@@ -44,13 +44,18 @@ public sealed class MethodCompilation
     {
         var results = new List<MethodCompilationResult>();
         var methods = new Stack<MethodCompilation>();
+        var compiledMethods = new HashSet<MethodReference>();
         methods.Push(Create(method));
 
         while (methods.Any())
         {
-            var result = methods.Pop().Compile(x =>
-                methods.Push(new MethodCompilation(DecorateMethodName(x.Name), null, x.Resolve())));
-            results.Add(result);
+            var m = methods.Pop();
+            if (compiledMethods.Add(m.MethodDefinition))
+            {
+                var result = m.Compile(x =>
+                    methods.Push(new MethodCompilation(DecorateMethodName(x.Name), null, x.Resolve())));
+                results.Add(result);
+            }
         }
 
         var declarations = results.Select(x => x.Declaration).Where(x => x is not null);
