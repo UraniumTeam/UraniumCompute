@@ -89,6 +89,8 @@ internal class SyntaxTree
 
             ParseStatement();
         }
+        
+        Debug.Assert(!stack.Any());
     }
 
     public void GenerateCode(ICodeGenerator generator)
@@ -165,11 +167,7 @@ internal class SyntaxTree
                 NextInstruction();
                 return;
             case Code.Ret:
-                if (stack.Any())
-                {
-                    AddStatement(new ReturnStatementSyntax(stack.Pop()));
-                }
-
+                AddStatement(new ReturnStatementSyntax(stack.Any() ? stack.Pop() : null));
                 NextInstruction();
                 return;
             case Code.Dup:
@@ -415,7 +413,8 @@ internal class SyntaxTree
             return false;
         }
 
-        // Variable declaration is enough
+        // TODO: default initialize the objects here
+        stack.Pop();
         NextInstruction();
         return true;
     }
@@ -563,7 +562,7 @@ internal class SyntaxTree
 
     private bool ParseFieldExpression()
     {
-        if (Current!.OpCode.Code != Code.Ldfld)
+        if (Current!.OpCode.Code != Code.Ldfld && Current!.OpCode.Code != Code.Ldflda)
         {
             return false;
         }

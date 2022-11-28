@@ -15,6 +15,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     uint3 V_0;
     V_0 = globalInvocationID;
     a[V_0.x] = (a[V_0.x] * 2);
+    return ;
 }
 ";
         AssertFunc((Span<int> a) =>
@@ -38,7 +39,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     V_2.z = 3;
     V_0 = V_2;
     V_1 = (V_0.x + V_0.y);
-    return V_2;
+    return ;
 }
 ";
         AssertFunc(() =>
