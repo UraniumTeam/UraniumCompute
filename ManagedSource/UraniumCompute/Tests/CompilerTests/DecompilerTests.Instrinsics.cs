@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;
@@ -21,6 +22,30 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         {
             var index = GpuIntrinsic.GetGlobalInvocationId();
             a[(int)index.X] *= 2;
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesVector3Uint_New()
+    {
+        var expectedResult = @"[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    uint3 V_0;
+    uint V_1;
+    uint3 V_2;
+    V_2.x = 1;
+    V_2.y = 2;
+    V_2.z = 3;
+    V_0 = V_2;
+    V_1 = (V_0.x + V_0.y);
+    return V_2;
+}
+";
+        AssertFunc(() =>
+        {
+            var v = new Vector3Uint { X = 1, Y = 2, Z = 3 };
+            var s = v.X + v.Y;
         }, expectedResult);
     }
 

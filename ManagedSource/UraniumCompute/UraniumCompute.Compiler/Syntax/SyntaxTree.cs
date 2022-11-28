@@ -162,10 +162,12 @@ internal class SyntaxTree
             ParseAssignmentVariableExpression,
             ParseAssignmentIndirectExpression,
             ParseAssignmentArgumentExpression,
+            ParseAssignmentFieldExpression,
+            ParseInitObjectExpression,
             ParseArgumentExpression,
             ParseCallExpression,
             ParseBranchExpression,
-            ParseFieldExpression
+            ParseFieldExpression,
         };
 
         return expressionParsers.Any(parser => parser());
@@ -300,6 +302,32 @@ internal class SyntaxTree
             stack.Pop(),
             new ArgumentExpressionSyntax(name, type)));
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseAssignmentFieldExpression()
+    {
+        if (Current!.OpCode.Code != Code.Stfld)
+        {
+            return false;
+        }
+
+        var expression = stack.Pop();
+        var field = CreateFieldExpression();
+        AddStatement(new AssignmentStatementSyntax(expression, field));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseInitObjectExpression()
+    {
+        if (Current!.OpCode.Code != Code.Initobj)
+        {
+            return false;
+        }
+
+        // Variable declaration is enough
         NextInstruction();
         return true;
     }
@@ -452,11 +480,16 @@ internal class SyntaxTree
             return false;
         }
 
-        var field = (FieldReference)Current!.Operand!;
-        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
-        stack.Push(new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower()));
+        stack.Push(CreateFieldExpression());
         NextInstruction();
         return true;
+    }
+
+    private ExpressionSyntax CreateFieldExpression()
+    {
+        var field = (FieldReference)Current!.Operand!;
+        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
+        return new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower());
     }
 
     private void AddStatement(StatementSyntax statement)
