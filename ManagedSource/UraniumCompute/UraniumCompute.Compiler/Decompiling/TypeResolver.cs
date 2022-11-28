@@ -6,19 +6,37 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
+    private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
+    private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
+
     internal static TypeSymbol CreateType<T>()
     {
         return CreateType(typeof(T));
     }
-    
+
     internal static TypeSymbol CreateType(Type type)
     {
+        if (typeRefCache.ContainsKey(type))
+        {
+            return CreateTypeImpl(typeRefCache[type]);
+        }
+        
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
-        var tr = a.MainModule.ImportReference(type)!;
-        return CreateType(tr);
+        typeRefCache[type] = a.MainModule.ImportReference(type)!;
+        return CreateType(typeRefCache[type]);
     }
-    
+
     internal static TypeSymbol CreateType(TypeReference tr)
+    {
+        if (typeCache.ContainsKey(tr))
+        {
+            return typeCache[tr];
+        }
+
+        return typeCache[tr] = CreateTypeImpl(tr);
+    }
+
+    private static TypeSymbol CreateTypeImpl(TypeReference tr)
     {
         if (tr is GenericInstanceType instance)
         {
@@ -52,7 +70,7 @@ internal static class TypeResolver
 
         throw new Exception($"Unknown type: {tr}");
     }
-    
+
     private static PrimitiveTypeSymbol CreatePrimitiveType(TypeReference tr)
     {
         // TODO: handle errors without exceptions (use Diagnostics)
