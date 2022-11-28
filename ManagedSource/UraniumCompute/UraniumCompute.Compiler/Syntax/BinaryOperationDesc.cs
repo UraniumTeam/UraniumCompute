@@ -11,10 +11,10 @@ internal struct BinaryOperationDesc
 
     public BinaryOperationDesc(Type? left, Type? right, BinaryOperationKind kind, Type resultType)
     {
-        Left = left is null ? null : TypeResolver.CreateType(left);
-        Right = right is null ? null : TypeResolver.CreateType(right);
+        Left = left is null ? null : TypeResolver.CreateType(left, _ => { });
+        Right = right is null ? null : TypeResolver.CreateType(right, _ => { });
         Kind = kind;
-        ResultType = TypeResolver.CreateType(resultType);
+        ResultType = TypeResolver.CreateType(resultType, _ => { });
     }
 
     public bool Match(TypeSymbol left, TypeSymbol right, BinaryOperationKind kind)

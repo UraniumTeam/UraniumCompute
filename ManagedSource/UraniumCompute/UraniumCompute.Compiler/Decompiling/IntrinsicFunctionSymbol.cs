@@ -13,10 +13,10 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
         (string, IntrinsicFunctionSymbol) CreateIntrinsic(Delegate d)
         {
             var method = d.Method;
-            var returnType = TypeResolver.CreateType(method.ReturnType);
+            var returnType = TypeResolver.CreateType(method.ReturnType, _ => { });
             var arguments = method.GetParameters()
                 .Select(x => x.ParameterType)
-                .Select(TypeResolver.CreateType);
+                .Select(x => TypeResolver.CreateType(x, _ => { }));
             var symbol = new IntrinsicFunctionSymbol(method.Name.ToLower(), returnType, arguments);
             return ($"{method.DeclaringType!.Name}.{method.Name}", symbol);
         }

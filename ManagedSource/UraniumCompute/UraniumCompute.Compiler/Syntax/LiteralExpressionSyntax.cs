@@ -10,7 +10,7 @@ internal class LiteralExpressionSyntax : ExpressionSyntax
     internal LiteralExpressionSyntax(object value)
     {
         Value = value;
-        ExpressionType = TypeResolver.CreateType(value.GetType());
+        ExpressionType = TypeResolver.CreateType(value.GetType(), _ => { });
     }
 
     public override string ToString()

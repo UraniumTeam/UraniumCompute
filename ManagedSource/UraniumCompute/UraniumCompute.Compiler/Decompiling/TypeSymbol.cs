@@ -1,8 +1,13 @@
-﻿namespace UraniumCompute.Compiler.Decompiling;
+﻿using System.Diagnostics.CodeAnalysis;
+using Mono.Cecil;
+
+namespace UraniumCompute.Compiler.Decompiling;
 
 internal abstract class TypeSymbol
 {
     public abstract string FullName { get; }
+
+    public abstract bool TryGetFieldDesc(FieldReference field, [MaybeNullWhen(false)] out FieldDesc desc);
 
     public override string ToString()
     {
