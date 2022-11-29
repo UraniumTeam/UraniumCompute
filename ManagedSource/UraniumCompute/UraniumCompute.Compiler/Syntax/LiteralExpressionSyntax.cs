@@ -1,4 +1,5 @@
-﻿using UraniumCompute.Compiler.Decompiling;
+﻿using System.Globalization;
+using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;
 
@@ -10,11 +11,11 @@ internal class LiteralExpressionSyntax : ExpressionSyntax
     internal LiteralExpressionSyntax(object value)
     {
         Value = value;
-        ExpressionType = TypeResolver.CreateType(value.GetType());
+        ExpressionType = TypeResolver.CreateType(value.GetType(), _ => { });
     }
 
     public override string ToString()
     {
-        return Value.ToString()!.ToLower();
+        return string.Format(CultureInfo.InvariantCulture, "{0}", Value).ToLower();
     }
 }

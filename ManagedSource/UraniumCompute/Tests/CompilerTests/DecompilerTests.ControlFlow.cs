@@ -267,6 +267,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         a[V_0] = V_0;
         V_0 = (V_0 + 1);
     }
+    return ;
 }
 ";
 
@@ -311,6 +312,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         }
         V_0 = (V_0 + 1);
     }
+    return ;
 }
 ";
 
@@ -365,6 +367,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
         }
         V_0 = (V_0 + 1);
     }
+    return ;
 }
 ";
 

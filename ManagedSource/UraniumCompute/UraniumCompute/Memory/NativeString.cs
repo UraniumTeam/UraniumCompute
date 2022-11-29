@@ -43,9 +43,9 @@ public readonly struct NativeString
     }
 
     /// <summary>
-    ///     Convert to a <see cref="ReadOnlySpan{T}"/>.
+    ///     Convert to a <see cref="ReadOnlySpan{T}" />.
     /// </summary>
-    /// <returns>The created <see cref="ReadOnlySpan{T}"/>.</returns>
+    /// <returns>The created <see cref="ReadOnlySpan{T}" />.</returns>
     public unsafe ReadOnlySpan<byte> AsSpan()
     {
         if (nativePointer == null)

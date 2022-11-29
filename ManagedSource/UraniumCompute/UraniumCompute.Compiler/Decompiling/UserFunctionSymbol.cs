@@ -8,7 +8,7 @@ internal sealed class UserFunctionSymbol : FunctionSymbol
 
     public UserFunctionSymbol(string fullName, TypeSymbol returnType, IEnumerable<TypeSymbol> argumentTypes)
     {
-        FullName = MethodCompilation.DecorateMethodName(fullName);
+        FullName = MethodCompilation.DecorateName(fullName);
         ReturnType = returnType;
         ArgumentTypes = argumentTypes.ToArray();
     }

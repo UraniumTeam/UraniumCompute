@@ -31,11 +31,11 @@ public sealed class Buffer1D<T> : Buffer<T>
     }
 
     /// <summary>
-    ///     Reshape the buffer to a <see cref="Buffer2D{T}"/>.
+    ///     Reshape the buffer to a <see cref="Buffer2D{T}" />.
     /// </summary>
     /// <param name="width">Width of the 2D buffer.</param>
     /// <param name="height">Height of the 2D buffer.</param>
-    /// <returns>An instance of <see cref="Buffer2D{T}"/> that stores the same handle.</returns>
+    /// <returns>An instance of <see cref="Buffer2D{T}" /> that stores the same handle.</returns>
     /// <exception cref="ArgumentException">Invalid dimensions: width * height != this.Count</exception>
     public Buffer2D<T> Reshape(long width, long height)
     {

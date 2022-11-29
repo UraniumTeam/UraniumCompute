@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 using Mono.Cecil;
 using UraniumCompute.Compiler.CodeGen;
 using UraniumCompute.Compiler.Disassembling;
@@ -19,26 +20,46 @@ public sealed class MethodCompilation
         MethodDefinition = definition;
     }
 
-    internal static string DecorateMethodName(string methodName)
+    internal static string DecorateName(string name)
     {
-        return "un_user_func_" + methodName;
+        var sb = new StringBuilder();
+        sb.Append("un_user_defined_");
+        foreach (var c in name)
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                sb.Append(c);
+            }
+            else
+            {
+                sb.Append($"c_{(int)c:X}");
+            }
+        }
+
+        return sb.ToString();
     }
 
     public static string Compile(Delegate method)
     {
         var results = new List<MethodCompilationResult>();
         var methods = new Stack<MethodCompilation>();
+        var compiledMethods = new HashSet<MethodReference>();
         methods.Push(Create(method));
 
         while (methods.Any())
         {
-            var result = methods.Pop().Compile(x =>
-                methods.Push(new MethodCompilation(DecorateMethodName(x.Name), null, x.Resolve())));
-            results.Add(result);
+            var m = methods.Pop();
+            if (compiledMethods.Add(m.MethodDefinition))
+            {
+                var result = m.Compile(x =>
+                    methods.Push(new MethodCompilation(DecorateName(x.Name), null, x.Resolve())));
+                results.Add(result);
+            }
         }
 
         var declarations = results.Select(x => x.Declaration).Where(x => x is not null);
         var code = results.Select(x => x.Code!);
+        TypeResolver.Reset();
         return string.Join(Environment.NewLine, declarations.Concat(code));
     }
 
@@ -66,9 +87,13 @@ public sealed class MethodCompilation
         var codeGenerator = new HlslCodeGenerator(textWriter, 4);
         syntaxTree.GenerateCode(codeGenerator);
 
-        var declaration = !syntaxTree.Function?.IsEntryPoint ?? false
+        var methodDeclaration = !syntaxTree.Function?.IsEntryPoint ?? false
             ? codeGenerator.CreateForwardDeclaration(syntaxTree.Function!)
             : null;
+        var declarations = syntaxTree.Structs
+            .Select(x => codeGenerator.CreateForwardDeclaration(x))
+            .Append(methodDeclaration);
+        var declaration = string.Join(null, declarations);
         return new MethodCompilationResult(textWriter.ToString(), declaration, Array.Empty<Diagnostic>());
     }
 }

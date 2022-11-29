@@ -12,7 +12,7 @@ internal static class Program
         index3 = index + index * index;
         return 100000;
     }
-    
+
     private static int SimpleMethod(int a)
     {
         var index = 9;

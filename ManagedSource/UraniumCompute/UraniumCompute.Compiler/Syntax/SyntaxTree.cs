@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UraniumCompute.Common.Math;
@@ -16,8 +14,9 @@ internal class SyntaxTree
 {
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
-    public FunctionDeclarationSyntax? Function { get; init; }
+    public List<StructDeclarationSyntax> Structs { get; }
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters => Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
+    public FunctionDeclarationSyntax? Function { get; init; }
 
     private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
@@ -29,47 +28,45 @@ internal class SyntaxTree
     private int instructionIndex;
     private Instruction? Current => instructionIndex < instructions.Length ? instructions[instructionIndex] : null;
 
-    public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
-    {
-        return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
-            VariableTypes)
-        {
-            Function = Function?.WithStatements(statements)
-        };
-    }
-
-    private void NextInstruction()
-    {
-        instructionIndex++;
-    }
-
     private SyntaxTree(Action<MethodReference> userFunctionCallback, DisassemblyResult disassemblyResult,
-        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes)
+        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes,
+        IEnumerable<StructDeclarationSyntax> structs)
     {
         this.userFunctionCallback = userFunctionCallback;
         this.disassemblyResult = disassemblyResult;
         this.instructions = instructions;
         this.instructionIndex = instructionIndex;
+        Structs = structs.ToList();
         MethodName = methodName;
         VariableTypes = variableTypes;
     }
 
     private SyntaxTree(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute, string methodName,
-        DisassemblyResult dr)
+        DisassemblyResult dr, IEnumerable<StructDeclarationSyntax> structs)
     {
         this.userFunctionCallback = userFunctionCallback;
         MethodName = methodName;
         disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
-        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType));
+        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
+        Structs = structs.ToList();
+    }
+
+    public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
+    {
+        return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
+            VariableTypes, Structs)
+        {
+            Function = Function?.WithStatements(statements)
+        };
     }
 
     internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
         DisassemblyResult dr,
         string methodName = "main")
     {
-        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr);
+        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr, Enumerable.Empty<StructDeclarationSyntax>());
     }
 
     internal void Compile()
@@ -79,7 +76,8 @@ internal class SyntaxTree
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
-            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i]), $"V_{i}"));
+            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i], UserTypeCallback),
+                $"V_{i}"));
         }
 
         while (Current is not null)
@@ -91,6 +89,41 @@ internal class SyntaxTree
 
             ParseStatement();
         }
+        
+        Debug.Assert(!stack.Any());
+    }
+
+    public void GenerateCode(ICodeGenerator generator)
+    {
+        foreach (var s in Structs)
+        {
+            generator.EmitStruct(s);
+        }
+
+        generator.EmitFunction(Function!);
+    }
+
+    public override string ToString()
+    {
+        return Function?.ToString() ?? "<Empty>";
+    }
+
+    public static ISyntaxTreeRewriter[] GetStandardPasses()
+    {
+        return new ISyntaxTreeRewriter[]
+        {
+            new BranchResolver()
+        };
+    }
+
+    public SyntaxTree Rewrite(params ISyntaxTreeRewriter[] passes)
+    {
+        return passes.Aggregate(this, (current, rewriter) => rewriter.Rewrite(current));
+    }
+
+    private void NextInstruction()
+    {
+        instructionIndex++;
     }
 
     private void FindLabels()
@@ -109,7 +142,7 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = TypeResolver.CreateType(parameter.ParameterType);
+            var parameterType = TypeResolver.CreateType(parameter.ParameterType, UserTypeCallback);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
@@ -134,11 +167,7 @@ internal class SyntaxTree
                 NextInstruction();
                 return;
             case Code.Ret:
-                if (stack.Any())
-                {
-                    AddStatement(new ReturnStatementSyntax(stack.Pop()));
-                }
-
+                AddStatement(new ReturnStatementSyntax(stack.Any() ? stack.Pop() : null));
                 NextInstruction();
                 return;
             case Code.Dup:
@@ -158,10 +187,13 @@ internal class SyntaxTree
         {
             ParseLiteralExpression,
             ParseBinaryExpression,
+            ParseConversionExpression,
             ParseVariableExpression,
             ParseAssignmentVariableExpression,
             ParseAssignmentIndirectExpression,
             ParseAssignmentArgumentExpression,
+            ParseAssignmentFieldExpression,
+            ParseInitObjectExpression,
             ParseArgumentExpression,
             ParseCallExpression,
             ParseBranchExpression,
@@ -220,6 +252,62 @@ internal class SyntaxTree
         return true;
     }
 
+    private bool ParseConversionExpression()
+    {
+        switch (Current!.OpCode.Code)
+        {
+            case Code.Conv_U1:
+            case Code.Conv_Ovf_U1:
+            case Code.Conv_Ovf_U1_Un:
+            case Code.Conv_I1:
+            case Code.Conv_Ovf_I1:
+            case Code.Conv_Ovf_I1_Un:
+                throw new Exception("8-bit ints are not supported by GPU");
+            case Code.Conv_U2:
+            case Code.Conv_Ovf_U2:
+            case Code.Conv_Ovf_U2_Un:
+            case Code.Conv_I2:
+            case Code.Conv_Ovf_I2:
+            case Code.Conv_Ovf_I2_Un:
+                throw new Exception("16-bit ints are not supported by GPU");
+            case Code.Conv_I4:
+            case Code.Conv_Ovf_I4:
+            case Code.Conv_Ovf_I4_Un:
+            case Code.Conv_I:
+            case Code.Conv_Ovf_I:
+            case Code.Conv_Ovf_I_Un:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<int>()));
+                break;
+            case Code.Conv_I8:
+            case Code.Conv_Ovf_I8:
+            case Code.Conv_Ovf_I8_Un:
+            case Code.Conv_U8:
+            case Code.Conv_Ovf_U8:
+            case Code.Conv_Ovf_U8_Un:
+                throw new Exception("64-bit ints are not supported by GPU");
+            case Code.Conv_U:
+            case Code.Conv_Ovf_U:
+            case Code.Conv_Ovf_U_Un:
+            case Code.Conv_U4:
+            case Code.Conv_Ovf_U4:
+            case Code.Conv_Ovf_U4_Un:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<uint>()));
+                break;
+            case Code.Conv_R_Un:
+            case Code.Conv_R4:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<float>()));
+                break;
+            case Code.Conv_R8:
+                stack.Push(new ConversionExpression(stack.Pop(), TypeResolver.CreateType<double>()));
+                break;
+            default:
+                return false;
+        }
+
+        NextInstruction();
+        return true;
+    }
+
     private int GetVariableIndex()
     {
         switch (Current!.OpCode.Code)
@@ -252,7 +340,7 @@ internal class SyntaxTree
         }
 
         var variableIndex = GetVariableIndex();
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(variableIndex, variableType)));
@@ -268,7 +356,7 @@ internal class SyntaxTree
         }
 
         var variableIndex = GetVariableIndex();
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex]);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
         return true;
@@ -300,6 +388,33 @@ internal class SyntaxTree
             stack.Pop(),
             new ArgumentExpressionSyntax(name, type)));
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseAssignmentFieldExpression()
+    {
+        if (Current!.OpCode.Code != Code.Stfld)
+        {
+            return false;
+        }
+
+        var expression = stack.Pop();
+        var field = CreateFieldExpression();
+        AddStatement(new AssignmentStatementSyntax(expression, field));
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseInitObjectExpression()
+    {
+        if (Current!.OpCode.Code != Code.Initobj)
+        {
+            return false;
+        }
+
+        // TODO: default initialize the objects here
+        stack.Pop();
         NextInstruction();
         return true;
     }
@@ -365,7 +480,7 @@ internal class SyntaxTree
         switch (methodReference.Name)
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
-                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", new PrimitiveTypeSymbol("uint3")));
+                stack.Push(new ArgumentExpressionSyntax("globalInvocationID", TypeResolver.CreateType<Vector3Uint>()));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
@@ -412,7 +527,7 @@ internal class SyntaxTree
 
     private bool ParseGeneralCallExpression(MethodReference methodReference)
     {
-        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback);
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
         var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
         stack.Push(new CallExpressionSyntax(functionSymbol, arguments));
         NextInstruction();
@@ -447,16 +562,21 @@ internal class SyntaxTree
 
     private bool ParseFieldExpression()
     {
-        if (Current!.OpCode.Code != Code.Ldfld)
+        if (Current!.OpCode.Code != Code.Ldfld && Current!.OpCode.Code != Code.Ldflda)
         {
             return false;
         }
 
-        var field = (FieldReference)Current!.Operand!;
-        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
-        stack.Push(new PropertyExpressionSyntax(stack.Pop(), field.Name.ToLower()));
+        stack.Push(CreateFieldExpression());
         NextInstruction();
         return true;
+    }
+
+    private ExpressionSyntax CreateFieldExpression()
+    {
+        var field = (FieldReference)Current!.Operand!;
+        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
+        return new PropertyExpressionSyntax(stack.Pop(), field);
     }
 
     private void AddStatement(StatementSyntax statement)
@@ -464,26 +584,8 @@ internal class SyntaxTree
         Function!.Block.Statements.Add(statement);
     }
 
-    public void GenerateCode(ICodeGenerator generator)
+    private void UserTypeCallback(TypeReference typeReference)
     {
-        generator.EmitFunction(Function!);
-    }
-
-    public override string ToString()
-    {
-        return Function?.ToString() ?? "<Empty>";
-    }
-
-    public static ISyntaxTreeRewriter[] GetStandardPasses()
-    {
-        return new ISyntaxTreeRewriter[]
-        {
-            new BranchResolver()
-        };
-    }
-
-    public SyntaxTree Rewrite(params ISyntaxTreeRewriter[] passes)
-    {
-        return passes.Aggregate(this, (current, rewriter) => rewriter.Rewrite(current));
+        Structs.Add(new StructDeclarationSyntax(StructTypeSymbol.CreateUserType(typeReference, UserTypeCallback)));
     }
 }
