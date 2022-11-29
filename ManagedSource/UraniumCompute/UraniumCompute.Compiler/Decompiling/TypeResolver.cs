@@ -6,20 +6,49 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
-    internal static TypeSymbol CreateType(Type type)
+    private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
+    private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
+
+    internal static void Reset()
     {
-        var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
-        var tr = a.MainModule.ImportReference(type)!;
-        return CreateType(tr);
+        typeCache.Clear();
+        typeRefCache.Clear();
     }
-    
-    internal static TypeSymbol CreateType(TypeReference tr)
+
+    internal static TypeSymbol CreateType<T>()
+    {
+        return CreateType(typeof(T), _ => { });
+    }
+
+    internal static TypeSymbol CreateType(Type type, Action<TypeReference> userTypeCallback)
+    {
+        if (typeRefCache.ContainsKey(type))
+        {
+            return typeCache[typeRefCache[type]];
+        }
+
+        var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
+        typeRefCache[type] = a.MainModule.ImportReference(type)!;
+        return CreateType(typeRefCache[type], userTypeCallback);
+    }
+
+    internal static TypeSymbol CreateType(TypeReference tr, Action<TypeReference> userTypeCallback)
+    {
+        if (typeCache.ContainsKey(tr))
+        {
+            return typeCache[tr];
+        }
+
+        return typeCache[tr] = CreateTypeImpl(tr, userTypeCallback);
+    }
+
+    private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> userTypeCallback)
     {
         if (tr is GenericInstanceType instance)
         {
             if (instance.Namespace == "System")
             {
-                var argument = CreateType(instance.GenericArguments[0]);
+                var argument = CreateType(instance.GenericArguments[0], userTypeCallback);
                 return instance.Name switch
                 {
                     "Span`1" => new GenericTypeSymbol("RWStructuredBuffer", argument),
@@ -37,17 +66,24 @@ internal static class TypeResolver
 
         if (attribute is string typeName)
         {
-            return new PrimitiveTypeSymbol(typeName);
+            return StructTypeSymbol.CreateSystemType(typeName, tr);
         }
 
         if (tr.Namespace == typeof(int).Namespace)
         {
-            return CreatePrimitiveType(tr);
+            return tr.Name switch
+            {
+                nameof(Vector2) => StructTypeSymbol.CreateSystemType("float2", tr),
+                nameof(Vector3) => StructTypeSymbol.CreateSystemType("float3", tr),
+                nameof(Vector4) => StructTypeSymbol.CreateSystemType("float4", tr),
+                _ => CreatePrimitiveType(tr)
+            };
         }
 
-        throw new Exception($"Unknown type: {tr}");
+        userTypeCallback(tr);
+        return StructTypeSymbol.CreateUserType(tr, userTypeCallback);
     }
-    
+
     private static PrimitiveTypeSymbol CreatePrimitiveType(TypeReference tr)
     {
         // TODO: handle errors without exceptions (use Diagnostics)
@@ -65,9 +101,6 @@ internal static class TypeResolver
             nameof(Single) => "float",
             nameof(Double) => "double",
             nameof(Boolean) => "bool",
-            nameof(Vector2) => "float2",
-            nameof(Vector3) => "float3",
-            nameof(Vector4) => "float4",
             _ => throw new Exception($"Unknown type: {tr.Name}")
         };
 

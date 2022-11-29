@@ -33,7 +33,7 @@ public sealed class KernelCompiler : NativeObject
     ///     Compile a compute kernel into target language.
     /// </summary>
     /// <param name="args">Compiler arguments.</param>
-    /// <returns>A <see cref="NativeArray{T}"/> with compiled byte-code.</returns>
+    /// <returns>A <see cref="NativeArray{T}" /> with compiled byte-code.</returns>
     public unsafe NativeArray<byte> Compile(in Args args)
     {
         // We do not use 'out' here to avoid C++ code trying to deallocate uninitialized pointers.

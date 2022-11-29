@@ -12,7 +12,7 @@ public abstract class Buffer<T> : BufferBase
     public static readonly unsafe int ElementSize = sizeof(T);
 
     /// <summary>
-    ///     The number of elements in the buffer as <see cref="System.Int64"/>.
+    ///     The number of elements in the buffer as <see cref="System.Int64" />.
     /// </summary>
     public ulong LongCount => Descriptor.Size / (ulong)ElementSize;
 

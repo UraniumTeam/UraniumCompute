@@ -2,9 +2,9 @@
 
 internal class ReturnStatementSyntax : ControlFlowStatement
 {
-    public ExpressionSyntax Expression { get; }
+    public ExpressionSyntax? Expression { get; }
 
-    internal ReturnStatementSyntax(ExpressionSyntax expression)
+    internal ReturnStatementSyntax(ExpressionSyntax? expression = null)
     {
         Expression = expression;
     }

@@ -3,9 +3,8 @@ using System.Reflection;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
-using UraniumCompute.Compiler.Decompiling;
-using UraniumCompute.Utils;
 using UraniumCompute.Compiler.InterimStructs;
+using UraniumCompute.Utils;
 
 namespace SampleProject;
 
@@ -107,7 +106,7 @@ internal static class Program
 
         using var kernelCompiler = factory.CreateKernelCompiler();
         kernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-        
+
         using var resourceBinding = device.CreateResourceBinding();
         using var kernel = device.CreateKernel();
 
