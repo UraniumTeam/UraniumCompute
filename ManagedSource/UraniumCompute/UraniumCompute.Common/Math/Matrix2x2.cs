@@ -181,16 +181,16 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
     {
         if (AdvSimd.IsSupported)
         {
-            var value2Vec = Vector64.Create(scalar);
-            AdvSimd.Store(&matrix.M11, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M11), value2Vec));
-            AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M21), value2Vec));
+            var v = Vector64.Create(scalar);
+            AdvSimd.Store(&matrix.M11, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M11), v));
+            AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M21), v));
             return matrix;
         }
 
         if (Sse.IsSupported)
         {
-            var value2Vec = Vector128.Create(scalar);
-            Sse.Store(&matrix.M11, Sse.Multiply(Sse.LoadVector128(&matrix.M11), value2Vec));
+            var v = Vector128.Create(scalar);
+            Sse.Store(&matrix.M11, Sse.Multiply(Sse.LoadVector128(&matrix.M11), v));
             return matrix;
         }
 
