@@ -50,7 +50,7 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
     {
         get
         {
-            if ((uint)row >= 1)
+            if ((uint)row >= 2)
                 throw new ArgumentOutOfRangeException();
 
             var vRow = Unsafe.Add(ref Unsafe.As<uint, Vector2Uint>(ref M11), row);
@@ -58,11 +58,11 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
         }
         set
         {
-            if ((uint)row >= 1)
+            if ((uint)row >= 2)
                 throw new ArgumentOutOfRangeException();
 
             ref var vRow = ref Unsafe.Add(ref Unsafe.As<uint, Vector2Uint>(ref M11), row);
-            vRow[1] = value;
+            vRow[column] = value;
         }
     }
 
