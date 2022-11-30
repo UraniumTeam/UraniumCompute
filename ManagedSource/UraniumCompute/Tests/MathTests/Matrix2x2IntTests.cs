@@ -36,6 +36,7 @@ public class Matrix2x2IntTests
     }
 
     [TestCase(new[] { 1, 2, 3, 4 }, 2, new[] { 2, 4, 6, 8 })]
+    [TestCase(new[] { 1, 2, 3, 4 }, 200000000, new[] { 200000000, 400000000, 600000000, 800000000 })]
     public void ScalarMultiplication(int[] matrix1, int scalar, int[] result)
     {
         Assert.Multiple(() =>
