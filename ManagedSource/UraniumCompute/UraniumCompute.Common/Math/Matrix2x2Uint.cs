@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
+using System.Runtime.Intrinsics.X86;
 
 namespace UraniumCompute.Common.Math;
 
@@ -79,6 +80,12 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
             return left;
         }
 
+        if (Sse2.IsSupported)
+        {
+            Sse2.Store(&left.M11, Sse2.Add(Sse2.LoadVector128(&left.M11), Sse2.LoadVector128(&right.M11)));
+            return left;
+        }
+
         var vec = Vector128.Create(left.row1 + right.row1, left.row2 + right.row2);
         return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
@@ -137,6 +144,13 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
             return matrix;
         }
 
+        if (Sse41.IsSupported)
+        {
+            var v = Vector128.Create(scalar);
+            Sse2.Store(&matrix.M11, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M11), v));
+            return matrix;
+        }
+
         var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
         return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
@@ -149,6 +163,13 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
             var v = Vector64.Create(scalar);
             AdvSimd.Store(&matrix.M11, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M11), v));
             AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M21), v));
+            return matrix;
+        }
+
+        if (Sse41.IsSupported)
+        {
+            var v = Vector128.Create(scalar);
+            Sse2.Store(&matrix.M11, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M11), v));
             return matrix;
         }
 
@@ -171,6 +192,10 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
     public static unsafe Matrix2x2Uint Transpose(Matrix2x2Uint matrix)
     {
         // if (AdvSimd.Arm64.IsSupported)
+        // {
+        //     
+        // }
+        // else if (Sse.IsSupported)
         // {
         //     
         // }
