@@ -23,6 +23,28 @@ public struct Vector2Int : IEquatable<Vector2Int>
 
     private static readonly unsafe int size = sizeof(Vector2Int);
 
+    public int this[int index]
+    {
+        get
+        {
+            if ((uint)index >= 2)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return Unsafe.Add(ref Unsafe.As<Vector2Int, int>(ref this), index);
+        }
+        set
+        {
+            if ((uint)index >= 2)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Unsafe.Add(ref Unsafe.As<Vector2Int, int>(ref this), index) = value;
+        }
+    }
+
     public Vector2Int(ReadOnlySpan<int> values)
     {
         if (values.Length < 2)
