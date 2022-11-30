@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
@@ -62,7 +61,7 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
             if ((uint)row >= 1)
                 throw new ArgumentOutOfRangeException();
 
-            ref var vRow = ref Unsafe.Add(ref Unsafe.As<int, Vector2>(ref M11), row);
+            ref var vRow = ref Unsafe.Add(ref Unsafe.As<int, Vector2Int>(ref M11), row);
             vRow[1] = value;
         }
     }
