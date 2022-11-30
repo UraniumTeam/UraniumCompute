@@ -38,8 +38,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\UraniumCompute.Common\UraniumCompute.Common.csproj"/>
-        <ProjectReference Include="..\UraniumCompute.Compiler\UraniumCompute.Compiler.csproj"/>
+        <ProjectReference Include="..\UraniumCompute.Common\UraniumCompute.Common.csproj" />
+        <ProjectReference Include="..\UraniumCompute.Compiler\UraniumCompute.Compiler.csproj" />
     </ItemGroup>
 
 </Project>
