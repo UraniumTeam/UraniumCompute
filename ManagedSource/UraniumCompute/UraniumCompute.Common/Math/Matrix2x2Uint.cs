@@ -6,17 +6,17 @@ using System.Runtime.Intrinsics.Arm;
 namespace UraniumCompute.Common.Math;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
+public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
 {
-    [FieldOffset(0)] private Vector64<int> row1;
-    [FieldOffset(0)] public int M11;
-    [FieldOffset(sizeof(int))] public int M12;
+    [FieldOffset(0)] private Vector64<uint> row1;
+    [FieldOffset(0)] public uint M11;
+    [FieldOffset(sizeof(uint))] public uint M12;
 
-    [FieldOffset(sizeof(int) * 2)] private Vector64<int> row2;
-    [FieldOffset(sizeof(int) * 2)] public int M21;
-    [FieldOffset(sizeof(int) * 3)] public int M22;
+    [FieldOffset(sizeof(uint) * 2)] private Vector64<uint> row2;
+    [FieldOffset(sizeof(uint) * 2)] public uint M21;
+    [FieldOffset(sizeof(uint) * 3)] public uint M22;
 
-    public Matrix2x2Int(int m11, int m12, int m21, int m22)
+    public Matrix2x2Uint(uint m11, uint m12, uint m21, uint m22)
     {
         M11 = m11;
         M12 = m12;
@@ -24,36 +24,36 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         M22 = m22;
     }
 
-    public Matrix2x2Int(ReadOnlySpan<int> values)
+    public Matrix2x2Uint(ReadOnlySpan<uint> values)
     {
         if (values.Length < 4)
         {
             throw new ArgumentException($"{nameof(values)} must be at least 4 elements in length");
         }
 
-        this = Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<int, byte>(ref MemoryMarshal.GetReference(values)));
+        this = Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<uint, byte>(ref MemoryMarshal.GetReference(values)));
     }
 
-    private Matrix2x2Int(Vector64<int> firstRow, Vector64<int> secondRow)
+    private Matrix2x2Uint(Vector64<uint> firstRow, Vector64<uint> secondRow)
     {
         row1 = firstRow;
         row2 = secondRow;
     }
 
-    public static Matrix2x2Int Identity { get; } = new
+    public static Matrix2x2Uint Identity { get; } = new
     (
         1, 0,
         0, 1
     );
 
-    public int this[int row, int column]
+    public uint this[int row, int column]
     {
         get
         {
             if ((uint)row >= 1)
                 throw new ArgumentOutOfRangeException();
 
-            var vRow = Unsafe.Add(ref Unsafe.As<int, Vector2Int>(ref M11), row);
+            var vRow = Unsafe.Add(ref Unsafe.As<uint, Vector2Uint>(ref M11), row);
             return vRow[column];
         }
         set
@@ -61,14 +61,14 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
             if ((uint)row >= 1)
                 throw new ArgumentOutOfRangeException();
 
-            ref var vRow = ref Unsafe.Add(ref Unsafe.As<int, Vector2Int>(ref M11), row);
+            ref var vRow = ref Unsafe.Add(ref Unsafe.As<uint, Vector2Uint>(ref M11), row);
             vRow[1] = value;
         }
     }
 
     public readonly bool IsIdentity => M11 == 1f && M22 == 1f && M12 == 0f && M21 == 0f;
 
-    public static unsafe Matrix2x2Int operator +(Matrix2x2Int left, Matrix2x2Int right)
+    public static unsafe Matrix2x2Uint operator +(Matrix2x2Uint left, Matrix2x2Uint right)
     {
         if (AdvSimd.IsSupported)
         {
@@ -80,10 +80,10 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         }
 
         var vec = Vector128.Create(left.row1 + right.row1, left.row2 + right.row2);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
-    public static unsafe Matrix2x2Int operator -(Matrix2x2Int left, Matrix2x2Int right)
+    public static unsafe Matrix2x2Uint operator -(Matrix2x2Uint left, Matrix2x2Uint right)
     {
         if (AdvSimd.IsSupported)
         {
@@ -95,27 +95,14 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         }
 
         var vec = Vector128.Create(left.row1 - right.row1, left.row2 - right.row2);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
-    public static unsafe Matrix2x2Int operator -(Matrix2x2Int value)
-    {
-        if (AdvSimd.IsSupported)
-        {
-            AdvSimd.Store(&value.M11, AdvSimd.Negate(AdvSimd.LoadVector64(&value.M11)));
-            AdvSimd.Store(&value.M21, AdvSimd.Negate(AdvSimd.LoadVector64(&value.M21)));
-            return value;
-        }
-
-        var vec = -Vector128.Create(value.row1, value.row2);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
-    }
-
-    public static unsafe Matrix2x2Int operator *(Matrix2x2Int left, Matrix2x2Int right)
+    public static unsafe Matrix2x2Uint operator *(Matrix2x2Uint left, Matrix2x2Uint right)
     {
         if (AdvSimd.Arm64.IsSupported)
         {
-            Unsafe.SkipInit(out Matrix2x2Int result);
+            Unsafe.SkipInit(out Matrix2x2Uint result);
 
             var leftRow1 = AdvSimd.LoadVector64(&left.M11);
 
@@ -137,10 +124,10 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         var vec = Vector128.Create(
             right.row1 * left.M11 + right.row2 * left.M12,
             right.row1 * left.M21 + right.row2 * left.M22);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
-    public static unsafe Matrix2x2Int operator *(Matrix2x2Int matrix, int scalar)
+    public static unsafe Matrix2x2Uint operator *(Matrix2x2Uint matrix, uint scalar)
     {
         if (AdvSimd.IsSupported)
         {
@@ -151,11 +138,11 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         }
 
         var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
 
-    public static unsafe Matrix2x2Int operator *(int scalar, Matrix2x2Int matrix)
+    public static unsafe Matrix2x2Uint operator *(uint scalar, Matrix2x2Uint matrix)
     {
         if (AdvSimd.IsSupported)
         {
@@ -166,39 +153,39 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
         }
 
         var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
-    public static bool operator ==(Matrix2x2Int left, Matrix2x2Int right)
+    public static bool operator ==(Matrix2x2Uint left, Matrix2x2Uint right)
     {
         return left.row1 == right.row1 &&
                left.row2 == right.row2;
     }
 
-    public static bool operator !=(Matrix2x2Int left, Matrix2x2Int right)
+    public static bool operator !=(Matrix2x2Uint left, Matrix2x2Uint right)
     {
         return left.row1 != right.row1 ||
                left.row2 != right.row2;
     }
 
-    public static unsafe Matrix2x2Int Transpose(Matrix2x2Int matrix)
+    public static unsafe Matrix2x2Uint Transpose(Matrix2x2Uint matrix)
     {
         // if (AdvSimd.Arm64.IsSupported)
         // {
         //     
         // }
 
-        return new Matrix2x2Int(matrix.M11, matrix.M21, matrix.M12, matrix.M22);
+        return new Matrix2x2Uint(matrix.M11, matrix.M21, matrix.M12, matrix.M22);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly override bool Equals(object? obj)
     {
-        return obj is Matrix2x2Int other && Equals(other);
+        return obj is Matrix2x2Uint other && Equals(other);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly bool Equals(Matrix2x2Int other)
+    public readonly bool Equals(Matrix2x2Uint other)
     {
         if (Vector64.IsHardwareAccelerated)
         {
@@ -210,7 +197,7 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
                row2.Equals(other.row2);
     }
 
-    public readonly int GetDeterminant() => M11 * M22 - M12 * M21;
+    public readonly uint GetDeterminant() => M11 * M22 - M12 * M21;
 
     public readonly override int GetHashCode()
     {
