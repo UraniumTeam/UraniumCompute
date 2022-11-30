@@ -35,12 +35,6 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
         this = Unsafe.ReadUnaligned<Matrix2x2Uint>(ref Unsafe.As<uint, byte>(ref MemoryMarshal.GetReference(values)));
     }
 
-    private Matrix2x2Uint(Vector64<uint> firstRow, Vector64<uint> secondRow)
-    {
-        row1 = firstRow;
-        row2 = secondRow;
-    }
-
     public static Matrix2x2Uint Identity { get; } = new
     (
         1, 0,
