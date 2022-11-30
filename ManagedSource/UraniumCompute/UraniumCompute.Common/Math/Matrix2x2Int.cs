@@ -188,8 +188,9 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
             return matrix;
         }
 
-        var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        matrix.row1 *= scalar;
+        matrix.row2 *= scalar;
+        return matrix;
     }
 
 
@@ -210,8 +211,9 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
             return matrix;
         }
 
-        var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        matrix.row1 *= scalar;
+        matrix.row2 *= scalar;
+        return matrix;
     }
 
     public static bool operator ==(Matrix2x2Int left, Matrix2x2Int right)
