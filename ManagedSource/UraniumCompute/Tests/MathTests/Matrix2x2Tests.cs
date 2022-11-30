@@ -49,7 +49,7 @@ public class Matrix2x2Tests
     }
 
     [TestCase(new float[] { 1, 2, 3, 4 }, new float[] { -1, -2, -3, -4 })]
-    public void Negative(float[] matrix1, float[] result)
+    public void Negation(float[] matrix1, float[] result)
     {
         Assert.That(-new Matrix2x2(matrix1), Is.EqualTo(new Matrix2x2(result)));
     }
