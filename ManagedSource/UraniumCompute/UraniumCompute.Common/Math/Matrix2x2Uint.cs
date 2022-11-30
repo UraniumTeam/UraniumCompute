@@ -187,12 +187,6 @@ public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly bool Equals(Matrix2x2Uint other)
     {
-        if (Vector64.IsHardwareAccelerated)
-        {
-            return Vector64.LoadUnsafe(ref Unsafe.AsRef(in M11)).Equals(Vector64.LoadUnsafe(ref other.M11))
-                   && Vector64.LoadUnsafe(ref Unsafe.AsRef(in M21)).Equals(Vector64.LoadUnsafe(ref other.M21));
-        }
-
         return row1.Equals(other.row1) &&
                row2.Equals(other.row2);
     }
