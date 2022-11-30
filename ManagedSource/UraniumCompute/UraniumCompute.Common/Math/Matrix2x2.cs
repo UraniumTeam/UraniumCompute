@@ -70,56 +70,46 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
 
     public readonly bool IsIdentity => M11 == 1f && M22 == 1f && M12 == 0f && M21 == 0f;
 
-    public static unsafe Matrix2x2 operator +(Matrix2x2 value1, Matrix2x2 value2)
+    public static unsafe Matrix2x2 operator +(Matrix2x2 left, Matrix2x2 right)
     {
         if (AdvSimd.IsSupported)
         {
-            AdvSimd.Store(&value1.M11,
-                AdvSimd.Add(AdvSimd.LoadVector64(&value1.M11), AdvSimd.LoadVector64(&value2.M11)));
-            AdvSimd.Store(&value1.M21,
-                AdvSimd.Add(AdvSimd.LoadVector64(&value1.M21), AdvSimd.LoadVector64(&value2.M21)));
-            return value1;
+            AdvSimd.Store(&left.M11,
+                AdvSimd.Add(AdvSimd.LoadVector64(&left.M11), AdvSimd.LoadVector64(&right.M11)));
+            AdvSimd.Store(&left.M21,
+                AdvSimd.Add(AdvSimd.LoadVector64(&left.M21), AdvSimd.LoadVector64(&right.M21)));
+            return left;
         }
 
         if (Sse.IsSupported)
         {
-            Sse.Store(&value1.M11, Sse.Add(Sse.LoadVector128(&value1.M11), Sse.LoadVector128(&value2.M11)));
-            return value1;
+            Sse.Store(&left.M11, Sse.Add(Sse.LoadVector128(&left.M11), Sse.LoadVector128(&right.M11)));
+            return left;
         }
 
-        var vec = Vector128.Create(value1.row1 + value2.row1, value1.row2 + value2.row2);
+        var vec = Vector128.Create(left.row1 + right.row1, left.row2 + right.row2);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // Vector64<float>[] vec = { value1.row1 + value2.row1, value1.row2 + value2.row2 };
-        // return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector64<float>[], byte>(ref vec));
-        // or
-        // return new Matrix2x2(value1.row1 + value2.row1, value1.row2 + value2.row2);
     }
 
-    public static unsafe Matrix2x2 operator -(Matrix2x2 value1, Matrix2x2 value2)
+    public static unsafe Matrix2x2 operator -(Matrix2x2 left, Matrix2x2 right)
     {
         if (AdvSimd.IsSupported)
         {
-            AdvSimd.Store(&value1.M11,
-                AdvSimd.Subtract(AdvSimd.LoadVector64(&value1.M11), AdvSimd.LoadVector64(&value2.M11)));
-            AdvSimd.Store(&value1.M21,
-                AdvSimd.Subtract(AdvSimd.LoadVector64(&value1.M21), AdvSimd.LoadVector64(&value2.M21)));
-            return value1;
+            AdvSimd.Store(&left.M11,
+                AdvSimd.Subtract(AdvSimd.LoadVector64(&left.M11), AdvSimd.LoadVector64(&right.M11)));
+            AdvSimd.Store(&left.M21,
+                AdvSimd.Subtract(AdvSimd.LoadVector64(&left.M21), AdvSimd.LoadVector64(&right.M21)));
+            return left;
         }
 
         if (Sse.IsSupported)
         {
-            Sse.Store(&value1.M11, Sse.Subtract(Sse.LoadVector128(&value1.M11), Sse.LoadVector128(&value2.M11)));
-            return value1;
+            Sse.Store(&left.M11, Sse.Subtract(Sse.LoadVector128(&left.M11), Sse.LoadVector128(&right.M11)));
+            return left;
         }
 
-        var vec = Vector128.Create(value1.row1 - value2.row1, value1.row2 - value2.row2);
+        var vec = Vector128.Create(left.row1 - right.row1, left.row2 - right.row2);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // Vector64<float>[] vec = { value1.row1 - value2.row1, value1.row2 - value2.row2 };
-        // return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector64<float>[], byte>(ref vec));
-        // or
-        // return new Matrix2x2(value1.row1 - value2.row1, value1.row2 - value2.row2);
     }
 
     public static unsafe Matrix2x2 operator -(Matrix2x2 value)
@@ -140,27 +130,25 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
 
         var vec = Vector128.Create(-value.row1, -value.row2);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // return new Matrix2x2(-value.M11, -value.M12, -value.M21, -value.M21);
     }
 
-    public static unsafe Matrix2x2 operator *(Matrix2x2 value1, Matrix2x2 value2)
+    public static unsafe Matrix2x2 operator *(Matrix2x2 left, Matrix2x2 right)
     {
         if (AdvSimd.Arm64.IsSupported)
         {
             Unsafe.SkipInit(out Matrix2x2 result);
 
-            Vector64<float> value1Row1 = AdvSimd.LoadVector64(&value1.M11);
+            var leftRow1 = AdvSimd.LoadVector64(&left.M11);
 
-            Vector64<float> vX = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&value2.M11), value1Row1, 0);
-            Vector64<float> vY = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&value2.M21), value1Row1, 1);
+            var vX = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&right.M11), leftRow1, 0);
+            var vY = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&right.M21), leftRow1, 1);
 
             AdvSimd.Store(&result.M11, AdvSimd.Add(vX, vY));
 
-            Vector64<float> value1Row2 = AdvSimd.LoadVector64(&value1.M21);
+            var leftRow2 = AdvSimd.LoadVector64(&left.M21);
 
-            vX = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&value2.M11), value1Row2, 0);
-            vY = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&value2.M21), value1Row2, 1);
+            vX = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&right.M11), leftRow2, 0);
+            vY = AdvSimd.MultiplyBySelectedScalar(AdvSimd.LoadVector64(&right.M21), leftRow2, 1);
 
             AdvSimd.Store(&result.M21, AdvSimd.Add(vX, vY));
 
@@ -169,31 +157,24 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
 
         if (Sse.IsSupported)
         {
-            Vector128<float> zero = Vector128<float>.Zero;
-            Vector128<float> m1 = Sse.LoadVector128(&value1.M11);
-            Vector128<float> m2 = Sse.LoadVector128(&value2.M11);
-            Vector128<float> m2ShiftLeft = Sse.Shuffle(m2, m2, 0x93);
+            var zero = Vector128<float>.Zero;
+            var l = Sse.LoadVector128(&left.M11);
+            var r = Sse.LoadVector128(&right.M11);
+            var m2ShiftLeft = Sse.Shuffle(r, r, 0x93);
             Sse.Store(
-                &value1.M11,
+                &left.M11,
                 Sse.Add(
-                    Sse.Add(Sse.Multiply(Sse.Shuffle(m1, zero, 0x00), m2),
-                        Sse.Multiply(Sse.Shuffle(m1, zero, 0x55), Sse.Shuffle(m2ShiftLeft, m2ShiftLeft, 0x93))),
-                    Sse.Add(Sse.Multiply(Sse.Shuffle(zero, m1, 0xAA), Sse.Shuffle(m2ShiftLeft, m2ShiftLeft, 0x93)),
-                        Sse.Multiply(Sse.Shuffle(zero, m1, 0xFF), m2))));
-            return value1;
+                    Sse.Add(Sse.Multiply(Sse.Shuffle(l, zero, 0x00), r),
+                        Sse.Multiply(Sse.Shuffle(l, zero, 0x55), Sse.Shuffle(m2ShiftLeft, m2ShiftLeft, 0x93))),
+                    Sse.Add(Sse.Multiply(Sse.Shuffle(zero, l, 0xAA), Sse.Shuffle(m2ShiftLeft, m2ShiftLeft, 0x93)),
+                        Sse.Multiply(Sse.Shuffle(zero, l, 0xFF), r))));
+            return left;
         }
 
         var vec = Vector128.Create(
-            value2.row1 * value1.M11 + value2.row2 * value1.M12,
-            value2.row1 * value1.M21 + value2.row2 * value1.M22);
+            right.row1 * left.M11 + right.row2 * left.M12,
+            right.row1 * left.M21 + right.row2 * left.M22);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // return new Matrix2x2(
-        //     value1.M11 * value2.M11 + value1.M12 * value2.M21,
-        //     value1.M11 * value2.M12 + value1.M12 * value2.M22,
-        //     value1.M21 * value2.M11 + value1.M22 * value2.M21,
-        //     value1.M21 * value2.M12 + value1.M22 * value2.M22
-        // );
     }
 
     public static unsafe Matrix2x2 operator *(Matrix2x2 matrix, float scalar)
@@ -205,7 +186,8 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
             AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M21), value2Vec));
             return matrix;
         }
-        else if (Sse.IsSupported)
+
+        if (Sse.IsSupported)
         {
             var value2Vec = Vector128.Create(scalar);
             Sse.Store(&matrix.M11, Sse.Multiply(Sse.LoadVector128(&matrix.M11), value2Vec));
@@ -214,8 +196,6 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
 
         var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // return new Matrix2x2(value1.M11 * value2, value1.M12 * value2, value1.M21 * value2, value1.M21 * value2);
     }
 
 
@@ -228,7 +208,8 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
             AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector64(&matrix.M21), v));
             return matrix;
         }
-        else if (Sse.IsSupported)
+
+        if (Sse.IsSupported)
         {
             var v = Vector128.Create(scalar);
             Sse.Store(&matrix.M11, Sse.Multiply(Sse.LoadVector128(&matrix.M11), v));
@@ -237,20 +218,18 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
 
         var vec = Vector128.Create(matrix.row1 * scalar, matrix.row2 * scalar);
         return Unsafe.ReadUnaligned<Matrix2x2>(ref Unsafe.As<Vector128<float>, byte>(ref vec));
-        // or
-        // return new Matrix2x2(value1.M11 * value2, value1.M12 * value2, value1.M21 * value2, value1.M21 * value2);
     }
 
-    public static bool operator ==(Matrix2x2 value1, Matrix2x2 value2)
+    public static bool operator ==(Matrix2x2 left, Matrix2x2 right)
     {
-        return value1.row1 == value2.row1 &&
-               value1.row2 == value2.row2;
+        return left.row1 == right.row1 &&
+               left.row2 == right.row2;
     }
 
-    public static bool operator !=(Matrix2x2 value1, Matrix2x2 value2)
+    public static bool operator !=(Matrix2x2 left, Matrix2x2 right)
     {
-        return value1.row1 != value2.row1 ||
-               value1.row2 != value2.row2;
+        return left.row1 != right.row1 ||
+               left.row2 != right.row2;
     }
 
     public static unsafe Matrix2x2 Transpose(Matrix2x2 matrix)
@@ -292,10 +271,8 @@ public struct Matrix2x2 : IEquatable<Matrix2x2>
     {
         HashCode hash = default;
 
-        hash.Add(M11);
-        hash.Add(M12);
-        hash.Add(M21);
-        hash.Add(M22);
+        hash.Add(row1);
+        hash.Add(row2);
 
         return hash.ToHashCode();
     }
