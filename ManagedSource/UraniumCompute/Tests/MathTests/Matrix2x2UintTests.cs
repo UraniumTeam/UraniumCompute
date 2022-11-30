@@ -29,6 +29,7 @@ public class Matrix2x2UintTests
     }
 
     [TestCase(new uint[] { 1, 2, 3, 4 }, 2u, new uint[] { 2, 4, 6, 8 })]
+    [TestCase(new uint[] { 1, 2, 3, 4 }, 200000000u, new uint[] { 200000000, 400000000, 600000000, 800000000 })]
     public void ScalarMultiplication(uint[] matrix1, uint scalar, uint[] result)
     {
         Assert.Multiple(() =>
