@@ -10,7 +10,7 @@ public class Matrix3x3Tests
     {
         public int Compare(Matrix3x3 x, Matrix3x3 y)
         {
-            const float epsilon = 0.001f;
+            const float epsilon = 0.0001f;
             var m11Comparison = x.M11 - y.M11 > epsilon;
             var m12Comparison = x.M12 - y.M12 > epsilon;
             var m13Comparison = x.M13 - y.M13 > epsilon;
@@ -24,15 +24,15 @@ public class Matrix3x3Tests
                 m21Comparison || m22Comparison || m23Comparison ||
                 m31Comparison || m32Comparison || m33Comparison)
                 return -1;
-            m11Comparison = x.M11 - y.M11 < epsilon;
-            m12Comparison = x.M12 - y.M12 < epsilon;
-            m13Comparison = x.M13 - y.M13 < epsilon;
-            m21Comparison = x.M21 - y.M21 < epsilon;
-            m22Comparison = x.M22 - y.M22 < epsilon;
-            m23Comparison = x.M23 - y.M23 < epsilon;
-            m31Comparison = x.M31 - y.M31 < epsilon;
-            m32Comparison = x.M32 - y.M32 < epsilon;
-            m33Comparison = x.M33 - y.M33 < epsilon;
+            m11Comparison = y.M11 - x.M11 > epsilon;
+            m12Comparison = y.M12 - x.M12 > epsilon;
+            m13Comparison = y.M13 - x.M13 > epsilon;
+            m21Comparison = y.M21 - x.M21 > epsilon;
+            m22Comparison = y.M22 - x.M22 > epsilon;
+            m23Comparison = y.M23 - x.M23 > epsilon;
+            m31Comparison = y.M31 - x.M31 > epsilon;
+            m32Comparison = y.M32 - x.M32 > epsilon;
+            m33Comparison = y.M33 - x.M33 > epsilon;
             if (m11Comparison || m12Comparison || m13Comparison ||
                 m21Comparison || m22Comparison || m23Comparison ||
                 m31Comparison || m32Comparison || m33Comparison)
