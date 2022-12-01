@@ -10,6 +10,15 @@ internal sealed class ControlFlowGraph
     public List<BasicBlock> Blocks { get; }
     public List<BasicBlockBranch> Branches { get; }
 
+    private ControlFlowGraph(BasicBlock start, BasicBlock end, List<BasicBlock> blocks,
+        List<BasicBlockBranch> branches)
+    {
+        Start = start;
+        End = end;
+        Blocks = blocks;
+        Branches = branches;
+    }
+
     public static ControlFlowGraph Create(BlockStatementSyntax block)
     {
         var basicBlockBuilder = new BasicBlockBuilder();
@@ -19,13 +28,62 @@ internal sealed class ControlFlowGraph
         return graphBuilder.Build(blocks);
     }
 
-    private ControlFlowGraph(BasicBlock start, BasicBlock end, List<BasicBlock> blocks,
-        List<BasicBlockBranch> branches)
+    public static IEnumerable<BasicBlock> BreadthSearch(BasicBlock startNode)
     {
-        Start = start;
-        End = end;
-        Blocks = blocks;
-        Branches = branches;
+        var visited = new HashSet<BasicBlock>();
+        var queue = new Queue<BasicBlock>();
+        visited.Add(startNode);
+        queue.Enqueue(startNode);
+        while (queue.Count != 0)
+        {
+            var node = queue.Dequeue();
+            yield return node;
+            foreach (var nextNode in node.Outgoing.Select(x => x.To).Where(n => !visited.Contains(n)))
+            {
+                visited.Add(nextNode);
+                queue.Enqueue(nextNode);
+            }
+        }
+    }
+
+    public override string ToString()
+    {
+        string Quote(string text)
+        {
+            return "\"" + text.TrimEnd()
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace(Environment.NewLine, "\\l") + "\"";
+        }
+
+        var writer = new StringWriter();
+        writer.WriteLine("digraph G {");
+
+        var blockIds = new Dictionary<BasicBlock, string>();
+
+        for (var i = 0; i < Blocks.Count; i++)
+        {
+            var id = $"N{i}";
+            blockIds.Add(Blocks[i], id);
+        }
+
+        foreach (var block in Blocks)
+        {
+            var id = blockIds[block];
+            var label = Quote(block.ToString());
+            writer.WriteLine($"    {id} [label = {label}, shape = box]");
+        }
+
+        foreach (var branch in Branches)
+        {
+            var fromId = blockIds[branch.From];
+            var toId = blockIds[branch.To];
+            var label = Quote(branch.ToString());
+            writer.WriteLine($"    {fromId} -> {toId} [label = {label}]");
+        }
+
+        writer.WriteLine("}");
+        return writer.ToString();
     }
 
     public sealed class BasicBlock
@@ -271,63 +329,5 @@ internal sealed class ControlFlowGraph
 
             return new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, condition);
         }
-    }
-
-    public static IEnumerable<BasicBlock> BreadthSearch(BasicBlock startNode)
-    {
-        var visited = new HashSet<BasicBlock>();
-        var queue = new Queue<BasicBlock>();
-        visited.Add(startNode);
-        queue.Enqueue(startNode);
-        while (queue.Count != 0)
-        {
-            var node = queue.Dequeue();
-            yield return node;
-            foreach (var nextNode in node.Outgoing.Select(x => x.To).Where(n => !visited.Contains(n)))
-            {
-                visited.Add(nextNode);
-                queue.Enqueue(nextNode);
-            }
-        }
-    }
-
-    public override string ToString()
-    {
-        string Quote(string text)
-        {
-            return "\"" + text.TrimEnd()
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace(Environment.NewLine, "\\l") + "\"";
-        }
-
-        var writer = new StringWriter();
-        writer.WriteLine("digraph G {");
-
-        var blockIds = new Dictionary<BasicBlock, string>();
-
-        for (var i = 0; i < Blocks.Count; i++)
-        {
-            var id = $"N{i}";
-            blockIds.Add(Blocks[i], id);
-        }
-
-        foreach (var block in Blocks)
-        {
-            var id = blockIds[block];
-            var label = Quote(block.ToString());
-            writer.WriteLine($"    {id} [label = {label}, shape = box]");
-        }
-
-        foreach (var branch in Branches)
-        {
-            var fromId = blockIds[branch.From];
-            var toId = blockIds[branch.To];
-            var label = Quote(branch.ToString());
-            writer.WriteLine($"    {fromId} -> {toId} [label = {label}]");
-        }
-
-        writer.WriteLine("}");
-        return writer.ToString();
     }
 }

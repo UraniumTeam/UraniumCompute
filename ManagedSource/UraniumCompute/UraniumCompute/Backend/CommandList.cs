@@ -35,13 +35,6 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     {
     }
 
-    protected override void InitInternal(in Desc desc)
-    {
-        ICommandList_Init(Handle, in desc);
-        var fenceHandle = ICommandList_GetFence(Handle);
-        fence = new Fence(fenceHandle);
-    }
-
     /// <summary>
     ///     Set the command list state to the Recording state.
     /// </summary>
@@ -65,6 +58,13 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     public void Submit()
     {
         ICommandList_Submit(Handle).ThrowOnError("Couldn't submit command list for execution");
+    }
+
+    protected override void InitInternal(in Desc desc)
+    {
+        ICommandList_Init(Handle, in desc);
+        var fenceHandle = ICommandList_GetFence(Handle);
+        fence = new Fence(fenceHandle);
     }
 
     [DllImport("UnCompute")]

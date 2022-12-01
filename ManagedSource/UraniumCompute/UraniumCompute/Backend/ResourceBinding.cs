@@ -23,11 +23,6 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     {
     }
 
-    protected override void InitInternal(in Desc desc)
-    {
-        IResourceBinding_Init(Handle, in desc).ThrowOnError("Couldn't initialize device memory");
-    }
-
     /// <summary>
     ///     Set kernel variable.
     /// </summary>
@@ -38,6 +33,11 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
         where T : unmanaged
     {
         IResourceBinding_SetVariable(Handle, bindingIndex, buffer.Handle).ThrowOnError("Couldn't set kernel variable");
+    }
+
+    protected override void InitInternal(in Desc desc)
+    {
+        IResourceBinding_Init(Handle, in desc).ThrowOnError("Couldn't initialize device memory");
     }
 
     [DllImport("UnCompute")]

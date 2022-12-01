@@ -20,7 +20,7 @@ public abstract class MemoryMapper<T> : IDisposable
     public int Count => (int)LongCount;
 
     /// <summary>
-    ///     The number of elements in the mapped memory as <see cref="System.Int64"/>.
+    ///     The number of elements in the mapped memory as <see cref="System.Int64" />.
     /// </summary>
     public ulong LongCount => memorySlice.Size / ElementSize;
 
@@ -38,7 +38,7 @@ public abstract class MemoryMapper<T> : IDisposable
         GC.SuppressFinalize(this);
         memorySlice.Unmap();
     }
-    
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected unsafe ref T GetElementAt(long index)
     {

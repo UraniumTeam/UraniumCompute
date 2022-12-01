@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace UraniumCompute.Backend;
 
-/// <inheritdoc cref="MemoryMapper{T}"/>
+/// <inheritdoc cref="MemoryMapper{T}" />
 public sealed class MemoryMapper1D<T> : MemoryMapper<T>, IReadOnlyList<T>
     where T : unmanaged
 {
@@ -25,11 +25,6 @@ public sealed class MemoryMapper1D<T> : MemoryMapper<T>, IReadOnlyList<T>
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Span<T> Slice(int start, int length)
     {
@@ -47,5 +42,10 @@ public sealed class MemoryMapper1D<T> : MemoryMapper<T>, IReadOnlyList<T>
     internal unsafe MemoryMapper2D<T> ReshapeUnchecked(ulong width, ulong height)
     {
         return new MemoryMapper2D<T>(width, height, in memorySlice, mapPointer);
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
