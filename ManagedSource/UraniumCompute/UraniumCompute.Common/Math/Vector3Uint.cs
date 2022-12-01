@@ -25,6 +25,28 @@ public struct Vector3Uint : IEquatable<Vector3Uint>
 
     private static readonly unsafe int size = sizeof(Vector3Uint);
 
+    public uint this[int index]
+    {
+        get
+        {
+            if ((uint)index >= 3)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return Unsafe.Add(ref Unsafe.As<Vector3Uint, uint>(ref this), index);
+        }
+        set
+        {
+            if ((uint)index >= 3)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Unsafe.Add(ref Unsafe.As<Vector3Uint, uint>(ref this), index) = value;
+        }
+    }
+
     public Vector3Uint(ReadOnlySpan<uint> values)
     {
         if (values.Length < 3)
