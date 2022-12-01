@@ -49,13 +49,6 @@ public struct Matrix3x3Int : IEquatable<Matrix3x3Int>
         this = Unsafe.ReadUnaligned<Matrix3x3Int>(ref Unsafe.As<int, byte>(ref MemoryMarshal.GetReference(values)));
     }
 
-    private Matrix3x3Int(Vector3Int row1, Vector3Int row2, Vector3Int row3)
-    {
-        this.row1 = row1;
-        this.row2 = row2;
-        this.row3 = row3;
-    }
-
     public static Matrix3x3Int Identity { get; } = new
     (
         1, 0, 0,
