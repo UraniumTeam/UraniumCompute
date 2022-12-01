@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics;
 
 namespace UraniumCompute.Common.Math;
 
@@ -21,9 +20,29 @@ public struct Vector3Int : IEquatable<Vector3Int>
 
     [FieldOffset(sizeof(int) * 2)] public int Z;
 
-    [FieldOffset(0)] private readonly Vector128<int> value;
-
     private static readonly unsafe int size = sizeof(Vector3Int);
+
+    public int this[int index]
+    {
+        get
+        {
+            if ((uint)index >= 3)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return Unsafe.Add(ref Unsafe.As<Vector3Int, int>(ref this), index);
+        }
+        set
+        {
+            if ((uint)index >= 3)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Unsafe.Add(ref Unsafe.As<Vector3Int, int>(ref this), index) = value;
+        }
+    }
 
     public Vector3Int(ReadOnlySpan<int> values)
     {
@@ -46,55 +65,50 @@ public struct Vector3Int : IEquatable<Vector3Int>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator +(Vector3Int left, Vector3Int right)
     {
-        var vec = left.value + right.value;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator -(Vector3Int left, Vector3Int right)
     {
-        var vec = left.value - right.value;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(left.X - right.X, left.Y - right.Y, left.Z - right.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator *(Vector3Int left, Vector3Int right)
     {
-        var vec = left.value * right.value;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(left.X * right.X, left.Y * right.Y, left.Z * right.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator /(Vector3Int left, Vector3Int right)
     {
-        var vec = Vector128.Create(left.X / right.X, left.Y / right.Y, left.Z / right.Z, 0);
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator *(Vector3Int left, int right)
     {
-        var vec = left.value * right;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(left.X * right, left.Y * right, left.Z * right);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator *(int left, Vector3Int right)
     {
-        var vec = right.value * left;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(right.X * left, right.Y * left, right.Z * left);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator -(Vector3Int vector)
     {
-        var vec = -vector.value;
-        return Unsafe.ReadUnaligned<Vector3Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        return new Vector3Int(-vector.X, -vector.Y, -vector.Z);
     }
 
     public bool Equals(Vector3Int other)
     {
-        return value.Equals(other.value);
+        return X.Equals(other.X) &&
+               Y.Equals(other.Y) &&
+               Z.Equals(other.Z);
     }
 
     public override bool Equals(object? obj)
@@ -104,17 +118,27 @@ public struct Vector3Int : IEquatable<Vector3Int>
 
     public override int GetHashCode()
     {
-        return value.GetHashCode();
+        HashCode hash = default;
+
+        hash.Add(X);
+        hash.Add(Y);
+        hash.Add(Z);
+
+        return hash.ToHashCode();
     }
 
     public static bool operator ==(Vector3Int left, Vector3Int right)
     {
-        return left.value == right.value;
+        return left.X == right.X &&
+               left.Y == right.Y &&
+               left.Z == right.Z;
     }
 
     public static bool operator !=(Vector3Int left, Vector3Int right)
     {
-        return left.value != right.value;
+        return left.X != right.X ||
+               left.Y != right.Y ||
+               left.Z != right.Z;
     }
 
     public override string ToString()
