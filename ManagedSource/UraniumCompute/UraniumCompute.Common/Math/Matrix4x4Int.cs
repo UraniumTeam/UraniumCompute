@@ -304,6 +304,11 @@ namespace UraniumCompute.Common.Math
             return matrix;
         }
 
+        public static Matrix4x4Int operator *(int scalar, Matrix4x4Int matrix)
+        {
+            return matrix * scalar;
+        }
+
         public static unsafe bool operator ==(Matrix4x4Int left, Matrix4x4Int right)
         {
             if (AdvSimd.Arm64.IsSupported)
