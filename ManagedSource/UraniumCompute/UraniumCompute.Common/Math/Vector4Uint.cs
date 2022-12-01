@@ -110,13 +110,6 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
         return Unsafe.ReadUnaligned<Vector4Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector4Uint operator -(Vector4Uint vector)
-    {
-        var vec = -vector.value;
-        return Unsafe.ReadUnaligned<Vector4Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
-    }
-
     public bool Equals(Vector4Uint other)
     {
         return value.Equals(other.value);
