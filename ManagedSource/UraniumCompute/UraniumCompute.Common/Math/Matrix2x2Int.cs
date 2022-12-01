@@ -121,8 +121,9 @@ public struct Matrix2x2Int : IEquatable<Matrix2x2Int>
             return value;
         }
 
-        var vec = -Vector128.Create(value.row1, value.row2);
-        return Unsafe.ReadUnaligned<Matrix2x2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+        value.row1 = -value.row1;
+        value.row2 = -value.row2;
+        return value;
     }
 
     public static unsafe Matrix2x2Int operator *(Matrix2x2Int left, Matrix2x2Int right)
