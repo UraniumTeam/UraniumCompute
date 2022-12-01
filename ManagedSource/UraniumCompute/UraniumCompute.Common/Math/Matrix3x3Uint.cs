@@ -8,18 +8,18 @@ public struct Matrix3x3Uint : IEquatable<Matrix3x3Uint>
 {
     [FieldOffset(0)] private Vector3Uint row1;
     [FieldOffset(0)] public uint M11;
-    [FieldOffset(sizeof(uint))] public uint M12;
-    [FieldOffset(sizeof(uint) * 2)] public uint M13;
+    [FieldOffset(sizeof(int))] public uint M12;
+    [FieldOffset(sizeof(int) * 2)] public uint M13;
 
-    [FieldOffset(sizeof(uint) * 4)] private Vector3Uint row2;
-    [FieldOffset(sizeof(uint) * 4)] public uint M21;
-    [FieldOffset(sizeof(uint) * 5)] public uint M22;
-    [FieldOffset(sizeof(uint) * 6)] public uint M23;
+    [FieldOffset(sizeof(int) * 3)] private Vector3Uint row2;
+    [FieldOffset(sizeof(int) * 3)] public uint M21;
+    [FieldOffset(sizeof(int) * 4)] public uint M22;
+    [FieldOffset(sizeof(int) * 5)] public uint M23;
 
-    [FieldOffset(sizeof(uint) * 8)] private Vector3Uint row3;
-    [FieldOffset(sizeof(uint) * 8)] public uint M31;
-    [FieldOffset(sizeof(uint) * 9)] public uint M32;
-    [FieldOffset(sizeof(uint) * 10)] public uint M33;
+    [FieldOffset(sizeof(int) * 6)] private Vector3Uint row3;
+    [FieldOffset(sizeof(int) * 6)] public uint M31;
+    [FieldOffset(sizeof(int) * 7)] public uint M32;
+    [FieldOffset(sizeof(int) * 8)] public uint M33;
 
     public Matrix3x3Uint(
         uint m11, uint m12, uint m13,

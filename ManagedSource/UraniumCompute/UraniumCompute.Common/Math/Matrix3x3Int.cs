@@ -11,15 +11,15 @@ public struct Matrix3x3Int : IEquatable<Matrix3x3Int>
     [FieldOffset(sizeof(int))] public int M12;
     [FieldOffset(sizeof(int) * 2)] public int M13;
 
-    [FieldOffset(sizeof(int) * 4)] private Vector3Int row2;
-    [FieldOffset(sizeof(int) * 4)] public int M21;
-    [FieldOffset(sizeof(int) * 5)] public int M22;
-    [FieldOffset(sizeof(int) * 6)] public int M23;
+    [FieldOffset(sizeof(int) * 3)] private Vector3Int row2;
+    [FieldOffset(sizeof(int) * 3)] public int M21;
+    [FieldOffset(sizeof(int) * 4)] public int M22;
+    [FieldOffset(sizeof(int) * 5)] public int M23;
 
-    [FieldOffset(sizeof(int) * 8)] private Vector3Int row3;
-    [FieldOffset(sizeof(int) * 8)] public int M31;
-    [FieldOffset(sizeof(int) * 9)] public int M32;
-    [FieldOffset(sizeof(int) * 10)] public int M33;
+    [FieldOffset(sizeof(int) * 6)] private Vector3Int row3;
+    [FieldOffset(sizeof(int) * 6)] public int M31;
+    [FieldOffset(sizeof(int) * 7)] public int M32;
+    [FieldOffset(sizeof(int) * 8)] public int M33;
 
     public Matrix3x3Int(
         int m11, int m12, int m13,
