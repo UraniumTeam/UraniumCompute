@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using UraniumCompute.Common.Math;
+﻿using Mono.Cecil;
 using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;
@@ -10,32 +9,19 @@ internal class PropertyExpressionSyntax : ExpressionSyntax
     internal string PropertyName { get; }
     public override TypeSymbol ExpressionType { get; }
 
-    public PropertyExpressionSyntax(ExpressionSyntax instance, string propertyName)
+    public PropertyExpressionSyntax(ExpressionSyntax instance, FieldReference fieldReference)
     {
         Instance = instance;
-        PropertyName = propertyName;
-        ExpressionType = ResolveType(instance.ExpressionType);
-    }
 
-    private static TypeSymbol ResolveType(TypeSymbol instanceType)
-    {
-        switch (instanceType.FullName)
+        if (instance.ExpressionType.TryGetFieldDesc(fieldReference, out var fieldDesc))
         {
-            case "float2":
-            case "float3":
-            case "float4":
-                return TypeResolver.CreateType(typeof(float));
-            case "int2":
-            case "int3":
-            case "int4":
-                return TypeResolver.CreateType(typeof(int));
-            case "uint2":
-            case "uint3":
-            case "uint4":
-                return TypeResolver.CreateType(typeof(uint));
+            PropertyName = fieldDesc.Name;
+            ExpressionType = fieldDesc.FieldType;
         }
-
-        throw new ArgumentException($"Unsupported type: {instanceType}");
+        else
+        {
+            throw new Exception($"Unknown field {fieldReference}");
+        }
     }
 
     public override string ToString()

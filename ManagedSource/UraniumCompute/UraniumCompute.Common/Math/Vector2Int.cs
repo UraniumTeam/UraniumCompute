@@ -8,18 +8,17 @@ namespace UraniumCompute.Common.Math;
 [StructLayout(LayoutKind.Explicit)]
 public struct Vector2Int : IEquatable<Vector2Int>
 {
-    [FieldOffset(0)] public int X;
-
-    [FieldOffset(sizeof(int))] public int Y;
-
-    [FieldOffset(0)] private Vector64<int> value;
-
     public static Vector2Int Zero => default;
 
     public static Vector2Int One => new(1);
 
     public static Vector2Int UnitX => new(1, 0);
     public static Vector2Int UnitY => new(0, 1);
+    [FieldOffset(0)] public int X;
+
+    [FieldOffset(sizeof(int))] public int Y;
+
+    [FieldOffset(0)] private readonly Vector64<int> value;
 
     private static readonly unsafe int size = sizeof(Vector2Int);
 

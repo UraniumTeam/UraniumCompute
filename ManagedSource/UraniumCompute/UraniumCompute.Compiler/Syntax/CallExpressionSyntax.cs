@@ -13,7 +13,7 @@ internal class CallExpressionSyntax : ExpressionSyntax
         CalledFunction = calledFunction;
         Arguments = arguments.ToList();
     }
-    
+
     public override string ToString()
     {
         return $"{CalledFunction.FullName}({string.Join(", ", Arguments)})";

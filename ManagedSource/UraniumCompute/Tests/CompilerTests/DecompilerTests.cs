@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using UraniumCompute.Compiler.Decompiling;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;
 
@@ -113,6 +114,26 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
         {
             a[0] = 6;
             return 0;
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesIntFloatConversion()
+    {
+        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    uint V_0;
+    V_0 = globalInvocationID.x;
+    values[V_0] = ((float)((float)V_0));
+    return ;
+}
+";
+        AssertFunc((Span<float> values) =>
+        {
+            var index = GpuIntrinsic.GetGlobalInvocationId().X;
+            values[(int)index] = index;
         }, expectedResult);
     }
 

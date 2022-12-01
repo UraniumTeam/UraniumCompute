@@ -8,5 +8,7 @@ internal interface ICodeGenerator
     int IndentSize { get; }
 
     void EmitFunction(FunctionDeclarationSyntax syntax);
+    void EmitStruct(StructDeclarationSyntax syntax);
     string CreateForwardDeclaration(FunctionDeclarationSyntax syntax);
+    string CreateForwardDeclaration(StructDeclarationSyntax syntax);
 }

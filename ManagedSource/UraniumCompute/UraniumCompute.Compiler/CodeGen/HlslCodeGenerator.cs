@@ -1,13 +1,12 @@
 ﻿using UraniumCompute.Compiler.Decompiling;
-using UraniumCompute.Compiler.Disassembling;
 using UraniumCompute.Compiler.Syntax;
 
 namespace UraniumCompute.Compiler.CodeGen;
 
 internal sealed class HlslCodeGenerator : ICodeGenerator
 {
-    public TextWriter Output { get; private set; }
     public int IndentSize { get; }
+    public TextWriter Output { get; private set; }
 
     public HlslCodeGenerator(TextWriter output, int indentSize)
     {
@@ -26,11 +25,29 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         return result!;
     }
 
+    public string CreateForwardDeclaration(StructDeclarationSyntax syntax)
+    {
+        return $"struct {syntax.StructType.FullName};{Environment.NewLine}";
+    }
+
     public void EmitFunction(FunctionDeclarationSyntax syntax)
     {
         EmitFunctionDeclarationImpl(syntax);
         Output.WriteLine();
         EmitStatement(syntax.Block, 0);
+    }
+
+    public void EmitStruct(StructDeclarationSyntax syntax)
+    {
+        Output.WriteLine($"struct {syntax.StructType.FullName}");
+        Output.WriteLine("{");
+        foreach (var field in syntax.StructType.Fields)
+        {
+            WriteIndent(1);
+            Output.WriteLine($"{field.FieldType} {field.Name};");
+        }
+
+        Output.WriteLine("};");
     }
 
     private void EmitFunctionDeclarationImpl(FunctionDeclarationSyntax syntax)
@@ -41,6 +58,7 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
             {
                 Emit(parameter);
             }
+
             Emit(syntax.KernelAttribute, 0);
         }
 
@@ -99,6 +117,9 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
             case BinaryExpressionSyntax syntax:
                 Emit(syntax);
                 break;
+            case ConversionExpression syntax:
+                Emit(syntax);
+                break;
             case CallExpressionSyntax syntax:
                 Emit(syntax);
                 break;
@@ -154,6 +175,15 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         EmitExpression(syntax.Left);
         Output.Write($" {BinaryExpressionSyntax.GetOperationString(syntax.Kind)} ");
         EmitExpression(syntax.Right);
+        Output.Write(")");
+    }
+
+    private void Emit(ConversionExpression syntax)
+    {
+        Output.Write("((");
+        Output.Write(syntax.ExpressionType);
+        Output.Write(")");
+        EmitExpression(syntax.ConvertedExpression);
         Output.Write(")");
     }
 
@@ -264,7 +294,11 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     {
         WriteIndent(indent);
         Output.Write("return ");
-        EmitExpression(syntax.Expression);
+        if (syntax.Expression is not null)
+        {
+            EmitExpression(syntax.Expression);
+        }
+
         Output.WriteLine(';');
     }
 
