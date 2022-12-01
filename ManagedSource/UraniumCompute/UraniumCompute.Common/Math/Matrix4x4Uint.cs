@@ -99,8 +99,8 @@ namespace UraniumCompute.Common.Math
                 if ((uint)row >= 4)
                     throw new ArgumentOutOfRangeException();
 
-                var vrow = Unsafe.Add(ref Unsafe.As<uint, Vector4Uint>(ref M11), row);
-                return vrow[column];
+                var vRow = Unsafe.Add(ref Unsafe.As<uint, Vector4Uint>(ref M11), row);
+                return vRow[column];
             }
             set
             {
@@ -185,8 +185,45 @@ namespace UraniumCompute.Common.Math
             return left;
         }
 
-        public static Matrix4x4Uint operator *(Matrix4x4Uint left, Matrix4x4Uint right)
+        public static unsafe Matrix4x4Uint operator *(Matrix4x4Uint left, Matrix4x4Uint right)
         {
+            if (Sse41.IsSupported)
+            {
+                var row = Sse2.LoadVector128(&left.M11);
+                Sse2.Store(&left.M11,
+                    Sse2.Add(
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0x00), Sse2.LoadVector128(&right.M11)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0x55), Sse2.LoadVector128(&right.M21))),
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0xAA), Sse2.LoadVector128(&right.M31)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0xFF), Sse2.LoadVector128(&right.M41)))));
+
+                row = Sse2.LoadVector128(&left.M21);
+                Sse2.Store(&left.M21,
+                    Sse2.Add(
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0x00), Sse2.LoadVector128(&right.M11)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0x55), Sse2.LoadVector128(&right.M21))),
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0xAA), Sse2.LoadVector128(&right.M31)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0xFF), Sse2.LoadVector128(&right.M41)))));
+
+                row = Sse2.LoadVector128(&left.M31);
+                Sse2.Store(&left.M31,
+                    Sse2.Add(
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0x00), Sse2.LoadVector128(&right.M11)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0x55), Sse2.LoadVector128(&right.M21))),
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0xAA), Sse2.LoadVector128(&right.M31)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0xFF), Sse2.LoadVector128(&right.M41)))));
+
+                row = Sse2.LoadVector128(&left.M41);
+                Sse2.Store(&left.M41,
+                    Sse2.Add(
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0x00), Sse2.LoadVector128(&right.M11)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0x55), Sse2.LoadVector128(&right.M21))),
+                        Sse2.Add(Sse41.MultiplyLow(Sse2.Shuffle(row, 0xAA), Sse2.LoadVector128(&right.M31)),
+                            Sse41.MultiplyLow(Sse2.Shuffle(row, 0xFF), Sse2.LoadVector128(&right.M41)))));
+
+                return left;
+            }
+
             return new Matrix4x4Uint(
                 left.M11 * right.M11 + left.M12 * right.M21 + left.M13 * right.M31 + left.M14 * right.M41,
                 left.M11 * right.M12 + left.M12 * right.M22 + left.M13 * right.M32 + left.M14 * right.M42,
@@ -210,21 +247,21 @@ namespace UraniumCompute.Common.Math
         {
             if (AdvSimd.IsSupported)
             {
-                var value2Vec = Vector128.Create(scalar);
-                AdvSimd.Store(&matrix.M11, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M11), value2Vec));
-                AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M21), value2Vec));
-                AdvSimd.Store(&matrix.M31, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M31), value2Vec));
-                AdvSimd.Store(&matrix.M41, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M41), value2Vec));
+                var v = Vector128.Create(scalar);
+                AdvSimd.Store(&matrix.M11, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M11), v));
+                AdvSimd.Store(&matrix.M21, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M21), v));
+                AdvSimd.Store(&matrix.M31, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M31), v));
+                AdvSimd.Store(&matrix.M41, AdvSimd.Multiply(AdvSimd.LoadVector128(&matrix.M41), v));
                 return matrix;
             }
 
             if (Sse41.IsSupported)
             {
-                var value2Vec = Vector128.Create(scalar);
-                Sse2.Store(&matrix.M11, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M11), value2Vec));
-                Sse2.Store(&matrix.M21, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M21), value2Vec));
-                Sse2.Store(&matrix.M31, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M31), value2Vec));
-                Sse2.Store(&matrix.M41, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M41), value2Vec));
+                var v = Vector128.Create(scalar);
+                Sse2.Store(&matrix.M11, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M11), v));
+                Sse2.Store(&matrix.M21, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M21), v));
+                Sse2.Store(&matrix.M31, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M31), v));
+                Sse2.Store(&matrix.M41, Sse41.MultiplyLow(Sse2.LoadVector128(&matrix.M41), v));
                 return matrix;
             }
 
