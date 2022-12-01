@@ -111,7 +111,7 @@ public class Matrix3x3UintTests
         },
         new uint[]
         {
-            31, 27, 36,
+            37, 27, 36,
             19, 30, 27,
             35, 35, 48
         })]

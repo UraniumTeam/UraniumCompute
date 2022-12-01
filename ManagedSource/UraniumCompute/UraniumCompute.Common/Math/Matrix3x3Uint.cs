@@ -99,15 +99,6 @@ public struct Matrix3x3Uint : IEquatable<Matrix3x3Uint>
         return left;
     }
 
-    public static Matrix3x3Uint operator -(Matrix3x3Uint value)
-    {
-        value.row1 = -value.row1;
-        value.row2 = -value.row2;
-        value.row3 = -value.row3;
-
-        return value;
-    }
-
     public static Matrix3x3Uint operator *(Matrix3x3Uint left, Matrix3x3Uint right)
     {
         return new Matrix3x3Uint(
