@@ -69,7 +69,7 @@ public class Matrix3x3IntTests
         {
             -1, 3, 0,
             0, -4, 0,
-            -2, 4, 6
+            0, 4, 6
         })]
     public void Subtraction(int[] matrix1, int[] matrix2, int[] result)
     {
