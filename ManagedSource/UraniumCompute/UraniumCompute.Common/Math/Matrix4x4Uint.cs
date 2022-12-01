@@ -272,6 +272,11 @@ namespace UraniumCompute.Common.Math
             return matrix;
         }
 
+        public static Matrix4x4Uint operator *(uint scalar, Matrix4x4Uint matrix)
+        {
+            return matrix * scalar;
+        }
+
         public static unsafe bool operator ==(Matrix4x4Uint left, Matrix4x4Uint right)
         {
             if (Sse2.IsSupported)
