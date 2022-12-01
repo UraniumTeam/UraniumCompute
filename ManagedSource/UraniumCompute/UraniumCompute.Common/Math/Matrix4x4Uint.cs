@@ -304,13 +304,13 @@ namespace UraniumCompute.Common.Math
             {
                 return
                     Sse2.CompareEqual(Sse2.LoadVector128(&left.M11), Sse2.LoadVector128(&right.M11))
-                    == Vector128<uint>.Zero
+                    != Vector128.Create(0xFFFFFFFF)
                     || Sse2.CompareEqual(Sse2.LoadVector128(&left.M21), Sse2.LoadVector128(&right.M21))
-                    == Vector128<uint>.Zero
+                    != Vector128.Create(0xFFFFFFFF)
                     || Sse2.CompareEqual(Sse2.LoadVector128(&left.M31), Sse2.LoadVector128(&right.M31))
-                    == Vector128<uint>.Zero
+                    != Vector128.Create(0xFFFFFFFF)
                     || Sse2.CompareEqual(Sse2.LoadVector128(&left.M41), Sse2.LoadVector128(&right.M41))
-                    == Vector128<uint>.Zero;
+                    != Vector128.Create(0xFFFFFFFF);
             }
 
             return left.row1 != right.row1 ||
@@ -354,22 +354,33 @@ namespace UraniumCompute.Common.Math
                 var h12 = Sse2.UnpackHigh(row1, row2);
                 var h34 = Sse2.UnpackHigh(row3, row4);
 
+                var r1 = Sse.MoveLowToHigh(
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref l12),
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref l34));
                 Sse2.Store(
-                    (int*)&matrix.M11,
-                    Sse2.ConvertToVector128Int32(
-                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(l12), Sse2.ConvertToVector128Single(l34))));
+                    &matrix.M11,
+                    Unsafe.As<Vector128<float>, Vector128<uint>>(ref r1));
+                
+                var r2 = Sse.MoveHighToLow(
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref l34),
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref l12));
                 Sse2.Store(
-                    (int*)&matrix.M21,
-                    Sse2.ConvertToVector128Int32(
-                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(l34), Sse2.ConvertToVector128Single(l12))));
+                    &matrix.M21,
+                    Unsafe.As<Vector128<float>, Vector128<uint>>(ref r2));
+                
+                var r3 = Sse.MoveLowToHigh(
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref h12),
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref h34));
                 Sse2.Store(
-                    (int*)&matrix.M31,
-                    Sse2.ConvertToVector128Int32(
-                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(h12), Sse2.ConvertToVector128Single(h34))));
+                    &matrix.M31,
+                    Unsafe.As<Vector128<float>, Vector128<uint>>(ref r3));
+                
+                var r4 = Sse.MoveHighToLow(
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref h34),
+                    Unsafe.As<Vector128<int>, Vector128<float>>(ref h12));
                 Sse2.Store(
-                    (int*)&matrix.M41,
-                    Sse2.ConvertToVector128Int32(
-                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(h34), Sse2.ConvertToVector128Single(h12))));
+                    &matrix.M41,
+                    Unsafe.As<Vector128<float>, Vector128<uint>>(ref r4));
 
                 return matrix;
             }
