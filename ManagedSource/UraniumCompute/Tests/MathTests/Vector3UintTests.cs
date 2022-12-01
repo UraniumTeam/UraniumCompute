@@ -89,11 +89,7 @@ public class Vector3UintTests
     [TestCase(new uint[] { 3, 5, 10 }, new uint[] { 1, 2, 3 }, new uint[] { 2, 3, 7 })]
     public void Subtraction(uint[] vector1, uint[] vector2, uint[] result)
     {
-        Assert.Multiple(() =>
-        {
             Assert.That(new Vector3Uint(vector1) - new Vector3Uint(vector2), Is.EqualTo(new Vector3Uint(result)));
-            Assert.That(new Vector3Uint(vector2) - new Vector3Uint(vector1), Is.EqualTo(-new Vector3Uint(result)));
-        });
     }
 
     [TestCase(new uint[] { 1, 1, 1 }, new uint[] { 1, 1, 1 }, new uint[] { 1, 1, 1 })]
