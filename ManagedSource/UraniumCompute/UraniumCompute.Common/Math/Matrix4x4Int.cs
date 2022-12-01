@@ -383,22 +383,34 @@ namespace UraniumCompute.Common.Math
 
             if (Sse2.IsSupported)
             {
-                // var row1 = Sse2.LoadVector128(&matrix.M11);
-                // var row2 = Sse2.LoadVector128(&matrix.M21);
-                // var row3 = Sse2.LoadVector128(&matrix.M31);
-                // var row4 = Sse2.LoadVector128(&matrix.M41);
-                //
-                // var l12 = Sse2.UnpackLow(row1, row2);
-                // var l34 = Sse2.UnpackLow(row3, row4);
-                // var h12 = Sse2.UnpackHigh(row1, row2);
-                // var h34 = Sse2.UnpackHigh(row3, row4);
-                //
-                // Sse2.Store(&matrix.M11, Sse.MoveLowToHigh(l12, l34));
-                // Sse2.Store(&matrix.M21, Sse.MoveHighToLow(l34, l12));
-                // Sse2.Store(&matrix.M31, Sse.MoveLowToHigh(h12, h34));
-                // Sse2.Store(&matrix.M41, Sse.MoveHighToLow(h34, h12));
-                //
-                // return matrix;
+                var row1 = Sse2.LoadVector128(&matrix.M11);
+                var row2 = Sse2.LoadVector128(&matrix.M21);
+                var row3 = Sse2.LoadVector128(&matrix.M31);
+                var row4 = Sse2.LoadVector128(&matrix.M41);
+
+                var l12 = Sse2.UnpackLow(row1, row2);
+                var l34 = Sse2.UnpackLow(row3, row4);
+                var h12 = Sse2.UnpackHigh(row1, row2);
+                var h34 = Sse2.UnpackHigh(row3, row4);
+
+                Sse2.Store(
+                    &matrix.M11,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(l12), Sse2.ConvertToVector128Single(l34))));
+                Sse2.Store(
+                    &matrix.M21,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(l34), Sse2.ConvertToVector128Single(l12))));
+                Sse2.Store(
+                    &matrix.M31,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(h12), Sse2.ConvertToVector128Single(h34))));
+                Sse2.Store(
+                    &matrix.M41,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(h34), Sse2.ConvertToVector128Single(h12))));
+
+                return matrix;
             }
 
             return new Matrix4x4Int(

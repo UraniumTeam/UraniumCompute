@@ -342,6 +342,38 @@ namespace UraniumCompute.Common.Math
                 return matrix;
             }
 
+            if (Sse2.IsSupported)
+            {
+                var row1 = Sse2.LoadVector128((int*)&matrix.M11);
+                var row2 = Sse2.LoadVector128((int*)&matrix.M21);
+                var row3 = Sse2.LoadVector128((int*)&matrix.M31);
+                var row4 = Sse2.LoadVector128((int*)&matrix.M41);
+
+                var l12 = Sse2.UnpackLow(row1, row2);
+                var l34 = Sse2.UnpackLow(row3, row4);
+                var h12 = Sse2.UnpackHigh(row1, row2);
+                var h34 = Sse2.UnpackHigh(row3, row4);
+
+                Sse2.Store(
+                    (int*)&matrix.M11,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(l12), Sse2.ConvertToVector128Single(l34))));
+                Sse2.Store(
+                    (int*)&matrix.M21,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(l34), Sse2.ConvertToVector128Single(l12))));
+                Sse2.Store(
+                    (int*)&matrix.M31,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveLowToHigh(Sse2.ConvertToVector128Single(h12), Sse2.ConvertToVector128Single(h34))));
+                Sse2.Store(
+                    (int*)&matrix.M41,
+                    Sse2.ConvertToVector128Int32(
+                        Sse.MoveHighToLow(Sse2.ConvertToVector128Single(h34), Sse2.ConvertToVector128Single(h12))));
+
+                return matrix;
+            }
+
             return new Matrix4x4Uint(
                 matrix.M11, matrix.M21, matrix.M31, matrix.M41,
                 matrix.M12, matrix.M22, matrix.M32, matrix.M42,
