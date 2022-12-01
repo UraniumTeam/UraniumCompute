@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
@@ -360,21 +359,21 @@ namespace UraniumCompute.Common.Math
                 Sse2.Store(
                     &matrix.M11,
                     Unsafe.As<Vector128<float>, Vector128<uint>>(ref r1));
-                
+
                 var r2 = Sse.MoveHighToLow(
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref l34),
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref l12));
                 Sse2.Store(
                     &matrix.M21,
                     Unsafe.As<Vector128<float>, Vector128<uint>>(ref r2));
-                
+
                 var r3 = Sse.MoveLowToHigh(
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref h12),
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref h34));
                 Sse2.Store(
                     &matrix.M31,
                     Unsafe.As<Vector128<float>, Vector128<uint>>(ref r3));
-                
+
                 var r4 = Sse.MoveHighToLow(
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref h34),
                     Unsafe.As<Vector128<int>, Vector128<float>>(ref h12));
@@ -393,7 +392,7 @@ namespace UraniumCompute.Common.Math
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly override bool Equals([NotNullWhen(true)] object? obj)
+        public readonly override bool Equals(object? obj)
         {
             return obj is Matrix4x4Uint other && Equals(other);
         }
