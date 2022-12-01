@@ -29,6 +29,28 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
 
     private static readonly unsafe int size = sizeof(Vector4Uint);
 
+    public uint this[int index]
+    {
+        get
+        {
+            if ((uint)index >= 4)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return Unsafe.Add(ref Unsafe.As<Vector4Uint, uint>(ref this), index);
+        }
+        set
+        {
+            if ((uint)index >= 4)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Unsafe.Add(ref Unsafe.As<Vector4Uint, uint>(ref this), index) = value;
+        }
+    }
+    
     public Vector4Uint(ReadOnlySpan<uint> values)
     {
         if (values.Length < 4)
