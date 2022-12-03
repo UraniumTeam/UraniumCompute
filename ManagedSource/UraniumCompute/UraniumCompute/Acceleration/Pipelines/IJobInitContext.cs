@@ -1,6 +1,6 @@
 ﻿namespace UraniumCompute.Acceleration.Pipelines;
 
-public interface IJobInitContext
+public interface IJobInitContext : IJobContext
 {
     IJobInitContext InitBuffer<T>(Buffer1D<T> buffer, long xDimension, MemoryKindFlags memoryKindFlags) where T : unmanaged;
     IJobInitContext ReadBuffer<T>(Buffer<T> buffer) where T : unmanaged;
