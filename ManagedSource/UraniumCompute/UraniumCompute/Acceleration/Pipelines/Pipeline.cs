@@ -3,8 +3,9 @@
 public sealed class Pipeline : IDisposable
 {
     public JobScheduler JobScheduler { get; }
+    public bool IsInitialized { get; private set; }
 
-    private readonly List<IComputeJob> jobs = new();
+    private readonly List<IJobContext> jobs = new();
 
     internal Pipeline(JobScheduler scheduler)
     {
@@ -14,14 +15,14 @@ public sealed class Pipeline : IDisposable
     public T AddHostJob<T>(T job)
         where T : IHostJob
     {
-        jobs.Add(job);
+        jobs.Add(new HostJobContext(job, this));
         return job;
     }
 
     public T AddDeviceJob<T>(T job)
         where T : IDeviceJob
     {
-        jobs.Add(job);
+        jobs.Add(new DeviceJobContext(job, this));
         return job;
     }
 
@@ -37,10 +38,29 @@ public sealed class Pipeline : IDisposable
 
     public async Task Run()
     {
-        await Task.Delay(1000);
+        if (!IsInitialized)
+        {
+            foreach (var jobContext in jobs)
+            {
+                jobContext.Init();
+            }
+
+            IsInitialized = true;
+        }
+
+        foreach (var jobContext in jobs)
+        {
+            jobContext.Run();
+        }
+
+        await Task.Delay(1);
     }
 
     public void Dispose()
     {
+        foreach (var jobContext in jobs)
+        {
+            jobContext.Dispose();
+        }
     }
 }
