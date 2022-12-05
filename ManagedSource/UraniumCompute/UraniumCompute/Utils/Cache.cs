@@ -3,13 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace UraniumCompute.Utils;
 
-internal sealed class LRUCache<TKey, TValue> : IDictionary<TKey, TValue>
+internal sealed class Cache<TKey, TValue> : IDictionary<TKey, TValue>
     where TKey : notnull
 {
     public ICollection<TKey> Keys => cacheMap.Keys;
 
     public ICollection<TValue> Values =>
-        throw new NotSupportedException($"Cannot get value collection of {nameof(LRUCache<TKey, TValue>)}");
+        throw new NotSupportedException($"Cannot get value collection of {nameof(Cache<TKey, TValue>)}");
 
     public int Count => items.Count;
     public bool IsReadOnly => false;
@@ -31,13 +31,15 @@ internal sealed class LRUCache<TKey, TValue> : IDictionary<TKey, TValue>
         set => cacheMap[key].ValueRef = new KeyValuePair<TKey, TValue>(key, value);
     }
 
+    private readonly CacheReplacementPolicy replacementPolicy;
     private readonly int capacity;
     private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>> cacheMap = new();
     private readonly LinkedList<KeyValuePair<TKey, TValue>> items = new();
 
-    public LRUCache(int capacity)
+    public Cache(int capacity, CacheReplacementPolicy policy = CacheReplacementPolicy.LeastRecentlyUsed)
     {
         this.capacity = capacity;
+        replacementPolicy = policy;
     }
 
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -60,7 +62,16 @@ internal sealed class LRUCache<TKey, TValue> : IDictionary<TKey, TValue>
         }
         else if (cacheMap.Count >= capacity)
         {
-            RemoveFirst();
+            switch (replacementPolicy)
+            {
+                case CacheReplacementPolicy.ThrowException:
+                    throw new InvalidOperationException($"Cache overflow, replacement policy was {replacementPolicy}");
+                case CacheReplacementPolicy.LeastRecentlyUsed:
+                    RemoveFirst();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(replacementPolicy));
+            }
         }
 
         var cacheItem = new KeyValuePair<TKey, TValue>(key, val);
