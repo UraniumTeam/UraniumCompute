@@ -47,7 +47,7 @@ public sealed class Buffer2D<T> : Buffer<T>
     {
         LongWidth = xDimension;
         LongHeight = yDimension;
-        Init(new Desc(name, xDimension * yDimension * (ulong)ElementSize));
+        Init(CreateDesc(name, xDimension, yDimension));
     }
 
     /// <summary>
@@ -68,5 +68,10 @@ public sealed class Buffer2D<T> : Buffer<T>
     {
         IncrementReferenceCount();
         return new Buffer1D<T>(Handle);
+    }
+
+    internal static Desc CreateDesc(NativeString name, ulong xDimension, ulong yDimension)
+    {
+        return new Desc(name, xDimension * yDimension * (ulong)ElementSize);
     }
 }

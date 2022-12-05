@@ -99,5 +99,11 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     /// <param name="Name">Debug name of the object.</param>
     /// <param name="Size">Size of the buffer.</param>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct Desc(NativeString Name, ulong Size);
+    public readonly record struct Desc(NativeString Name, ulong Size)
+    {
+        public override int GetHashCode()
+        {
+            return Size.GetHashCode();
+        }
+    }
 }
