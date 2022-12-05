@@ -18,7 +18,7 @@ public sealed class Buffer1D<T> : Buffer<T>
     /// <param name="xDimension">The number of elements stored in the buffer along the x-axis.</param>
     public void Init(NativeString name, ulong xDimension)
     {
-        Init(new Desc(name, xDimension * (ulong)ElementSize));
+        Init(CreateDesc(name, xDimension));
     }
 
     /// <summary>
@@ -52,5 +52,10 @@ public sealed class Buffer1D<T> : Buffer<T>
 
         IncrementReferenceCount();
         return new Buffer2D<T>((ulong)width, (ulong)height, Handle);
+    }
+
+    internal static Desc CreateDesc(NativeString name, ulong xDimension)
+    {
+        return new Desc(name, xDimension * (ulong)ElementSize);
     }
 }
