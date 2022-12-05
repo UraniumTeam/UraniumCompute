@@ -1,4 +1,6 @@
-﻿namespace UraniumCompute.Acceleration.Pipelines;
+﻿using UraniumCompute.Memory;
+
+namespace UraniumCompute.Acceleration.Pipelines;
 
 internal sealed class HostJobContext : IHostJobInitContext, IJobRunContext
 {
@@ -11,7 +13,7 @@ internal sealed class HostJobContext : IHostJobInitContext, IJobRunContext
         Pipeline = pipeline;
     }
 
-    public IJobInitContext InitBuffer<T>(Buffer1D<T> buffer, long xDimension, MemoryKindFlags memoryKindFlags) where T : unmanaged
+    public IJobInitContext CreateBuffer<T>(out Buffer1D<T> buffer, NativeString name, long xDimension, MemoryKindFlags memoryKindFlags) where T : unmanaged
     {
         throw new NotImplementedException();
     }

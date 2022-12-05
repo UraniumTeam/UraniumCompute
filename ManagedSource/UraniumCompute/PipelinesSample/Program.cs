@@ -6,11 +6,11 @@ using UraniumCompute.Compiler.InterimStructs;
 
 using var scheduler = JobScheduler.CreateForVulkan();
 using var pipeline = scheduler.CreatePipeline();
-using var bufferA = scheduler.CreateBuffer1D<float>();
-using var bufferB = scheduler.CreateBuffer1D<float>();
+var bufferA = (Buffer1D<float>)null!;
+var bufferB = (Buffer1D<float>)null!;
 
-var createA = pipeline.AddHostJob($"Create {bufferA.DebugName}",
-    ctx => ctx.InitBuffer(bufferA, 1024, MemoryKindFlags.HostAndDeviceAccessible),
+var createA = pipeline.AddHostJob("Create buffer A",
+    ctx => ctx.CreateBuffer(out bufferA, "buffer A", 1024, MemoryKindFlags.HostAndDeviceAccessible),
     () =>
     {
         using var map = bufferA.Map();
@@ -21,12 +21,12 @@ var createA = pipeline.AddHostJob($"Create {bufferA.DebugName}",
         }
     }
 );
-var convertA = pipeline.AddDeviceJob($"Transform {bufferA.DebugName}",
+var convertA = pipeline.AddDeviceJob("Transform buffer A",
     ctx => ctx.WriteBuffer(bufferA),
     (Span<float> a) => a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2
 );
-var createB = pipeline.AddDeviceJob($"Create {bufferB.DebugName}",
-    ctx => ctx.InitBuffer(bufferB, bufferA.Count, MemoryKindFlags.DeviceAccessible),
+var createB = pipeline.AddDeviceJob("Create buffer B",
+    ctx => ctx.CreateBuffer(out bufferB, "buffer B", 1024, MemoryKindFlags.DeviceAccessible),
     (Span<float> a) => a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X
 );
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, scheduler));

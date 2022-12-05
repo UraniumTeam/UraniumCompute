@@ -15,18 +15,6 @@ public sealed class JobScheduler : IDisposable
         device.Init(new ComputeDevice.Desc(adapter.Id));
     }
 
-    public Buffer1D<T> CreateBuffer1D<T>()
-        where T : unmanaged
-    {
-        return device.CreateBuffer1D<T>();
-    }
-
-    public Buffer2D<T> CreateBuffer2D<T>()
-        where T : unmanaged
-    {
-        return device.CreateBuffer2D<T>();
-    }
-
     public Pipeline CreatePipeline()
     {
         return new Pipeline(this);
