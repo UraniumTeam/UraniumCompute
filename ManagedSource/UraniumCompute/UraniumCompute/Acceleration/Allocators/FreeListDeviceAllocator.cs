@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Desc = UraniumCompute.Acceleration.Allocators.IDeviceAllocator.Desc;
 
 namespace UraniumCompute.Acceleration.Allocators;
 
@@ -8,6 +9,7 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
     public Desc Descriptor { get; private set; }
 
     private int headNode;
+    private readonly Policy policy;
     private readonly Stack<int> nodeFreeList = new();
     private readonly List<Node> nodes = new();
     private readonly Dictionary<ulong, AllocationInfo> allocations = new();
@@ -20,7 +22,12 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
         BestFit
     }
 
-    public void Init(Desc desc)
+    public FreeListDeviceAllocator(Policy policy = Policy.BestFit)
+    {
+        this.policy = policy;
+    }
+
+    public void Init(in Desc desc)
     {
         Descriptor = desc;
         Reset();
@@ -38,15 +45,15 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
         allocations.Clear();
     }
 
-    public NullableHandle Allocate(ulong byteSize, ulong bytAlignment = 0)
+    public NullableHandle Allocate(ulong byteSize, ulong byteAlignment = 0)
     {
         if (byteSize == 0)
         {
             return NullableHandle.Null;
         }
 
-        bytAlignment = Math.Max(bytAlignment, Descriptor.AlignmentInBytes);
-        var foundNode = FindNode(byteSize, bytAlignment);
+        byteAlignment = Math.Max(byteAlignment, Descriptor.AlignmentInBytes);
+        var foundNode = FindNode(byteSize, byteAlignment);
         if (!foundNode.IsValid)
         {
             return NullableHandle.Null;
@@ -101,15 +108,6 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
         gcCycle++;
     }
 
-    public record struct Desc(NullableHandle AddressBase, ulong CapacityInBytes, ulong AlignmentInBytes,
-        Policy Policy = Policy.BestFit, int GCLatency = 3)
-    {
-        public Desc(ulong capacityInBytes, Policy policy = Policy.BestFit, int gcLatency = 3)
-            : this(NullableHandle.Zero, capacityInBytes, IDeviceAllocator.DefaultAlignment, policy, gcLatency)
-        {
-        }
-    }
-
     private bool IsGarbageReady(in Garbage g)
     {
         return gcCycle - g.GCCycle >= Descriptor.GCLatency;
@@ -156,7 +154,7 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
 
     private FoundNode FindNode(ulong size, ulong alignment)
     {
-        return Descriptor.Policy switch
+        return policy switch
         {
             Policy.FirstFit => FindNodeFirst(size, alignment),
             Policy.BestFit => FindNodeBest(size, alignment),
