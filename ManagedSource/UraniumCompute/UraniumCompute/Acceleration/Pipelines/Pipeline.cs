@@ -1,4 +1,5 @@
 ﻿using UraniumCompute.Acceleration.TransientResources;
+using UraniumCompute.Backend;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
@@ -77,5 +78,15 @@ public sealed class Pipeline : IDisposable
         {
             jobContext.Dispose();
         }
+    }
+
+    internal BufferBase GetResource(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal BufferBase.Desc GetResourceDescriptor(int id)
+    {
+        throw new NotImplementedException();
     }
 }
