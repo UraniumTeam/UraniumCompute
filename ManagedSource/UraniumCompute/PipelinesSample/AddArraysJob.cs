@@ -1,5 +1,6 @@
 ﻿using UraniumCompute.Acceleration;
 using UraniumCompute.Acceleration.Pipelines;
+using UraniumCompute.Acceleration.TransientResources;
 using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.InterimStructs;
 
@@ -9,17 +10,17 @@ public sealed class AddArraysJob : IDeviceJob
 {
     public string Name => "Add two arrays on GPU";
 
-    public Buffer1D<float> First { get; }
-    public Buffer1D<float> Second { get; }
-    public Buffer1D<float> Result => result;
+    public TransientBuffer1D<float> First { get; }
+    public TransientBuffer1D<float> Second { get; }
+    public TransientBuffer1D<float> Result => result;
 
-    private Buffer1D<float> result;
+    private TransientBuffer1D<float> result;
 
-    public AddArraysJob(Buffer1D<float> first, Buffer1D<float> second, JobScheduler scheduler)
+    public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second, JobScheduler scheduler)
     {
         First = first;
         Second = second;
-        result = null!;
+        result = TransientBuffer1D<float>.Null;
     }
 
     public IJobInitContext Init(IDeviceJobInitContext ctx)
