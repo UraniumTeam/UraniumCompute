@@ -1,20 +1,29 @@
-﻿namespace UraniumCompute.Acceleration.Pipelines;
+﻿using UraniumCompute.Acceleration.TransientResources;
+
+namespace UraniumCompute.Acceleration.Pipelines;
 
 public sealed class Pipeline : IDisposable
 {
     public JobScheduler JobScheduler { get; }
     public bool IsInitialized { get; private set; }
+    public TransientResourceHeap TransientResourceHeap { get; }
 
     private readonly List<IJobContext> jobs = new();
 
     internal Pipeline(JobScheduler scheduler)
     {
         JobScheduler = scheduler;
+        TransientResourceHeap = new TransientResourceHeap(JobScheduler.Device);
     }
 
     public T AddHostJob<T>(T job)
         where T : IHostJob
     {
+        if (IsInitialized)
+        {
+            throw new InvalidOperationException("Pipeline was already initialized");
+        }
+
         jobs.Add(new HostJobContext(job, this));
         return job;
     }
@@ -22,6 +31,11 @@ public sealed class Pipeline : IDisposable
     public T AddDeviceJob<T>(T job)
         where T : IDeviceJob
     {
+        if (IsInitialized)
+        {
+            throw new InvalidOperationException("Pipeline was already initialized");
+        }
+
         jobs.Add(new DeviceJobContext(job, this));
         return job;
     }
@@ -58,6 +72,7 @@ public sealed class Pipeline : IDisposable
 
     public void Dispose()
     {
+        TransientResourceHeap.Dispose();
         foreach (var jobContext in jobs)
         {
             jobContext.Dispose();

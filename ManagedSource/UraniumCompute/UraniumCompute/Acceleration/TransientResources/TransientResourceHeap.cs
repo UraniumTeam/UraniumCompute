@@ -5,7 +5,7 @@ using UraniumCompute.Utils;
 
 namespace UraniumCompute.Acceleration.TransientResources;
 
-public sealed class TransientResourceHeap
+public sealed class TransientResourceHeap : IDisposable
 {
     public IDeviceAllocator Allocator => Descriptor.Allocator;
     public DeviceMemory Memory { get; }
@@ -132,4 +132,15 @@ public sealed class TransientResourceHeap
     }
 
     private readonly record struct RegisteredResourceInfo(BufferBase Resource, NullableHandle Handle, ulong Size);
+
+    public void Dispose()
+    {
+        foreach (var (_, resource) in cache)
+        {
+            resource.Dispose();
+        }
+
+        Memory.Dispose();
+        referenceBuffer.Dispose();
+    }
 }

@@ -13,17 +13,20 @@ internal sealed class DeviceJobContext : IDeviceJobInitContext, IJobRunContext
         Pipeline = pipeline;
     }
 
-    public IJobInitContext CreateBuffer<T>(out Buffer1D<T> buffer, NativeString name, long xDimension, MemoryKindFlags memoryKindFlags) where T : unmanaged
+    public IJobInitContext CreateBuffer<T>(out Buffer1D<T> buffer, NativeString name, long xDimension, MemoryKindFlags memoryKindFlags)
+        where T : unmanaged
     {
         throw new NotImplementedException();
     }
 
-    public IJobInitContext ReadBuffer<T>(Buffer<T> buffer) where T : unmanaged
+    public IJobInitContext ReadBuffer<T>(Buffer<T> buffer)
+        where T : unmanaged
     {
         throw new NotImplementedException();
     }
 
-    public IJobInitContext WriteBuffer<T>(Buffer<T> buffer) where T : unmanaged
+    public IJobInitContext WriteBuffer<T>(Buffer<T> buffer)
+        where T : unmanaged
     {
         throw new NotImplementedException();
     }
