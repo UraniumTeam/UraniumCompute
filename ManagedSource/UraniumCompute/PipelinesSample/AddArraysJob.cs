@@ -23,13 +23,13 @@ public sealed class AddArraysJob : IDeviceJob
         result = TransientBuffer1D<float>.Null;
     }
 
-    public IJobInitContext Init(IDeviceJobInitContext ctx)
+    public IJobSetupContext Setup(IDeviceJobSetupContext ctx)
     {
         return ctx
             .SetWorkgroups(1, 1, 1)
             .ReadBuffer(First)
             .ReadBuffer(Second)
-            .CreateBuffer(out result, "Add arrays job result", First.Count, MemoryKindFlags.HostAndDeviceAccessible);
+            .CreateBuffer(out result, "Add arrays job result", First.LongCount, MemoryKindFlags.HostAndDeviceAccessible);
     }
 
     public void Run(IJobRunContext ctx)

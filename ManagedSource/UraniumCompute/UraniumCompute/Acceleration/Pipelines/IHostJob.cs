@@ -2,5 +2,5 @@
 
 public interface IHostJob : IComputeJob
 {
-    IJobInitContext Init(IHostJobInitContext ctx);
+    IJobSetupContext Setup(IHostJobSetupContext ctx);
 }
