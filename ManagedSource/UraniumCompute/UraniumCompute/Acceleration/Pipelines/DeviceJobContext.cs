@@ -1,58 +1,74 @@
 ﻿using UraniumCompute.Acceleration.TransientResources;
-using UraniumCompute.Memory;
+using UraniumCompute.Common.Math;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
-internal sealed class DeviceJobContext : IDeviceJobInitContext, IJobRunContext
+internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
 {
     public IDeviceJob Job { get; }
     public Pipeline Pipeline { get; }
+
+    private readonly JobInitializer initializer;
+
+    private Vector3Int workgroups;
+    private Delegate? kernel;
 
     public DeviceJobContext(IDeviceJob job, Pipeline pipeline)
     {
         Job = job;
         Pipeline = pipeline;
+        initializer = new JobInitializer(pipeline);
     }
 
-    public IJobInitContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, NativeString name, long xDimension, MemoryKindFlags memoryKindFlags)
+    public IJobSetupContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, Buffer1D<T>.Desc desc,
+        MemoryKindFlags memoryKindFlags)
         where T : unmanaged
     {
-        throw new NotImplementedException();
+        initializer.CreateBuffer(out buffer, desc, memoryKindFlags);
+        return this;
     }
 
-    public IJobInitContext ReadBuffer<T>(ITransientBuffer<T> buffer)
+    public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer)
         where T : unmanaged
     {
-        throw new NotImplementedException();
+        return this;
     }
 
-    public IJobInitContext WriteBuffer<T>(ITransientBuffer<T> buffer)
+    public IJobSetupContext WriteBuffer<T>(ITransientBuffer<T> buffer)
         where T : unmanaged
     {
-        throw new NotImplementedException();
+        return this;
     }
 
-    public IDeviceJobInitContext SetWorkgroups(int x, int y, int z)
+    public IDeviceJobSetupContext SetWorkgroups(int x, int y, int z)
     {
-        throw new NotImplementedException();
+        workgroups = new Vector3Int(x, y, z);
+        return this;
     }
 
     public void Run(Delegate jobDelegate)
     {
-        throw new NotImplementedException();
+        kernel = jobDelegate;
     }
 
     public void Dispose()
     {
     }
 
+    public void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
+    {
+        Job.Setup(this);
+        requiredDeviceMemory = initializer.RequiredDeviceMemoryInBytes;
+        requiredHostMemory = initializer.RequiredHostMemoryInBytes;
+    }
+
     public void Init()
     {
-        Job.Init(this);
+        initializer.Init();
+        Job.Run(this);
     }
 
     public void Run()
     {
-        Job.Run(this);
     }
 }

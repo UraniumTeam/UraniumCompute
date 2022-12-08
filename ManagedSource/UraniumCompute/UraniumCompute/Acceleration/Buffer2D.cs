@@ -38,6 +38,15 @@ public sealed class Buffer2D<T> : Buffer<T>
     }
 
     /// <summary>
+    ///     Initialize buffer with element count instead of size in bytes.
+    /// </summary>
+    /// <param name="desc">Device object descriptor.</param>
+    public void Init(Desc desc)
+    {
+        Init(CreateDesc(desc));
+    }
+
+    /// <summary>
     ///     Initialize the buffer.
     /// </summary>
     /// <param name="name">Debug name of the object.</param>
@@ -47,7 +56,7 @@ public sealed class Buffer2D<T> : Buffer<T>
     {
         LongWidth = xDimension;
         LongHeight = yDimension;
-        Init(CreateDesc(name, xDimension, yDimension));
+        Init(new Desc(name, xDimension, yDimension));
     }
 
     /// <summary>
@@ -70,8 +79,13 @@ public sealed class Buffer2D<T> : Buffer<T>
         return new Buffer1D<T>(Handle);
     }
 
-    internal static Desc CreateDesc(NativeString name, ulong xDimension, ulong yDimension)
+    internal static BufferBase.Desc CreateDesc(Desc desc)
     {
-        return new Desc(name, xDimension * yDimension * (ulong)ElementSize);
+        return new BufferBase.Desc(desc.Name, desc.XDimension * desc.YDimension * (ulong)ElementSize);
+    }
+
+    public new readonly record struct Desc(NativeString Name, ulong XDimension, ulong YDimension)
+    {
+        public ulong ByteSize => XDimension * (ulong)ElementSize;
     }
 }

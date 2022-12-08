@@ -4,17 +4,17 @@ internal sealed class DelegateHostJob : IHostJob
 {
     public string Name { get; }
 
-    private readonly Func<IHostJobInitContext, IJobInitContext> initializer;
+    private readonly Func<IHostJobSetupContext, IJobSetupContext> initializer;
     private readonly Action jobDelegate;
 
-    public DelegateHostJob(string name, Func<IHostJobInitContext, IJobInitContext> initializer, Action jobDelegate)
+    public DelegateHostJob(string name, Func<IHostJobSetupContext, IJobSetupContext> initializer, Action jobDelegate)
     {
         Name = name;
         this.initializer = initializer;
         this.jobDelegate = jobDelegate;
     }
 
-    public IJobInitContext Init(IHostJobInitContext ctx)
+    public IJobSetupContext Setup(IHostJobSetupContext ctx)
     {
         return initializer(ctx);
     }

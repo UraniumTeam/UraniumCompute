@@ -3,48 +3,62 @@ using UraniumCompute.Memory;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
-internal sealed class HostJobContext : IHostJobInitContext, IJobRunContext
+internal sealed class HostJobContext : IHostJobSetupContext, IJobRunContext
 {
     public IHostJob Job { get; }
     public Pipeline Pipeline { get; }
+    
+    private readonly JobInitializer initializer;
+    private Action? kernel;
 
     public HostJobContext(IHostJob job, Pipeline pipeline)
     {
         Job = job;
         Pipeline = pipeline;
+        initializer = new JobInitializer(pipeline);
     }
 
-    public IJobInitContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, NativeString name, long xDimension, MemoryKindFlags memoryKindFlags) where T : unmanaged
+    public IJobSetupContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, Buffer1D<T>.Desc desc,
+        MemoryKindFlags memoryKindFlags) where T : unmanaged
     {
-        throw new NotImplementedException();
+        initializer.CreateBuffer(out buffer, desc, memoryKindFlags);
+        return this;
     }
 
-    public IJobInitContext ReadBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
+    public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
     {
-        throw new NotImplementedException();
+        return this;
     }
 
-    public IJobInitContext WriteBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
+    public IJobSetupContext WriteBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
     {
-        throw new NotImplementedException();
+        return this;
     }
 
     public void Run(Delegate jobDelegate)
     {
-        throw new NotImplementedException();
+        kernel = (Action)jobDelegate;
     }
 
     public void Dispose()
     {
     }
 
+    public void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
+    {
+        Job.Setup(this);
+        requiredDeviceMemory = initializer.RequiredDeviceMemoryInBytes;
+        requiredHostMemory = initializer.RequiredHostMemoryInBytes;
+    }
+
     public void Init()
     {
-        Job.Init(this);
+        initializer.Init();
+        Job.Run(this);
     }
 
     public void Run()
     {
-        Job.Run(this);
+        kernel!();
     }
 }

@@ -2,5 +2,5 @@
 
 public interface IDeviceJob : IComputeJob
 {
-    IJobInitContext Init(IDeviceJobInitContext ctx);
+    IJobSetupContext Setup(IDeviceJobSetupContext ctx);
 }

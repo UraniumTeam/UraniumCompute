@@ -4,17 +4,17 @@ internal sealed class DelegateDeviceJob : IDeviceJob
 {
     public string Name { get; }
 
-    private readonly Func<IDeviceJobInitContext, IJobInitContext> initializer;
+    private readonly Func<IDeviceJobSetupContext, IJobSetupContext> initializer;
     private readonly Delegate kernel;
 
-    public DelegateDeviceJob(string name, Func<IDeviceJobInitContext, IJobInitContext> initializer, Delegate kernel)
+    public DelegateDeviceJob(string name, Func<IDeviceJobSetupContext, IJobSetupContext> initializer, Delegate kernel)
     {
         Name = name;
         this.initializer = initializer;
         this.kernel = kernel;
     }
 
-    public IJobInitContext Init(IDeviceJobInitContext ctx)
+    public IJobSetupContext Setup(IDeviceJobSetupContext ctx)
     {
         return initializer(ctx);
     }

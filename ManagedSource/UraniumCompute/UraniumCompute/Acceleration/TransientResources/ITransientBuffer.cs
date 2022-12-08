@@ -2,11 +2,9 @@
 
 namespace UraniumCompute.Acceleration.TransientResources;
 
-public interface ITransientBuffer<T>
-    where T : unmanaged
+public interface ITransientBuffer<out TDesc> : ITransientResource
 {
-    int Id { get; }
-    BufferBase.Desc Descriptor { get; }
+    TDesc Descriptor { get; }
     
     /// <summary>
     ///     The number of elements in the buffer as <see cref="System.Int64" />.

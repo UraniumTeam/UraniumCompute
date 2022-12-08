@@ -11,6 +11,7 @@ public sealed class JobScheduler : IDisposable
     private JobScheduler(BackendKind backendKind, Func<AdapterInfo, bool> adapterPredicate)
     {
         deviceFactory = DeviceFactory.Create(backendKind);
+        deviceFactory.Init(new DeviceFactory.Desc(string.Empty));
         Device = deviceFactory.CreateDevice();
         var adapter = SelectAdapter(adapterPredicate, deviceFactory.Adapters);
         Device.Init(new ComputeDevice.Desc(adapter.Id));

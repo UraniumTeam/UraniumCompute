@@ -3,11 +3,11 @@ using UraniumCompute.Backend;
 
 namespace UraniumCompute.Acceleration.TransientResources;
 
-public readonly struct TransientBuffer1D<T> : ITransientBuffer<T>
+public readonly struct TransientBuffer1D<T> : ITransientBuffer<Buffer1D<T>.Desc>
     where T : unmanaged
 {
     public int Id { get; }
-    public BufferBase.Desc Descriptor => pipeline.GetResourceDescriptor(Id);
+    public Buffer1D<T>.Desc Descriptor => pipeline.GetResourceDescriptor<Buffer1D<T>.Desc>(Id);
     public Buffer1D<T> Buffer => (Buffer1D<T>)pipeline.GetResource(Id);
 
     /// <summary>
@@ -15,7 +15,7 @@ public readonly struct TransientBuffer1D<T> : ITransientBuffer<T>
     /// </summary>
     public static readonly int ElementSize = Buffer<T>.ElementSize;
 
-    public ulong LongCount => Descriptor.Size / (ulong)ElementSize;
+    public ulong LongCount => Descriptor.XDimension;
 
     public int Count => (int)LongCount;
 
