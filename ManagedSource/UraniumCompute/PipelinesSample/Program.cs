@@ -10,7 +10,7 @@ using var pipeline = scheduler.CreatePipeline();
 var bufferA = TransientBuffer1D<float>.Null;
 var bufferB = TransientBuffer1D<float>.Null;
 
-var createA = pipeline.AddHostJob("Create buffer A",
+pipeline.AddHostJob("Create buffer A",
     ctx => ctx.CreateBuffer(out bufferA, "buffer A", 1024, MemoryKindFlags.HostAndDeviceAccessible),
     () =>
     {
@@ -22,11 +22,11 @@ var createA = pipeline.AddHostJob("Create buffer A",
         }
     }
 );
-var convertA = pipeline.AddDeviceJob("Transform buffer A",
+pipeline.AddDeviceJob("Transform buffer A",
     ctx => ctx.SetWorkgroups(bufferA).WriteBuffer(bufferA),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2; }
 );
-var createB = pipeline.AddDeviceJob("Create buffer B",
+pipeline.AddDeviceJob("Create buffer B",
     ctx => ctx.SetWorkgroups(bufferA.Count)
         .CreateBuffer(out bufferB, "buffer B", bufferA.LongCount, MemoryKindFlags.DeviceAccessible),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X; }
