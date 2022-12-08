@@ -28,7 +28,17 @@ internal sealed class Cache<TKey, TValue> : IDictionary<TKey, TValue>
 
             throw new KeyNotFoundException($"Key {key} was not in the cache");
         }
-        set => cacheMap[key].ValueRef = new KeyValuePair<TKey, TValue>(key, value);
+        set
+        {
+            if (!ContainsKey(key))
+            {
+                Add(key, value);
+            }
+            else
+            {
+                cacheMap[key].ValueRef = new KeyValuePair<TKey, TValue>(key, value);
+            }
+        }
     }
 
     private readonly CacheReplacementPolicy replacementPolicy;
