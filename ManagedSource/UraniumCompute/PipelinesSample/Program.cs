@@ -32,7 +32,7 @@ var createB = pipeline.AddDeviceJob("Create buffer B",
 );
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, scheduler));
 
-await pipeline.Run();
+pipeline.Run();
 
 using (var map = addAB.Result.Buffer.Map())
 {
