@@ -125,7 +125,7 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
             return nodeFreeList.Pop();
         }
 
-        nodes.Add(new Node());
+        nodes.Add(Node.Null);
         return nodes.Count - 1;
     }
 
@@ -284,9 +284,10 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
 
     private readonly record struct Garbage(ulong Address, int GCCycle);
 
-    private readonly record struct Node(int NextFree = -1, ulong AddressOffset = 0, ulong Size = 0)
+    private readonly record struct Node(int NextFree, ulong AddressOffset = 0, ulong Size = 0)
     {
         public ulong End => AddressOffset + Size;
+        public static readonly Node Null = new(-1);
 
         public Node AddSize(ulong byteCount)
         {
