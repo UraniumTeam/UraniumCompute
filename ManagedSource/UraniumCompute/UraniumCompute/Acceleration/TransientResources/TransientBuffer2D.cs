@@ -10,6 +10,8 @@ public readonly struct TransientBuffer2D<T> : ITransientBuffer<Buffer2D<T>.Desc>
     public Buffer2D<T>.Desc Descriptor => pipeline.GetResourceDescriptor<Buffer2D<T>.Desc>(Id);
     public Buffer2D<T> Buffer => (Buffer2D<T>)pipeline.GetResource(Id);
 
+    public BufferBase Resource => pipeline.GetResource(Id);
+
     /// <summary>
     ///     Size of a single buffer element in bytes.
     /// </summary>

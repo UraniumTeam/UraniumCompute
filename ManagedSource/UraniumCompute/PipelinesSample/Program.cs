@@ -23,12 +23,13 @@ var createA = pipeline.AddHostJob("Create buffer A",
     }
 );
 var convertA = pipeline.AddDeviceJob("Transform buffer A",
-    ctx => ctx.WriteBuffer(bufferA),
-    (Span<float> a) => a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2
+    ctx => ctx.SetWorkgroups(bufferA).WriteBuffer(bufferA),
+    (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2; }
 );
 var createB = pipeline.AddDeviceJob("Create buffer B",
-    ctx => ctx.CreateBuffer(out bufferB, "buffer B", 1024, MemoryKindFlags.DeviceAccessible),
-    (Span<float> a) => a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X
+    ctx => ctx.SetWorkgroups(bufferA.Count)
+        .CreateBuffer(out bufferB, "buffer B", bufferA.LongCount, MemoryKindFlags.DeviceAccessible),
+    (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X; }
 );
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, scheduler));
 

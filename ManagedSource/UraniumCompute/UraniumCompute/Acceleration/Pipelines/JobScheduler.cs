@@ -1,10 +1,12 @@
 ﻿using UraniumCompute.Backend;
+using UraniumCompute.Compilation;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
 public sealed class JobScheduler : IDisposable
 {
     internal ComputeDevice Device { get; }
+    internal KernelCompiler KernelCompiler { get; }
 
     private readonly DeviceFactory deviceFactory;
 
@@ -15,6 +17,8 @@ public sealed class JobScheduler : IDisposable
         Device = deviceFactory.CreateDevice();
         var adapter = SelectAdapter(adapterPredicate, deviceFactory.Adapters);
         Device.Init(new ComputeDevice.Desc(adapter.Id));
+        KernelCompiler = deviceFactory.CreateKernelCompiler();
+        KernelCompiler.Init(new KernelCompiler.Desc("Kernel compiler"));
     }
 
     public Pipeline CreatePipeline()
