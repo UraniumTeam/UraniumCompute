@@ -29,6 +29,11 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
 
     public void Init(in Desc desc)
     {
+        if (desc.CapacityInBytes == 0)
+        {
+            throw new ArgumentException("Capacity must be greater than zero");
+        }
+
         Descriptor = desc;
         Reset();
         headNode = CreateNode();
