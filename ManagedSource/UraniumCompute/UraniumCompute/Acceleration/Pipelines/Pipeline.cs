@@ -55,14 +55,14 @@ public sealed class Pipeline : IDisposable
         return job;
     }
 
-    public IHostJob AddHostJob(string name, Func<IHostJobSetupContext, IJobSetupContext> initializer, Action jobDelegate)
+    public void AddHostJob(string name, Func<IHostJobSetupContext, IJobSetupContext> initializer, Action jobDelegate)
     {
-        return AddHostJob(new DelegateHostJob(name, initializer, jobDelegate));
+        _ = AddHostJob(new DelegateHostJob(name, initializer, jobDelegate));
     }
 
-    public IDeviceJob AddDeviceJob(string name, Func<IDeviceJobSetupContext, IJobSetupContext> initializer, Delegate kernel)
+    public void AddDeviceJob(string name, Func<IDeviceJobSetupContext, IJobSetupContext> initializer, Delegate kernel)
     {
-        return AddDeviceJob(new DelegateDeviceJob(name, initializer, kernel));
+        _ = AddDeviceJob(new DelegateDeviceJob(name, initializer, kernel));
     }
 
     public void Run()
