@@ -1,5 +1,8 @@
 ﻿using UraniumCompute.Acceleration.TransientResources;
+using UraniumCompute.Backend;
 using UraniumCompute.Common.Math;
+using UraniumCompute.Compilation;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
@@ -9,15 +12,21 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
     public Pipeline Pipeline { get; }
 
     private readonly JobInitializer initializer;
+    private readonly List<ITransientResource> variables = new();
 
-    private Vector3Int workgroups;
-    private Delegate? kernel;
+    private readonly Kernel kernel;
+    private readonly ResourceBinding resourceBinding;
+
+    private Vector3Int workgroupCount;
 
     public DeviceJobContext(IDeviceJob job, Pipeline pipeline)
     {
         Job = job;
         Pipeline = pipeline;
         initializer = new JobInitializer(pipeline);
+        var device = Pipeline.JobScheduler.Device;
+        kernel = device.CreateKernel();
+        resourceBinding = device.CreateResourceBinding();
     }
 
     public IJobSetupContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, Buffer1D<T>.Desc desc,
@@ -25,34 +34,37 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
         where T : unmanaged
     {
         initializer.CreateBuffer(out buffer, desc, memoryKindFlags);
+        variables.Add(buffer);
         return this;
     }
 
     public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer)
         where T : unmanaged
     {
+        variables.Add(buffer);
         return this;
     }
 
     public IJobSetupContext WriteBuffer<T>(ITransientBuffer<T> buffer)
         where T : unmanaged
     {
+        variables.Add(buffer);
         return this;
     }
 
-    public IDeviceJobSetupContext SetWorkgroups(int x, int y, int z)
+    public IDeviceJobSetupContext SetWorkgroups(Vector3Int workgroups)
     {
-        workgroups = new Vector3Int(x, y, z);
+        workgroupCount = workgroups;
         return this;
     }
 
     public void Run(Delegate jobDelegate)
     {
-        kernel = jobDelegate;
-    }
-
-    public void Dispose()
-    {
+        CompilerUtils.CompileKernel(jobDelegate, Pipeline.JobScheduler.KernelCompiler, kernel, resourceBinding);
+        for (var i = 0; i < variables.Count; ++i)
+        {
+            resourceBinding.SetVariableInternal(i, variables[i].Resource);
+        }
     }
 
     public void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
@@ -70,5 +82,22 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
 
     public void Run()
     {
+        // TODO: create an execution context in the pipeline to manage command list building
+        using var commandList = Pipeline.JobScheduler.Device.CreateCommandList();
+        commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
+
+        using (var cmd = commandList.Begin())
+        {
+            cmd.Dispatch(kernel, workgroupCount);
+        }
+
+        commandList.Submit();
+        commandList.CompletionFence.WaitOnCpu();
+    }
+
+    public void Dispose()
+    {
+        kernel.Dispose();
+        resourceBinding.Dispose();
     }
 }

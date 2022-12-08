@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using UraniumCompute.Acceleration;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Memory;
 
 namespace UraniumCompute.Backend;
@@ -186,6 +187,16 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         public void Dispatch(Kernel kernel, int x, int y, int z)
         {
             CommandListBuilder_Dispatch(ref builder, kernel.Handle, x, y, z);
+        }
+
+        /// <summary>
+        ///     Dispatch a compute kernel to execute on the device.
+        /// </summary>
+        /// <param name="kernel">The kernel to dispatch.</param>
+        /// <param name="workgroups">The number of local workgroups to dispatch in the X, Y and Z dimensions.</param>
+        public void Dispatch(Kernel kernel, Vector3Int workgroups)
+        {
+            Dispatch(kernel, workgroups.X, workgroups.Y, workgroups.Z);
         }
 
         /// <summary>

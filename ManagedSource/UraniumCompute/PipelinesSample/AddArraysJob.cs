@@ -26,7 +26,7 @@ public sealed class AddArraysJob : IDeviceJob
     public IJobSetupContext Setup(IDeviceJobSetupContext ctx)
     {
         return ctx
-            .SetWorkgroups(1, 1, 1)
+            .SetWorkgroups(First)
             .ReadBuffer(First)
             .ReadBuffer(Second)
             .CreateBuffer(out result, "Add arrays job result", First.LongCount, MemoryKindFlags.HostAndDeviceAccessible);

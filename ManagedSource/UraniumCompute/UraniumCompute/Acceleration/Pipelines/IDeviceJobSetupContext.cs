@@ -1,6 +1,8 @@
-﻿namespace UraniumCompute.Acceleration.Pipelines;
+﻿using UraniumCompute.Common.Math;
+
+namespace UraniumCompute.Acceleration.Pipelines;
 
 public interface IDeviceJobSetupContext : IJobSetupContext
 {
-    IDeviceJobSetupContext SetWorkgroups(int x, int y, int z);
+    IDeviceJobSetupContext SetWorkgroups(Vector3Int workgroups);
 }
