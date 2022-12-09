@@ -7,7 +7,7 @@ internal static class FunctionResolver
     public static FunctionSymbol Resolve(MethodReference methodReference, Action<MethodReference> userFunctionCallback,
         Action<TypeReference> userTypeCallback)
     {
-        if (methodReference.DeclaringType.Namespace == typeof(Math).Namespace)
+        if (methodReference.DeclaringType.Namespace == typeof(MathF).Namespace)
         {
             return IntrinsicFunctionSymbol.Resolve($"{methodReference.DeclaringType.Name}.{methodReference.Name}");
         }
