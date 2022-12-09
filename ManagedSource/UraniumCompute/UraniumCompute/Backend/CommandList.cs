@@ -39,8 +39,8 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     /// <summary>
     ///     Set the command list state to the Recording state.
     /// </summary>
-    /// <returns>Command list builder object.</returns>
-    public Builder Begin()
+    /// <returns>Command list recording context.</returns>
+    public ICommandRecordingContext Begin()
     {
         return new Builder(Handle);
     }
@@ -95,10 +95,7 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         private readonly IntPtr commandListHandle;
     }
 
-    /// <summary>
-    ///     Command list builder that is used to record device commands.
-    /// </summary>
-    public sealed class Builder : IDisposable
+    private sealed class Builder : ICommandRecordingContext
     {
         private NativeBuilder builder;
 
@@ -110,101 +107,29 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
             }
         }
 
-        /// <summary>
-        ///     Insert a memory dependency.
-        /// </summary>
-        /// <param name="buffer">The buffer affected by the barrier.</param>
-        /// <param name="barrierDesc">The barrier descriptor.</param>
-        /// <typeparam name="T">Type of the elements stored in the buffer affected by the barrier.</typeparam>
-        public void MemoryBarrier<T>(Buffer<T> buffer, in MemoryBarrierDesc barrierDesc)
-            where T : unmanaged
+        public void MemoryBarrierUnsafe(BufferBase buffer, in MemoryBarrierDesc barrierDesc)
         {
             CommandListBuilder_MemoryBarrier(ref builder, buffer.Handle, in barrierDesc);
         }
 
-        /// <summary>
-        ///     Insert a memory dependency.
-        /// </summary>
-        /// <param name="buffer">The buffer affected by the barrier.</param>
-        /// <param name="sourceAccess">Source access mask.</param>
-        /// <param name="destAccess">Destination access mask.</param>
-        /// <typeparam name="T">Type of the elements stored in the buffer affected by the barrier.</typeparam>
-        public void MemoryBarrier<T>(Buffer<T> buffer, AccessFlags sourceAccess, AccessFlags destAccess)
-            where T : unmanaged
-        {
-            MemoryBarrier(buffer, new MemoryBarrierDesc(sourceAccess, destAccess));
-        }
-
-        /// <summary>
-        ///     Copy a region of the source buffer to the destination buffer.
-        /// </summary>
-        /// <param name="source">Source buffer.</param>
-        /// <param name="destination">Destination buffer.</param>
-        /// <typeparam name="T">Type of the elements stored in the buffers.</typeparam>
-        /// <exception cref="InvalidOperationException">Source and destination sizes where not equal.</exception>
-        public void Copy<T>(Buffer<T> source, Buffer<T> destination)
-            where T : unmanaged
-        {
-            if (source.Descriptor.Size != destination.Descriptor.Size)
-            {
-                throw new InvalidOperationException("Source and destination sizes must be equal");
-            }
-
-            CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, new BufferCopyRegion(source.Descriptor.Size));
-        }
-
-        /// <summary>
-        ///     Copy a region of the source buffer to the destination buffer.
-        /// </summary>
-        /// <param name="source">Source buffer.</param>
-        /// <param name="destination">Destination buffer.</param>
-        /// <param name="region">Copy region.</param>
-        /// <typeparam name="T">Type of the elements stored in the buffers.</typeparam>
-        public void Copy<T>(Buffer<T> source, Buffer<T> destination, in BufferCopyRegion region)
-            where T : unmanaged
-        {
-            CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, in region);
-        }
-
-        /// <summary>
-        ///     A not type-safe version of buffer copy command (<see cref="Copy{T}(Buffer1D{T},Buffer1D{T})" />).
-        /// </summary>
-        /// <param name="source">Source buffer.</param>
-        /// <param name="destination">Destination buffer.</param>
-        /// <param name="region">Copy region.</param>
         public void CopyUnsafe(BufferBase source, BufferBase destination, in BufferCopyRegion region)
         {
             CommandListBuilder_Copy(ref builder, source.Handle, destination.Handle, in region);
         }
 
-        /// <summary>
-        ///     Dispatch a compute kernel to execute on the device.
-        /// </summary>
-        /// <param name="kernel">The kernel to dispatch.</param>
-        /// <param name="x">The number of local workgroups to dispatch in the X dimension.</param>
-        /// <param name="y">The number of local workgroups to dispatch in the Y dimension.</param>
-        /// <param name="z">The number of local workgroups to dispatch in the Z dimension.</param>
         public void Dispatch(Kernel kernel, int x, int y, int z)
         {
             CommandListBuilder_Dispatch(ref builder, kernel.Handle, x, y, z);
         }
 
-        /// <summary>
-        ///     Dispatch a compute kernel to execute on the device.
-        /// </summary>
-        /// <param name="kernel">The kernel to dispatch.</param>
-        /// <param name="workgroups">The number of local workgroups to dispatch in the X, Y and Z dimensions.</param>
-        public void Dispatch(Kernel kernel, Vector3Int workgroups)
-        {
-            Dispatch(kernel, workgroups.X, workgroups.Y, workgroups.Z);
-        }
-
-        /// <summary>
-        ///     Set the command list state to Executable and end command recording.
-        /// </summary>
-        public void Dispose()
+        public void End()
         {
             CommandListBuilder_End(ref builder);
+        }
+
+        public void Dispose()
+        {
+            End();
         }
 
         [DllImport("UnCompute")]
