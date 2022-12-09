@@ -15,7 +15,10 @@ internal class SyntaxTree
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
     public List<StructDeclarationSyntax> Structs { get; }
-    public IReadOnlyList<ParameterDeclarationSyntax> Parameters => Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
+
+    public IReadOnlyList<ParameterDeclarationSyntax> Parameters =>
+        Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
+
     public FunctionDeclarationSyntax? Function { get; init; }
 
     private readonly DisassemblyResult disassemblyResult;
@@ -49,7 +52,8 @@ internal class SyntaxTree
         disassemblyResult = dr;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
-        Function = new FunctionDeclarationSyntax(attribute, methodName, TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
+        Function = new FunctionDeclarationSyntax(attribute, methodName,
+            TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
         Structs = structs.ToList();
     }
 
@@ -66,7 +70,8 @@ internal class SyntaxTree
         DisassemblyResult dr,
         string methodName = "main")
     {
-        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr, Enumerable.Empty<StructDeclarationSyntax>());
+        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr,
+            Enumerable.Empty<StructDeclarationSyntax>());
     }
 
     internal void Compile()
@@ -76,7 +81,8 @@ internal class SyntaxTree
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
-            AddStatement(new VariableDeclarationStatementSyntax(TypeResolver.CreateType(VariableTypes[i], UserTypeCallback),
+            AddStatement(new VariableDeclarationStatementSyntax(
+                TypeResolver.CreateType(VariableTypes[i], UserTypeCallback),
                 $"V_{i}"));
         }
 
@@ -89,7 +95,7 @@ internal class SyntaxTree
 
             ParseStatement();
         }
-        
+
         Debug.Assert(!stack.Any());
     }
 
@@ -481,6 +487,14 @@ internal class SyntaxTree
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
                 stack.Push(new ArgumentExpressionSyntax("globalInvocationID", TypeResolver.CreateType<Vector3Uint>()));
+                break;
+            case nameof(GpuIntrinsic.Determinant):
+                var function = new IntrinsicFunctionSymbol(
+                    "determinant",
+                    TypeResolver.CreateType(methodReference.ReturnType.GetType(), _ => { }),
+                    new[] { TypeResolver.CreateType(methodReference.Parameters[0].GetType(), _ => { }) });
+                var arguments = function.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
+                stack.Push(new CallExpressionSyntax(function, arguments));
                 break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");

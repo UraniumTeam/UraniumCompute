@@ -30,7 +30,7 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .ToDictionary(x => x.Item1, x => x.Item2);
     }
 
-    private IntrinsicFunctionSymbol(string fullName, TypeSymbol returnType, IEnumerable<TypeSymbol> argumentTypes)
+    public IntrinsicFunctionSymbol(string fullName, TypeSymbol returnType, IEnumerable<TypeSymbol> argumentTypes)
     {
         FullName = fullName;
         ReturnType = returnType;

@@ -268,4 +268,25 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             Matrix4x4Uint o;
         }, expectedResult);
     }
+    
+    [Test]
+    public void CompilesDeterminant()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int4x4 V_0;
+    int V_1;
+    V_1 = determinant(V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Matrix4x4Int matrix = default;
+            return GpuIntrinsic.Determinant(matrix);
+        }, expectedResult);
+    }
 }
