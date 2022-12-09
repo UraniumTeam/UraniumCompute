@@ -17,12 +17,14 @@ public sealed class Pipeline : IDisposable
     private readonly TransientResourceHeap hostHeap;
     private ulong requiredHostMemory;
     private ulong requiredDeviceMemory;
+    private readonly CommandList commandList;
 
     internal Pipeline(JobScheduler scheduler)
     {
         JobScheduler = scheduler;
         deviceHeap = new TransientResourceHeap(JobScheduler.Device);
         hostHeap = new TransientResourceHeap(JobScheduler.Device);
+        commandList = JobScheduler.Device.CreateCommandList();
     }
 
     public T AddHostJob<T>(T job)
@@ -65,7 +67,7 @@ public sealed class Pipeline : IDisposable
         _ = AddDeviceJob(new DelegateDeviceJob(name, initializer, kernel));
     }
 
-    public void Run()
+    public Task Run()
     {
         if (!IsInitialized)
         {
@@ -84,13 +86,20 @@ public sealed class Pipeline : IDisposable
                 jobContext.Init();
             }
 
+            commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
             IsInitialized = true;
         }
 
-        foreach (var jobContext in jobs)
+        using (var ctx = commandList.Begin())
         {
-            jobContext.Run();
+            foreach (var jobContext in jobs)
+            {
+                jobContext.Run(ctx);
+            }
         }
+
+        commandList.Submit();
+        return Task.Run(() => commandList.CompletionFence.WaitOnCpu());
     }
 
     public void Dispose()

@@ -16,7 +16,7 @@ public sealed class AddArraysJob : IDeviceJob
 
     private TransientBuffer1D<float> result;
 
-    public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second, JobScheduler scheduler)
+    public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second)
     {
         First = first;
         Second = second;

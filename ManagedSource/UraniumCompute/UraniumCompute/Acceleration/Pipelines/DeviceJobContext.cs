@@ -80,19 +80,9 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
         Job.Run(this);
     }
 
-    public void Run()
+    public void Run(ICommandRecordingContext ctx)
     {
-        // TODO: create an execution context in the pipeline to manage command list building
-        using var commandList = Pipeline.JobScheduler.Device.CreateCommandList();
-        commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
-
-        using (var cmd = commandList.Begin())
-        {
-            cmd.Dispatch(kernel, workgroupCount);
-        }
-
-        commandList.Submit();
-        commandList.CompletionFence.WaitOnCpu();
+        ctx.Dispatch(kernel, workgroupCount);
     }
 
     public void Dispose()

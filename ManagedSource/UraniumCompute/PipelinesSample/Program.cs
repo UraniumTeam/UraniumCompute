@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using PipelinesSample;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Acceleration.Pipelines;
@@ -11,7 +12,7 @@ var bufferA = TransientBuffer1D<float>.Null;
 var bufferB = TransientBuffer1D<float>.Null;
 
 pipeline.AddHostJob("Create buffer A",
-    ctx => ctx.CreateBuffer(out bufferA, "buffer A", 1024, MemoryKindFlags.HostAndDeviceAccessible),
+    ctx => ctx.CreateBuffer(out bufferA, "buffer A", 256 * 1024, MemoryKindFlags.HostAndDeviceAccessible),
     () =>
     {
         using var map = bufferA.Buffer.Map();
@@ -31,9 +32,14 @@ pipeline.AddDeviceJob("Create buffer B",
         .CreateBuffer(out bufferB, "buffer B", bufferA.LongCount, MemoryKindFlags.DeviceAccessible),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X; }
 );
-var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, scheduler));
+var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB));
 
-pipeline.Run();
+var task = pipeline.Run();
+var sw = new Stopwatch();
+sw.Start();
+Console.WriteLine("Waiting for tasks to complete...");
+await task;
+Console.WriteLine($"Task was completed in {sw.ElapsedMilliseconds}ms");
 
 using (var map = addAB.Result.Buffer.Map())
 {

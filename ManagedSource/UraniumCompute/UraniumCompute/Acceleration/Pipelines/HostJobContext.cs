@@ -1,4 +1,5 @@
 ﻿using UraniumCompute.Acceleration.TransientResources;
+using UraniumCompute.Backend;
 using UraniumCompute.Memory;
 
 namespace UraniumCompute.Acceleration.Pipelines;
@@ -57,7 +58,7 @@ internal sealed class HostJobContext : IHostJobSetupContext, IJobRunContext
         Job.Run(this);
     }
 
-    public void Run()
+    public void Run(ICommandRecordingContext ctx)
     {
         kernel!();
     }
