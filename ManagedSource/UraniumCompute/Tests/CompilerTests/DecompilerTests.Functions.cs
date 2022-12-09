@@ -270,27 +270,6 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     }
     
     [Test]
-    public void CompilesDeterminant()
-    {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int4x4 V_0;
-    int V_1;
-    V_1 = determinant(V_0);
-    return V_1;
-}
-";
-
-        AssertFunc(() =>
-        {
-            Matrix4x4Int matrix = default;
-            return GpuIntrinsic.Determinant(matrix);
-        }, expectedResult);
-    }
-    
-    [Test]
     public void CompilesTranspose()
     {
         var expectedResult = @"
@@ -307,28 +286,7 @@ int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
         AssertFunc(() =>
         {
             Matrix4x4Int matrix = default;
-            return GpuIntrinsic.Transpose(matrix);
-        }, expectedResult);
-    }
-    
-    [Test]
-    public void CompilesAbs()
-    {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int3 main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int3 V_0;
-    int3 V_1;
-    V_1 = abs(V_0);
-    return V_1;
-}
-";
-
-        AssertFunc(() =>
-        {
-            Vector3Int matrix = default;
-            return GpuIntrinsic.Abs(matrix);
+            return Matrix4x4Int.Transpose(matrix);
         }, expectedResult);
     }
 }
