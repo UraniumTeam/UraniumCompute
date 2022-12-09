@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace UraniumCompute.Common.Math;
 
+[DeviceType("uint3x3")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Matrix3x3Uint : IEquatable<Matrix3x3Uint>
 {
