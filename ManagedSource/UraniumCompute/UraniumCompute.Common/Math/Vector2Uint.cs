@@ -22,6 +22,28 @@ public struct Vector2Uint : IEquatable<Vector2Uint>
 
     private static readonly unsafe int size = sizeof(Vector2Uint);
 
+    public uint this[int index]
+    {
+        get
+        {
+            if ((uint)index >= 2)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return Unsafe.Add(ref Unsafe.As<Vector2Uint, uint>(ref this), index);
+        }
+        set
+        {
+            if ((uint)index >= 2)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Unsafe.Add(ref Unsafe.As<Vector2Uint, uint>(ref this), index) = value;
+        }
+    }
+
     public Vector2Uint(ReadOnlySpan<uint> values)
     {
         if (values.Length < 2)
@@ -79,13 +101,6 @@ public struct Vector2Uint : IEquatable<Vector2Uint>
     public static Vector2Uint operator *(uint left, Vector2Uint right)
     {
         var vec = right.value * left;
-        return Unsafe.ReadUnaligned<Vector2Uint>(ref Unsafe.As<Vector64<uint>, byte>(ref vec));
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2Uint operator -(Vector2Uint vector)
-    {
-        var vec = -vector.value;
         return Unsafe.ReadUnaligned<Vector2Uint>(ref Unsafe.As<Vector64<uint>, byte>(ref vec));
     }
 
