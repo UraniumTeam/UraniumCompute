@@ -488,16 +488,6 @@ internal class SyntaxTree
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
                 stack.Push(new ArgumentExpressionSyntax("globalInvocationID", TypeResolver.CreateType<Vector3Uint>()));
                 break;
-            case nameof(GpuIntrinsic.Determinant):
-            case nameof(GpuIntrinsic.Transpose):
-            case nameof(GpuIntrinsic.Abs):
-                var function = new IntrinsicFunctionSymbol(
-                    methodReference.Name.ToLower(),
-                    TypeResolver.CreateType(methodReference.ReturnType.GetType(), _ => { }),
-                    new[] { TypeResolver.CreateType(methodReference.Parameters[0].GetType(), _ => { }) });
-                var arguments = function.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
-                stack.Push(new CallExpressionSyntax(function, arguments));
-                break;
             default:
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
         }
