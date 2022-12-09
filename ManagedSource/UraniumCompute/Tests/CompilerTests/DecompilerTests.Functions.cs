@@ -310,4 +310,25 @@ int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
             return GpuIntrinsic.Transpose(matrix);
         }, expectedResult);
     }
+    
+    [Test]
+    public void CompilesAbs()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int3 main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int3 V_0;
+    int3 V_1;
+    V_1 = abs(V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Vector3Int matrix = default;
+            return GpuIntrinsic.Abs(matrix);
+        }, expectedResult);
+    }
 }
