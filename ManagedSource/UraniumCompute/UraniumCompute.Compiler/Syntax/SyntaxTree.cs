@@ -490,6 +490,7 @@ internal class SyntaxTree
                 break;
             case nameof(GpuIntrinsic.Determinant):
             case nameof(GpuIntrinsic.Transpose):
+            case nameof(GpuIntrinsic.Abs):
                 var function = new IntrinsicFunctionSymbol(
                     methodReference.Name.ToLower(),
                     TypeResolver.CreateType(methodReference.ReturnType.GetType(), _ => { }),
