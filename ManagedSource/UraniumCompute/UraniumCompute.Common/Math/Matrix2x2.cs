@@ -7,6 +7,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace UraniumCompute.Common.Math;
 
+[DeviceType("float2x2")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Matrix2x2 : IEquatable<Matrix2x2>
 {

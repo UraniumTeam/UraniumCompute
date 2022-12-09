@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using Mono.Cecil;
 using UraniumCompute.Common;
-using UraniumCompute.Common.Math;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
@@ -83,28 +82,6 @@ internal static class TypeResolver
                 nameof(Vector3) => StructTypeSymbol.CreateSystemType("float3", tr),
                 nameof(Vector4) => StructTypeSymbol.CreateSystemType("float4", tr),
                 nameof(Matrix4x4) => StructTypeSymbol.CreateSystemType("float4x4", tr),
-                _ => throw new Exception($"Unknown type: {tr.Name}")
-            };
-        }
-
-        if (tr.Namespace == typeof(Vector2Int).Namespace)
-        {
-            return tr.Name switch
-            {
-                nameof(Vector2Int) => StructTypeSymbol.CreateSystemType("int2", tr),
-                nameof(Vector3Int) => StructTypeSymbol.CreateSystemType("int3", tr),
-                nameof(Vector4Int) => StructTypeSymbol.CreateSystemType("int4", tr),
-                nameof(Vector2Uint) => StructTypeSymbol.CreateSystemType("uint2", tr),
-                nameof(Vector3Uint) => StructTypeSymbol.CreateSystemType("uint3", tr),
-                nameof(Vector4Uint) => StructTypeSymbol.CreateSystemType("uint4", tr),
-                nameof(Matrix2x2) => StructTypeSymbol.CreateSystemType("float2x2", tr),
-                nameof(Matrix3x3) => StructTypeSymbol.CreateSystemType("float3x3", tr),
-                nameof(Matrix2x2Int) => StructTypeSymbol.CreateSystemType("int2x2", tr),
-                nameof(Matrix3x3Int) => StructTypeSymbol.CreateSystemType("int3x3", tr),
-                nameof(Matrix4x4Int) => StructTypeSymbol.CreateSystemType("int4x4", tr),
-                nameof(Matrix2x2Uint) => StructTypeSymbol.CreateSystemType("uint2x2", tr),
-                nameof(Matrix3x3Uint) => StructTypeSymbol.CreateSystemType("uint3x3", tr),
-                nameof(Matrix4x4Uint) => StructTypeSymbol.CreateSystemType("uint4x4", tr),
                 _ => throw new Exception($"Unknown type: {tr.Name}")
             };
         }

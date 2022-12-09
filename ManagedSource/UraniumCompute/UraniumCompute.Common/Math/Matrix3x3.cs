@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace UraniumCompute.Common.Math;
 
+[DeviceType("float3x3")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Matrix3x3 : IEquatable<Matrix3x3>
 {
