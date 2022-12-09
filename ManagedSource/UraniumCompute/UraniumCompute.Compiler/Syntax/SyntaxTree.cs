@@ -483,17 +483,27 @@ internal class SyntaxTree
             return false;
         }
 
+        IntrinsicFunctionSymbol? function;
+        IEnumerable<ExpressionSyntax>? arguments;
         switch (methodReference.Name)
         {
             case nameof(GpuIntrinsic.GetGlobalInvocationId):
                 stack.Push(new ArgumentExpressionSyntax("globalInvocationID", TypeResolver.CreateType<Vector3Uint>()));
                 break;
             case nameof(GpuIntrinsic.Determinant):
-                var function = new IntrinsicFunctionSymbol(
+                function = new IntrinsicFunctionSymbol(
                     "determinant",
                     TypeResolver.CreateType(methodReference.ReturnType.GetType(), _ => { }),
                     new[] { TypeResolver.CreateType(methodReference.Parameters[0].GetType(), _ => { }) });
-                var arguments = function.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
+                arguments = function.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
+                stack.Push(new CallExpressionSyntax(function, arguments));
+                break;
+            case nameof(GpuIntrinsic.Transpose):
+                function = new IntrinsicFunctionSymbol(
+                    "transpose",
+                    TypeResolver.CreateType(methodReference.ReturnType.GetType(), _ => { }),
+                    new[] { TypeResolver.CreateType(methodReference.Parameters[0].GetType(), _ => { }) });
+                arguments = function.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
                 stack.Push(new CallExpressionSyntax(function, arguments));
                 break;
             default:

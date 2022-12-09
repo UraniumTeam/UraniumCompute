@@ -289,4 +289,25 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
             return GpuIntrinsic.Determinant(matrix);
         }, expectedResult);
     }
+    
+    [Test]
+    public void CompilesTranspose()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int4x4 V_0;
+    int4x4 V_1;
+    V_1 = transpose(V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Matrix4x4Int matrix = default;
+            return GpuIntrinsic.Transpose(matrix);
+        }, expectedResult);
+    }
 }
