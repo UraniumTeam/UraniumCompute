@@ -81,7 +81,7 @@ public sealed class Buffer2D<T> : Buffer<T>
 
     internal static BufferBase.Desc CreateDesc(Desc desc)
     {
-        return new BufferBase.Desc(desc.Name, desc.XDimension * desc.YDimension * (ulong)ElementSize);
+        return new BufferBase.Desc(desc.Name, desc.XDimension * desc.YDimension * (ulong)ElementSize, Usage.Storage);
     }
 
     public new readonly record struct Desc(NativeString Name, ulong XDimension, ulong YDimension)
