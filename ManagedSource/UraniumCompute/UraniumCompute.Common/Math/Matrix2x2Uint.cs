@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace UraniumCompute.Common.Math;
 
+[DeviceType("uint2x2")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Matrix2x2Uint : IEquatable<Matrix2x2Uint>
 {
