@@ -1,4 +1,6 @@
-﻿using UraniumCompute.Compiler.InterimStructs;
+﻿using System.Numerics;
+using UraniumCompute.Common.Math;
+using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;
 
@@ -197,5 +199,115 @@ int un_user_defined_Foo()
     private static int Bar()
     {
         return 123;
+    }
+
+    [Test]
+    public void CompilesVectorDeclaration()
+    {
+        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    float2 V_0;
+    int2 V_1;
+    uint2 V_2;
+    float3 V_3;
+    int3 V_4;
+    uint3 V_5;
+    float4 V_6;
+    int4 V_7;
+    uint4 V_8;
+    return ;
+}
+";
+
+        AssertFunc((Span<float> values) =>
+        {
+            Vector2 q;
+            Vector2Int w;
+            Vector2Uint e;
+            Vector3 r;
+            Vector3Int t;
+            Vector3Uint y;
+            Vector4 u;
+            Vector4Int i;
+            Vector4Uint o;
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesMatrixDeclaration()
+    {
+        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    float2x2 V_0;
+    int2x2 V_1;
+    uint2x2 V_2;
+    float3x3 V_3;
+    int3x3 V_4;
+    uint3x3 V_5;
+    float4x4 V_6;
+    int4x4 V_7;
+    uint4x4 V_8;
+    return ;
+}
+";
+
+        AssertFunc((Span<float> values) =>
+        {
+            Matrix2x2 q;
+            Matrix2x2Int w;
+            Matrix2x2Uint e;
+            Matrix3x3 r;
+            Matrix3x3Int t;
+            Matrix3x3Uint y;
+            Matrix4x4 u;
+            Matrix4x4Int i;
+            Matrix4x4Uint o;
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesTranspose()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int4x4 V_0;
+    int4x4 V_1;
+    V_1 = transpose(V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Matrix4x4Int matrix = default;
+            return Matrix4x4Int.Transpose(matrix);
+        }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesDeterminant()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int4x4 V_0;
+    int V_1;
+    V_1 = determinant(V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Matrix4x4Int matrix = default;
+            return matrix.GetDeterminant();
+        }, expectedResult);
     }
 }

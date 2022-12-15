@@ -6,6 +6,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace UraniumCompute.Common.Math;
 
+[DeviceType("int4x4")]
 [StructLayout(LayoutKind.Explicit)]
 public struct Matrix4x4Int : IEquatable<Matrix4x4Int>
 {

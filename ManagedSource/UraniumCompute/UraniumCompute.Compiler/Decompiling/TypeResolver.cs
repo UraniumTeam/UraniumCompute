@@ -71,12 +71,18 @@ internal static class TypeResolver
 
         if (tr.Namespace == typeof(int).Namespace)
         {
+            return CreatePrimitiveType(tr);
+        }
+
+        if (tr.Namespace == typeof(Vector2).Namespace)
+        {
             return tr.Name switch
             {
                 nameof(Vector2) => StructTypeSymbol.CreateSystemType("float2", tr),
                 nameof(Vector3) => StructTypeSymbol.CreateSystemType("float3", tr),
                 nameof(Vector4) => StructTypeSymbol.CreateSystemType("float4", tr),
-                _ => CreatePrimitiveType(tr)
+                nameof(Matrix4x4) => StructTypeSymbol.CreateSystemType("float4x4", tr),
+                _ => throw new Exception($"Unknown type: {tr.Name}")
             };
         }
 
