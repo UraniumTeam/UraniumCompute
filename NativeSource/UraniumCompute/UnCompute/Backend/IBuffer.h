@@ -3,11 +3,19 @@
 
 namespace UN
 {
+    //! \brief Buffer usage type.
+    enum class BufferUsage
+    {
+        Storage, //!< The buffer is used as a storage for an array of elements.
+        Constant //!< The buffer is used to store kernel constants.
+    };
+
     //! \brief Buffer descriptor.
     struct BufferDesc
     {
-        const char* Name = nullptr; //!< Buffer debug name.
-        UInt64 Size      = 0;       //!< Buffer size in bytes.
+        const char* Name  = nullptr;              //!< Buffer debug name.
+        UInt64 Size       = 0;                    //!< Buffer size in bytes.
+        BufferUsage Usage = BufferUsage::Storage; //!< Buffer usage type.
 
         inline BufferDesc() = default;
 

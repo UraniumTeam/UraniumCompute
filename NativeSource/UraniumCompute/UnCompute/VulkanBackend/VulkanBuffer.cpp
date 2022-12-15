@@ -45,8 +45,20 @@ namespace UN
         VkBufferCreateInfo bufferCI{};
         bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferCI.size  = desc.Size;
-        bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-            | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+        bufferCI.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+        if (desc.Usage == BufferUsage::Storage)
+        {
+            bufferCI.usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+        }
+        else if (desc.Usage == BufferUsage::Constant)
+        {
+            bufferCI.usage |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        }
+        else
+        {
+            UN_Error(false, "Unknown buffer usage type <{}>", static_cast<Int32>(desc.Usage));
+        }
 
         auto vkDevice = m_pDevice.As<VulkanComputeDevice>()->GetNativeDevice();
         if (auto vkResult = vkCreateBuffer(vkDevice, &bufferCI, VK_NULL_HANDLE, &m_NativeBuffer); Failed(vkResult))
