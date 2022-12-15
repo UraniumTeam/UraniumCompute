@@ -94,16 +94,32 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     private readonly record struct DeviceMemorySliceNative(IntPtr Memory, ulong Offset, ulong Size);
 
     /// <summary>
+    ///     Buffer usage type.
+    /// </summary>
+    public enum Usage
+    {
+        /// <summary>
+        ///     The buffer is used as a storage for an array of elements.
+        /// </summary>
+        Storage,
+
+        /// <summary>
+        ///     The buffer is used to store kernel constants.
+        /// </summary>
+        Constant
+    }
+
+    /// <summary>
     ///     Buffer descriptor.
     /// </summary>
     /// <param name="Name">Debug name of the object.</param>
     /// <param name="Size">Size of the buffer.</param>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct Desc(NativeString Name, ulong Size)
+    public readonly record struct Desc(NativeString Name, ulong Size, Usage Usage)
     {
         public override int GetHashCode()
         {
-            return Size.GetHashCode();
+            return HashCode.Combine(Size, Usage);
         }
     }
 }
