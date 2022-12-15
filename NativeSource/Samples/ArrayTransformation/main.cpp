@@ -42,9 +42,10 @@ int main()
     ComputeDeviceDesc deviceDesc(pGpu->Id);
     UN_VerifyResultFatal(pDevice->Init(deviceDesc), "Couldn't initialize device");
 
-    Ptr<IBuffer> pStagingBuffer, pDeviceBuffer;
+    Ptr<IBuffer> pStagingBuffer, pDeviceBuffer, pConstantBuffer;
     UN_VerifyResultFatal(pDevice->CreateBuffer(&pStagingBuffer), "Couldn't create buffer");
     UN_VerifyResultFatal(pDevice->CreateBuffer(&pDeviceBuffer), "Couldn't create buffer");
+    UN_VerifyResultFatal(pDevice->CreateBuffer(&pConstantBuffer), "Couldn't create buffer");
 
     using BufferType = UInt32;
 
@@ -53,17 +54,32 @@ int main()
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
     UN_VerifyResultFatal(pDeviceBuffer->Init(BufferDesc("Device local buffer", bufferSize)), "Couldn't initialize buffer");
+    UN_VerifyResultFatal(pConstantBuffer->Init(BufferDesc("Constant buffer", bufferSize)), "Couldn't initialize buffer");
 
     UNLOG_Info("Allocating 2x {} of memory", MemorySize(bufferSize));
-    Ptr<IDeviceMemory> pStagingMemory, pDeviceMemory;
+    Ptr<IDeviceMemory> pStagingMemory, pDeviceMemory, pConstantMemory;
     UN_VerifyResultFatal(
         Utility::AllocateMemoryFor(pStagingBuffer.Get(), MemoryKindFlags::HostAndDeviceAccessible, &pStagingMemory),
         "Couldn't allocate staging memory");
-    UN_VerifyResultFatal(Utility::AllocateMemoryFor(pStagingBuffer.Get(), MemoryKindFlags::DeviceAccessible, &pDeviceMemory),
-                         "Couldn't allocate device local memory");
+    UN_VerifyResultFatal( //
+        Utility::AllocateMemoryFor(pStagingBuffer.Get(), MemoryKindFlags::DeviceAccessible, &pDeviceMemory),
+        "Couldn't allocate device local memory");
+    UN_VerifyResultFatal(
+        Utility::AllocateMemoryFor(pConstantBuffer.Get(), MemoryKindFlags::HostAndDeviceAccessible, &pConstantMemory),
+        "Couldn't allocate constant memory");
 
     UN_VerifyResultFatal(pStagingBuffer->BindMemory(pStagingMemory.Get()), "Couldn't bind memory to the staging buffer");
     UN_VerifyResultFatal(pDeviceBuffer->BindMemory(pDeviceMemory.Get()), "Couldn't bind memory to the device buffer");
+    UN_VerifyResultFatal(pConstantBuffer->BindMemory(pConstantMemory.Get()), "Couldn't bind memory to the device buffer");
+
+    if (auto map = MemoryMapHelper<BufferType>::Map(pConstantMemory.Get()))
+    {
+        map[0] = 10;
+    }
+    else
+    {
+        UN_Error(false, "Couldn't map constant memory");
+    }
 
     if (auto map = MemoryMapHelper<BufferType>::Map(pStagingMemory.Get()))
     {
@@ -112,6 +128,11 @@ int main()
     std::string kernelSource = R"(
 RWStructuredBuffer<uint> values : register(u0);
 
+cbuffer Constants : register(b1)
+{
+    uint Offset;
+}
+
 uint fib(uint n)
 {
     n %= 16;
@@ -135,7 +156,7 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     uint index = globalInvocationID.x;
     for (uint i = index * WORKGROUP_SIZE; i < (index + 1) * WORKGROUP_SIZE; ++i)
-        values[i] = fib(values[i]);
+        values[i] = fib(values[i]) + Offset;
 }
 )";
 
@@ -155,10 +176,12 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     Ptr<IResourceBinding> pResourceBinding;
     UN_VerifyResultFatal(pDevice->CreateResourceBinding(&pResourceBinding), "Couldn't create resource binding");
 
-    KernelResourceDesc bindingLayout[] = { KernelResourceDesc(0, KernelResourceKind::RWBuffer) };
+    KernelResourceDesc bindingLayout[] = { KernelResourceDesc(0, KernelResourceKind::RWBuffer),
+                                           KernelResourceDesc(1, KernelResourceKind::ConstantBuffer) };
     ResourceBindingDesc resourceBindingDesc("Resource binding", bindingLayout);
     UN_VerifyResultFatal(pResourceBinding->Init(resourceBindingDesc), "Couldn't initialize resource binding");
     UN_VerifyResultFatal(pResourceBinding->SetVariable(0, pDeviceBuffer.Get()), "Couldn't set buffer variable");
+    UN_VerifyResultFatal(pResourceBinding->SetVariable(1, pConstantBuffer.Get()), "Couldn't set buffer variable");
 
     Ptr<IKernel> pKernel;
     UN_VerifyResultFatal(pDevice->CreateKernel(&pKernel), "Couldn't create compute kernel");
