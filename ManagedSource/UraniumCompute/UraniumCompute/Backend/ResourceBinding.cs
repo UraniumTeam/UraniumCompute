@@ -32,7 +32,12 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     public void SetVariable<T>(int bindingIndex, Buffer<T> buffer)
         where T : unmanaged
     {
-        IResourceBinding_SetVariable(Handle, bindingIndex, buffer.Handle).ThrowOnError("Couldn't set kernel variable");
+        SetVariableInternal(bindingIndex, buffer);
+    }
+
+    internal void SetVariableInternal(int bindingIndex, BufferBase value)
+    {
+        IResourceBinding_SetVariable(Handle, bindingIndex, value.Handle).ThrowOnError("Couldn't set kernel variable");
     }
 
     protected override void InitInternal(in Desc desc)

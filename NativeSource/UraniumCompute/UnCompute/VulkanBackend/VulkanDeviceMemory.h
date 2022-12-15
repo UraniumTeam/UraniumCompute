@@ -10,6 +10,10 @@ namespace UN
         VkDeviceMemory m_NativeMemory = VK_NULL_HANDLE;
         UInt32 m_MemoryTypeIndex      = 0;
         bool m_Mapped                 = false;
+        UInt64 m_MapByteOffset        = 0;
+        UInt64 m_MapByteSize          = 0;
+
+        VkMappedMemoryRange GetMappedMemoryRange();
 
     protected:
         ResultCode InitInternal(const DescriptorType& desc) override;
