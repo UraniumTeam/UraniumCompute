@@ -10,6 +10,15 @@ public sealed class Buffer1D<T> : Buffer<T>
     internal Buffer1D(IntPtr handle) : base(handle)
     {
     }
+    
+    /// <summary>
+    ///     Initialize buffer with element count instead of size in bytes.
+    /// </summary>
+    /// <param name="desc">Device object descriptor.</param>
+    public void Init(Desc desc)
+    {
+        Init(CreateDesc(desc));
+    }
 
     /// <summary>
     ///     Initialize buffer with element count instead of size in bytes.
@@ -18,7 +27,7 @@ public sealed class Buffer1D<T> : Buffer<T>
     /// <param name="xDimension">The number of elements stored in the buffer along the x-axis.</param>
     public void Init(NativeString name, ulong xDimension)
     {
-        Init(new Desc(name, xDimension * (ulong)ElementSize));
+        Init(new Desc(name, xDimension));
     }
 
     /// <summary>
@@ -52,5 +61,15 @@ public sealed class Buffer1D<T> : Buffer<T>
 
         IncrementReferenceCount();
         return new Buffer2D<T>((ulong)width, (ulong)height, Handle);
+    }
+
+    internal static BufferBase.Desc CreateDesc(in Desc desc)
+    {
+        return new BufferBase.Desc(desc.Name, desc.XDimension * (ulong)ElementSize);
+    }
+
+    public new readonly record struct Desc(NativeString Name, ulong XDimension)
+    {
+        public ulong ByteSize => XDimension * (ulong)ElementSize;
     }
 }

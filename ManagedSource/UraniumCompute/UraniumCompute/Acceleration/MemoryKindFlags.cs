@@ -1,4 +1,4 @@
-﻿namespace UraniumCompute.Backend;
+﻿namespace UraniumCompute.Acceleration;
 
 /// <summary>
 ///     Device memory kind flags.
