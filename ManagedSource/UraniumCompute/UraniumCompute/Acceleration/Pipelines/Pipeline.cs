@@ -7,16 +7,15 @@ public sealed class Pipeline : IDisposable
 {
     public JobScheduler JobScheduler { get; }
     public bool IsInitialized { get; private set; }
-    public IReadOnlyCollection<ITransientResource> TransientResources => transientResources;
-
-    private readonly List<ITransientResource> transientResources = new();
-    private readonly List<BufferBase?> resources = new();
-    private readonly List<object> resourceDescriptors = new();
+    
+    private readonly List<ResourceInfo> resources = new();
     private readonly List<IJobContext> jobs = new();
+
     private readonly TransientResourceHeap deviceHeap;
     private readonly TransientResourceHeap hostHeap;
     private ulong requiredHostMemory;
     private ulong requiredDeviceMemory;
+
     private readonly CommandList commandList;
 
     internal Pipeline(JobScheduler scheduler)
@@ -112,32 +111,48 @@ public sealed class Pipeline : IDisposable
         }
     }
 
-    internal void AddResource(ITransientResource resource, object descriptor)
+    internal int AddResource(object descriptor)
     {
-        transientResources.Add(resource);
-        resourceDescriptors.Add(descriptor);
-        resources.Add(null);
+        resources.Add(new ResourceInfo(descriptor));
+        return resources.Count - 1;
     }
 
     internal BufferBase InitResource(int id, BufferBase resource)
     {
-        resources[id] = resource;
+        resources[id] = resources[id] with { Resource = resource };
         return resource;
     }
 
     internal BufferBase GetResource(int id)
     {
-        return resources[id] ?? throw new ArgumentException($"Resource {id} was uninitialized");
+        return resources[id].Resource ?? throw new ArgumentException($"Resource {id} was uninitialized");
     }
 
     internal T GetResourceDescriptor<T>(int id)
         where T : struct
     {
-        return (T)resourceDescriptors[id];
+        return resources[id].GetDescriptor<T>();
     }
 
     public TransientResourceHeap GetTransientResourceHeap(MemoryKindFlags memoryKindFlags)
     {
         return memoryKindFlags.HasFlag(MemoryKindFlags.HostAccessible) ? hostHeap : deviceHeap;
+    }
+
+    private readonly record struct ResourceInfo
+    {
+        public BufferBase? Resource { get; init; }
+
+        private readonly object descriptor;
+
+        public ResourceInfo(object desc)
+        {
+            descriptor = desc;
+        }
+
+        public T GetDescriptor<T>()
+        {
+            return (T)descriptor;
+        }
     }
 }

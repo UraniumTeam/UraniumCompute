@@ -35,7 +35,7 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
         SetVariableInternal(bindingIndex, buffer);
     }
 
-    internal void SetVariableInternal(int bindingIndex, DeviceObject value)
+    internal void SetVariableInternal(int bindingIndex, BufferBase value)
     {
         IResourceBinding_SetVariable(Handle, bindingIndex, value.Handle).ThrowOnError("Couldn't set kernel variable");
     }

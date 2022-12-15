@@ -11,6 +11,10 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
     public IDeviceJob Job { get; }
     public Pipeline Pipeline { get; }
 
+    public List<ITransientResource> CreatedResources => initializer.CreatedResources;
+    public List<ITransientResource> ReadResources { get; } = new();
+    public List<ITransientResource> WrittenResources { get; } = new();
+
     private readonly JobInitializer initializer;
     private readonly List<ITransientResource> variables = new();
 
@@ -42,6 +46,7 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
         where T : unmanaged
     {
         variables.Add(buffer);
+        ReadResources.Add(buffer);
         return this;
     }
 
@@ -49,6 +54,7 @@ internal sealed class DeviceJobContext : IDeviceJobSetupContext, IJobRunContext
         where T : unmanaged
     {
         variables.Add(buffer);
+        WrittenResources.Add(buffer);
         return this;
     }
 
