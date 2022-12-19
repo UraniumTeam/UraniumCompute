@@ -433,6 +433,12 @@ internal class SyntaxTree
         }
 
         var index = GetArgumentIndex();
+        //todo
+        //the first argument in non-static methods of the class is "this",
+        //so the number of arguments in the SIL code is one more
+        if (Parameters.Count == index)
+            --index;
+        //
         var name = Parameters[index].Name;
         var type = Parameters[index].ParameterType;
         stack.Push(new ArgumentExpressionSyntax(name, type));
