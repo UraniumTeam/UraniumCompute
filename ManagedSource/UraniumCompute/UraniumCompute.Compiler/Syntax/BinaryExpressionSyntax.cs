@@ -16,6 +16,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
     private static readonly Dictionary<string, BinaryOperationKind> operators = new()
     {
+        { "op_Division", BinaryOperationKind.Div },
         { "op_Addition", BinaryOperationKind.Add },
         { "op_Subtraction", BinaryOperationKind.Sub },
         { "op_Multiply", BinaryOperationKind.Mul },
@@ -107,7 +108,17 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
             new(null, null, BinaryOperationKind.Eq, typeof(bool)),
             new(null, null, BinaryOperationKind.Gt, typeof(bool)),
-            new(null, null, BinaryOperationKind.Lt, typeof(bool))
+            new(null, null, BinaryOperationKind.Lt, typeof(bool)), 
+            
+            new(typeof(Vector2), typeof(Vector2), BinaryOperationKind.Div, typeof(Vector2)),
+            new(typeof(Vector3), typeof(Vector3), BinaryOperationKind.Div, typeof(Vector3)),
+            new(typeof(Vector4), typeof(Vector4), BinaryOperationKind.Div, typeof(Vector4)),
+            new(typeof(Vector2Int), typeof(Vector2Int), BinaryOperationKind.Div, typeof(Vector2Int)),
+            new(typeof(Vector3Int), typeof(Vector3Int), BinaryOperationKind.Div, typeof(Vector3Int)),
+            new(typeof(Vector4Int), typeof(Vector4Int), BinaryOperationKind.Div, typeof(Vector4Int)),
+            new(typeof(Vector2Uint), typeof(Vector2Uint), BinaryOperationKind.Div, typeof(Vector2Uint)),
+            new(typeof(Vector3Uint), typeof(Vector3Uint), BinaryOperationKind.Div, typeof(Vector3Uint)),
+            new(typeof(Vector4Uint), typeof(Vector4Uint), BinaryOperationKind.Div, typeof(Vector4Uint)),
         };
 
         foreach (var type in basicTypes)
@@ -119,7 +130,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         }
 
         foreach (var type in numericsTypes)
-        foreach (var operation in operators)
+        foreach (var operation in operators.Skip(1))
         {
             AddOverloadedOperator(type, operation.Key, operation.Value);
             definedOperations.Add(new BinaryOperationDesc(type, typeof(int), operation.Value, type));
@@ -164,7 +175,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
     internal static BinaryOperationKind GetOperationKind(string name)
     {
-        return !operators.ContainsKey(name) ? BinaryOperationKind.None : operators[name];
+        return operators.TryGetValue(name, out var value) ? value : BinaryOperationKind.None;
     }
 
     internal static string GetOperationString(BinaryOperationKind kind)

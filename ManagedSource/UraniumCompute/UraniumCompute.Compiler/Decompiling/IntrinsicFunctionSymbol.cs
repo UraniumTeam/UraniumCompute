@@ -115,6 +115,8 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
         foreach (var constructor in constructors)
         {
             var arguments = new List<TypeSymbol>();
+            if (constructor.CallingConvention >= CallingConventions.HasThis)
+                arguments.Add(TypeResolver.CreateType(type, _ => { }));
             var paramTypes = constructor.GetParameters().Select(x => x.ParameterType).ToList();
             // todo
             if (paramTypes.Contains(typeof(ReadOnlySpan<float>))
