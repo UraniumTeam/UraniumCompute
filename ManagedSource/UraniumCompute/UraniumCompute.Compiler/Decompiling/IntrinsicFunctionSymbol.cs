@@ -32,7 +32,7 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Append(Matrix4x4Int.Transpose)
             .Append(Matrix4x4Uint.Transpose)
             .Select(CreateIntrinsic)
-            .ToDictionary(x => (x.Item1, 1), x => x.Item2);
+            .ToDictionary(x => (x.Item1, x.Item2.ArgumentTypes.Length), x => x.Item2);
 
         var matrixTypes = new List<Type>
         {

@@ -476,6 +476,7 @@ internal class SyntaxTree
         {
             ParseSystemCallExpression,
             ParseIntrinsicCallExpression,
+            ParseOperatorCallExpression,
             ParseGeneralCallExpression
         };
 
@@ -533,6 +534,19 @@ internal class SyntaxTree
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
         }
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseOperatorCallExpression(MethodReference methodReference)
+    {
+        var kind = BinaryExpressionSyntax.GetOperationKind(methodReference.Name);
+        if (kind == BinaryOperationKind.None)
+        {
+            return false;
+        }
+
+        stack.Push(new BinaryExpressionSyntax(kind, stack.Pop(), stack.Pop()));
         NextInstruction();
         return true;
     }

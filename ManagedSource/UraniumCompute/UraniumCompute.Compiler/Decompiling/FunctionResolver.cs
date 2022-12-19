@@ -14,8 +14,8 @@ internal static class FunctionResolver
             || methodReference.DeclaringType.Namespace == typeof(Matrix4x4).Namespace)
         {
             return IntrinsicFunctionSymbol.Resolve(
-                $"{methodReference.DeclaringType.Name}.{methodReference.Name}", 
-                methodReference.Parameters.Count);
+                $"{methodReference.DeclaringType.Name}.{methodReference.Name}",
+                methodReference.HasThis ? methodReference.Parameters.Count + 1 : methodReference.Parameters.Count);
         }
 
         userFunctionCallback(methodReference);
