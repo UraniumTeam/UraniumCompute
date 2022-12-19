@@ -310,4 +310,68 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
             return matrix.GetDeterminant();
         }, expectedResult);
     }
+
+    [Test]
+    public void CompilesMatrixMathOperators()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int4x4 V_0;
+    int4x4 V_1;
+    int4x4 V_2;
+    int4x4 V_3;
+    V_1 = (V_0 + V_0);
+    V_1 = (V_0 - V_0);
+    V_1 = (V_0 * V_0);
+    V_2 = (V_0 * 9);
+    V_3 = V_1;
+    return V_3;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Matrix4x4Int matrix = default;
+            var t1 = matrix + matrix;
+            t1 = matrix - matrix;
+            t1 = matrix * matrix;
+            var t2 = matrix * 9;
+            return t1;
+        }, expectedResult);
+    }
+    
+    [Test]
+    public void CompilesVectorMathOperators()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int2 main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int2 V_0;
+    int2 V_1;
+    int2 V_2;
+    int2 V_3;
+    V_1 = (V_0 + V_0);
+    V_1 = (V_0 - V_0);
+    V_1 = (V_0 * V_0);
+    V_1 = (V_0 / V_0);
+    V_2 = (V_0 * 6);
+    V_3 = V_1;
+    return V_3;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Vector2Int vector = default;
+            var t1 = vector + vector;
+            t1 = vector - vector;
+            t1 = vector * vector;
+            t1 = vector / vector;
+            var t2 = vector * 6;
+            return t1;
+        }, expectedResult);
+    }
 }
