@@ -34,39 +34,13 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Select(CreateIntrinsic)
             .ToDictionary(x => (x.Item1, x.Item2.ArgumentTypes.Length), x => x.Item2);
 
-        var matrixTypes = new List<Type>
-        {
-            typeof(Matrix2x2),
-            typeof(Matrix3x3),
-            typeof(Matrix4x4),
-            typeof(Matrix2x2Int),
-            typeof(Matrix3x3Int),
-            typeof(Matrix4x4Int),
-            typeof(Matrix2x2Uint),
-            typeof(Matrix3x3Uint),
-            typeof(Matrix4x4Uint)
-        };
-
-        var vectorTypes = new List<Type>
-        {
-            typeof(Vector2),
-            typeof(Vector3),
-            typeof(Vector4),
-            typeof(Vector2Int),
-            typeof(Vector3Int),
-            typeof(Vector4Int),
-            typeof(Vector2Uint),
-            typeof(Vector3Uint),
-            typeof(Vector4Uint)
-        };
-
-        foreach (var type in matrixTypes)
+        foreach (var type in TypeResolver.SupportedMatrixTypes)
         {
             CreateMemberCtorIntrinsic(type);
             CreateMemberIntrinsic(type, nameof(Matrix2x2.GetDeterminant), "determinant");
         }
 
-        foreach (var type in vectorTypes)
+        foreach (var type in TypeResolver.SupportedVectorTypes)
         {
             CreateMemberCtorIntrinsic(type);
         }
