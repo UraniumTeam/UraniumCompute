@@ -95,6 +95,13 @@ public struct Vector4Int : IEquatable<Vector4Int>
         var vec = left.value / right.value;
         return Unsafe.ReadUnaligned<Vector4Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2Int operator /(Vector4Int left, int right)
+    {
+        var vec = left.value / Vector128.Create(right);
+        return Unsafe.ReadUnaligned<Vector2Int>(ref Unsafe.As<Vector128<int>, byte>(ref vec));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector4Int operator *(Vector4Int left, int right)

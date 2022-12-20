@@ -85,6 +85,12 @@ public struct Vector3Int : IEquatable<Vector3Int>
     {
         return new Vector3Int(left.X / right.X, left.Y / right.Y, left.Z / right.Z);
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3Int operator /(Vector3Int left, int right)
+    {
+        return new Vector3Int(left.X / right, left.Y / right, left.Z / right);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3Int operator *(Vector3Int left, int right)
