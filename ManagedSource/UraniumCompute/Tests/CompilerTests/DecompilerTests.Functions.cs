@@ -312,6 +312,27 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
     }
 
     [Test]
+    public void CompilesDot()
+    {
+        var expectedResult = @"
+[numthreads(1, 1, 1)]
+int main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    int2 V_0;
+    int V_1;
+    V_1 = dot(V_0, V_0);
+    return V_1;
+}
+";
+
+        AssertFunc(() =>
+        {
+            Vector2Int vector = default;
+            return Vector2Int.Dot(vector, vector);
+        }, expectedResult);
+    }
+
+    [Test]
     public void CompilesMatrixMathOperators()
     {
         var expectedResult = @"
@@ -341,7 +362,7 @@ int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
             return t1;
         }, expectedResult);
     }
-    
+
     [Test]
     public void CompilesVectorMathOperators()
     {
