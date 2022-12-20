@@ -212,6 +212,7 @@ internal class SyntaxTree
             ParseAssignmentFieldExpression,
             ParseInitObjectExpression,
             ParseArgumentExpression,
+            ParseNewobjExpression,
             ParseCallExpression,
             ParseBranchExpression,
             ParseFieldExpression
@@ -494,6 +495,16 @@ internal class SyntaxTree
         }
     }
 
+    private bool ParseNewobjExpression()
+    {
+        if (Current!.OpCode.Code != Code.Newobj)
+        {
+            return false;
+        }
+
+        return ParseGeneralCallExpression((MethodReference)Current.Operand);
+    }
+    
     private bool ParseCallExpression()
     {
         if (Current!.OpCode.Code != Code.Call)
