@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Reflection;
 using Mono.Cecil;
 using UraniumCompute.Common;
 using UraniumCompute.Common.Math;
@@ -9,32 +10,28 @@ internal static class TypeResolver
 {
     private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
     private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
-    
-    internal static readonly List<Type> SupportedMatrixTypes = new()
-    {
-        typeof(Matrix2x2),
-        typeof(Matrix3x3),
-        typeof(Matrix4x4),
-        typeof(Matrix2x2Int),
-        typeof(Matrix3x3Int),
-        typeof(Matrix4x4Int),
-        typeof(Matrix2x2Uint),
-        typeof(Matrix3x3Uint),
-        typeof(Matrix4x4Uint)
-    };
 
-    internal static readonly List<Type> SupportedVectorTypes = new()
+    internal static IReadOnlyList<Type> SupportedMatrixTypes { get; }
+
+    internal static IReadOnlyList<Type> SupportedVectorTypes { get; }
+
+    static TypeResolver()
     {
-        typeof(Vector2),
-        typeof(Vector3),
-        typeof(Vector4),
-        typeof(Vector2Int),
-        typeof(Vector3Int),
-        typeof(Vector4Int),
-        typeof(Vector2Uint),
-        typeof(Vector3Uint),
-        typeof(Vector4Uint)
-    };
+        var deviceTypes = typeof(Matrix2x2).Assembly
+            .GetTypes()
+            .Where(x => x.GetCustomAttribute<DeviceTypeAttribute>() is not null)
+            .ToArray();
+        SupportedMatrixTypes = deviceTypes
+            .Where(x => x.Name.StartsWith("Matrix"))
+            .Append(typeof(Matrix4x4))
+            .ToArray();
+        SupportedVectorTypes = deviceTypes
+            .Where(x => x.Name.StartsWith("Vector"))
+            .Append(typeof(Vector2))
+            .Append(typeof(Vector3))
+            .Append(typeof(Vector4))
+            .ToArray();
+    }
 
     internal static void Reset()
     {
