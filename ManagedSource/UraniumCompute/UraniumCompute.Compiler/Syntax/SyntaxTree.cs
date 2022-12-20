@@ -473,22 +473,22 @@ internal class SyntaxTree
         return true;
     }
 
-    private int GetArgumentIndex(bool set)
+    private int GetArgumentIndex(bool store)
     {
         switch (Current!.OpCode.Code)
         {
             case Code.Starg:
             case Code.Starg_S:
-                return Current!.Operand is ParameterDefinition x && set ? x.Index : -1;
+                return Current!.Operand is ParameterDefinition x && store ? x.Index : -1;
             case Code.Ldarg:
             case Code.Ldarga:
             case Code.Ldarg_S:
             case Code.Ldarga_S:
-                return Current!.Operand is ParameterDefinition p && !set ? p.Index : -1;
-            case Code.Ldarg_0: return set ? -1 : 0;
-            case Code.Ldarg_1: return set ? -1 : 1;
-            case Code.Ldarg_2: return set ? -1 : 2;
-            case Code.Ldarg_3: return set ? -1 : 3;
+                return Current!.Operand is ParameterDefinition p && !store ? p.Index : -1;
+            case Code.Ldarg_0: return store ? -1 : 0;
+            case Code.Ldarg_1: return store ? -1 : 1;
+            case Code.Ldarg_2: return store ? -1 : 2;
+            case Code.Ldarg_3: return store ? -1 : 3;
             default:
                 return -1;
         }
