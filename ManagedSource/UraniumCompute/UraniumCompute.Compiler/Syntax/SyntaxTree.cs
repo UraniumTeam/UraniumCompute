@@ -161,10 +161,21 @@ internal class SyntaxTree
         }
 
         // For now load indirect instructions do nothing in our case
-        if (Current!.OpCode.Name.StartsWith("ldind"))
+        switch (Current!.OpCode.Code)
         {
-            NextInstruction();
-            return;
+            case Code.Ldind_I:
+            case Code.Ldind_I1:
+            case Code.Ldind_I2:
+            case Code.Ldind_I4:
+            case Code.Ldind_I8:
+            case Code.Ldind_R4:
+            case Code.Ldind_R8:
+            case Code.Ldind_Ref:
+            case Code.Ldind_U1:
+            case Code.Ldind_U2:
+            case Code.Ldind_U4:
+                NextInstruction();
+                return;
         }
 
         switch (Current!.OpCode.Code)
@@ -209,7 +220,7 @@ internal class SyntaxTree
         return expressionParsers.Any(parser => parser());
     }
 
-    private LiteralExpressionSyntax CreateLiteral()
+    private LiteralExpressionSyntax? CreateLiteral()
     {
         return Current!.OpCode.Code switch
         {
@@ -229,18 +240,19 @@ internal class SyntaxTree
             Code.Ldc_R4 => new LiteralExpressionSyntax((float)Current!.Operand),
             Code.Ldc_R8 => new LiteralExpressionSyntax((double)Current!.Operand),
             Code.Ldc_I8 => throw new InvalidOperationException("64-bit ints are not supported by GPU"),
-            _ => throw new Exception($"Unknown literal: {Current}")
+            _ => null
         };
     }
 
     private bool ParseLiteralExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("ldc"))
+        var literal = CreateLiteral();
+        if (literal is null)
         {
             return false;
         }
 
-        stack.Push(CreateLiteral());
+        stack.Push(literal);
         NextInstruction();
         return true;
     }
@@ -314,38 +326,48 @@ internal class SyntaxTree
         return true;
     }
 
-    private int GetVariableIndex()
+    private int GetVariableIndex(bool store)
     {
+        if (store)
+        {
+            switch (Current!.OpCode.Code)
+            {
+                case Code.Stloc_0: return 0;
+                case Code.Stloc_1: return 1;
+                case Code.Stloc_2: return 2;
+                case Code.Stloc_3: return 3;
+                case Code.Stloc:
+                case Code.Stloc_S:
+                    return ((VariableDefinition)Current!.Operand).Index;
+                default:
+                    return -1;
+            }
+        }
+
         switch (Current!.OpCode.Code)
         {
-            case Code.Stloc_0:
             case Code.Ldloc_0: return 0;
-            case Code.Stloc_1:
             case Code.Ldloc_1: return 1;
-            case Code.Stloc_2:
             case Code.Ldloc_2: return 2;
-            case Code.Stloc_3:
             case Code.Ldloc_3: return 3;
-            case Code.Stloc:
-            case Code.Stloc_S:
             case Code.Ldloc:
             case Code.Ldloc_S:
             case Code.Ldloca:
             case Code.Ldloca_S:
                 return ((VariableDefinition)Current!.Operand).Index;
+            default:
+                return -1;
         }
-
-        throw new InvalidOperationException($"Invalid instruction: {Current}");
     }
 
     private bool ParseAssignmentVariableExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("stloc"))
+        var variableIndex = GetVariableIndex(true);
+        if (variableIndex == -1)
         {
             return false;
         }
 
-        var variableIndex = GetVariableIndex();
         var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
@@ -356,12 +378,12 @@ internal class SyntaxTree
 
     private bool ParseVariableExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("ldloc"))
+        var variableIndex = GetVariableIndex(false);
+        if (variableIndex == -1)
         {
             return false;
         }
 
-        var variableIndex = GetVariableIndex();
         var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
         stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
@@ -370,9 +392,19 @@ internal class SyntaxTree
 
     private bool ParseAssignmentIndirectExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("stind"))
+        switch (Current!.OpCode.Code)
         {
-            return false;
+            case Code.Stind_I:
+            case Code.Stind_I1:
+            case Code.Stind_I2:
+            case Code.Stind_I4:
+            case Code.Stind_I8:
+            case Code.Stind_R4:
+            case Code.Stind_R8:
+            case Code.Stind_Ref:
+                break;
+            default:
+                return false;
         }
 
         AddStatement(new AssignmentStatementSyntax(stack.Pop(), stack.Pop()));
@@ -382,12 +414,12 @@ internal class SyntaxTree
 
     private bool ParseAssignmentArgumentExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("starg"))
+        var index = GetArgumentIndex(true);
+        if (index == -1)
         {
             return false;
         }
 
-        var index = GetArgumentIndex();
         var name = Parameters[index].Name;
         var type = Parameters[index].ParameterType;
         AddStatement(new AssignmentStatementSyntax(
@@ -427,12 +459,12 @@ internal class SyntaxTree
 
     private bool ParseArgumentExpression()
     {
-        if (!Current!.OpCode.Name.StartsWith("ldarg"))
+        var index = GetArgumentIndex(false);
+        if (index == -1)
         {
             return false;
         }
 
-        var index = GetArgumentIndex();
         var name = Parameters[index].Name;
         var type = Parameters[index].ParameterType;
         stack.Push(new ArgumentExpressionSyntax(name, type));
@@ -441,27 +473,30 @@ internal class SyntaxTree
         return true;
     }
 
-    private int GetArgumentIndex()
+    private int GetArgumentIndex(bool set)
     {
-        if (Current!.Operand is ParameterDefinition parameter)
-        {
-            return parameter.Index;
-        }
-
         switch (Current!.OpCode.Code)
         {
-            case Code.Ldarg_0: return 0;
-            case Code.Ldarg_1: return 1;
-            case Code.Ldarg_2: return 2;
-            case Code.Ldarg_3: return 3;
+            case Code.Starg:
+            case Code.Starg_S:
+                return Current!.Operand is ParameterDefinition x && set ? x.Index : -1;
+            case Code.Ldarg:
+            case Code.Ldarga:
+            case Code.Ldarg_S:
+            case Code.Ldarga_S:
+                return Current!.Operand is ParameterDefinition p && !set ? p.Index : -1;
+            case Code.Ldarg_0: return set ? -1 : 0;
+            case Code.Ldarg_1: return set ? -1 : 1;
+            case Code.Ldarg_2: return set ? -1 : 2;
+            case Code.Ldarg_3: return set ? -1 : 3;
             default:
-                throw new Exception($"Unknown instruction: {Current}");
+                return -1;
         }
     }
 
     private bool ParseCallExpression()
     {
-        if (Current!.OpCode.Name != "call")
+        if (Current!.OpCode.Code != Code.Call)
         {
             return false;
         }
@@ -535,7 +570,7 @@ internal class SyntaxTree
 
     private bool ParseConstructorCallExpression(MethodReference methodReference)
     {
-        if (methodReference.Name != ".ctor")
+        if (!methodReference.Resolve().IsConstructor)
         {
             return false;
         }
