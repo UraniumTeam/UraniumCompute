@@ -89,6 +89,13 @@ public struct Vector2Uint : IEquatable<Vector2Uint>
         var vec = left.value / right.value;
         return Unsafe.ReadUnaligned<Vector2Uint>(ref Unsafe.As<Vector64<uint>, byte>(ref vec));
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2Uint operator /(Vector2Uint left, uint right)
+    {
+        var vec = left.value / Vector64.Create(right);
+        return Unsafe.ReadUnaligned<Vector2Uint>(ref Unsafe.As<Vector64<uint>, byte>(ref vec));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector2Uint operator *(Vector2Uint left, uint right)
@@ -102,6 +109,12 @@ public struct Vector2Uint : IEquatable<Vector2Uint>
     {
         var vec = right.value * left;
         return Unsafe.ReadUnaligned<Vector2Uint>(ref Unsafe.As<Vector64<uint>, byte>(ref vec));
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint Dot(Vector2Uint left, Vector2Uint right)
+    {
+        return left.X * right.X + left.Y * right.Y;
     }
 
     public bool Equals(Vector2Uint other)

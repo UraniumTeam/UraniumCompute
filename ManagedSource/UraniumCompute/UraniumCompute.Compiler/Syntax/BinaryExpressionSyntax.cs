@@ -1,4 +1,6 @@
+using System.Numerics;
 using Mono.Cecil.Cil;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Compiler.Decompiling;
 
 namespace UraniumCompute.Compiler.Syntax;
@@ -10,7 +12,23 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
     internal ExpressionSyntax Right { get; }
     public override TypeSymbol ExpressionType { get; }
 
-    private static readonly BinaryOperationDesc[] definedOperations;
+    private static readonly HashSet<BinaryOperationDesc> definedOperations;
+
+    private static readonly Dictionary<string, BinaryOperationKind> operators = new()
+    {
+        { "op_Division", BinaryOperationKind.Div },
+        { "op_Addition", BinaryOperationKind.Add },
+        { "op_Subtraction", BinaryOperationKind.Sub },
+        { "op_Multiply", BinaryOperationKind.Mul },
+        { "op_Equality", BinaryOperationKind.Eq },
+    };
+
+    private static readonly List<Type> basicTypes = new()
+    {
+        typeof(int),
+        typeof(uint),
+        typeof(float)
+    };
 
     internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
     {
@@ -49,41 +67,63 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
     static BinaryExpressionSyntax()
     {
-        definedOperations = new[]
+        definedOperations = new HashSet<BinaryOperationDesc>
         {
-            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Add, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Sub, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Mul, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Div, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(int), BinaryOperationKind.Mod, typeof(int)),
+            new(typeof(int), typeof(int), BinaryOperationKind.Mod, typeof(int)),
+            new(typeof(uint), typeof(uint), BinaryOperationKind.Mod, typeof(uint)),
 
-            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Add, typeof(uint)),
-            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Sub, typeof(uint)),
-            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Mul, typeof(uint)),
-            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Div, typeof(uint)),
-            new BinaryOperationDesc(typeof(uint), typeof(uint), BinaryOperationKind.Mod, typeof(uint)),
+            new(typeof(int), typeof(uint), BinaryOperationKind.Add, typeof(int)),
+            new(typeof(int), typeof(uint), BinaryOperationKind.Sub, typeof(int)),
+            new(typeof(int), typeof(uint), BinaryOperationKind.Mul, typeof(int)),
+            new(typeof(int), typeof(uint), BinaryOperationKind.Div, typeof(int)),
+            new(typeof(int), typeof(uint), BinaryOperationKind.Mod, typeof(int)),
 
-            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Add, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Sub, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Mul, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Div, typeof(int)),
-            new BinaryOperationDesc(typeof(int), typeof(uint), BinaryOperationKind.Mod, typeof(int)),
+            new(typeof(uint), typeof(int), BinaryOperationKind.Add, typeof(int)),
+            new(typeof(uint), typeof(int), BinaryOperationKind.Sub, typeof(int)),
+            new(typeof(uint), typeof(int), BinaryOperationKind.Mul, typeof(int)),
+            new(typeof(uint), typeof(int), BinaryOperationKind.Div, typeof(int)),
+            new(typeof(uint), typeof(int), BinaryOperationKind.Mod, typeof(int)),
 
-            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Add, typeof(int)),
-            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Sub, typeof(int)),
-            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Mul, typeof(int)),
-            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Div, typeof(int)),
-            new BinaryOperationDesc(typeof(uint), typeof(int), BinaryOperationKind.Mod, typeof(int)),
-
-            new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Add, typeof(float)),
-            new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Sub, typeof(float)),
-            new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Mul, typeof(float)),
-            new BinaryOperationDesc(typeof(float), typeof(float), BinaryOperationKind.Div, typeof(float)),
-
-            new BinaryOperationDesc(null, null, BinaryOperationKind.Eq, typeof(bool)),
-            new BinaryOperationDesc(null, null, BinaryOperationKind.Gt, typeof(bool)),
-            new BinaryOperationDesc(null, null, BinaryOperationKind.Lt, typeof(bool))
+            new(null, null, BinaryOperationKind.Eq, typeof(bool)),
+            new(null, null, BinaryOperationKind.Gt, typeof(bool)),
+            new(null, null, BinaryOperationKind.Lt, typeof(bool)),
+            new(null, null, BinaryOperationKind.Or, typeof(bool)),
+            new(null, null, BinaryOperationKind.And, typeof(bool))
         };
+
+        foreach (var type in basicTypes)
+        {
+            definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Add, type));
+            definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Sub, type));
+            definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Mul, type));
+            definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Div, type));
+        }
+
+        foreach (var type in TypeResolver.SupportedVectorTypes)
+        foreach (var operation in operators)
+        {
+            AddOverloadedOperator(type, operation.Key, operation.Value);
+        }
+
+        foreach (var type in TypeResolver.SupportedMatrixTypes)
+        foreach (var operation in operators.Skip(1))
+        {
+            AddOverloadedOperator(type, operation.Key, operation.Value);
+        }
+    }
+
+    private static void AddOverloadedOperator(Type type, string name, BinaryOperationKind kind)
+    {
+        var methods = type.GetMethods().Where(m => m.Name == name).ToList();
+        if (methods.Count == 0)
+            throw new ArgumentException();
+        var returnType = methods[0].ReturnType;
+        foreach (var method in methods)
+        {
+            var paramTypes = method.GetParameters().Select(x => x.ParameterType).ToList();
+            definedOperations.Add(
+                new BinaryOperationDesc(paramTypes[0], paramTypes[1], kind, returnType));
+        }
     }
 
     internal static BinaryOperationKind GetOperationKind(Code code)
@@ -105,6 +145,11 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             Code.Xor => BinaryOperationKind.Xor,
             _ => BinaryOperationKind.None
         };
+    }
+
+    internal static BinaryOperationKind GetOperationKind(string name)
+    {
+        return operators.TryGetValue(name, out var value) ? value : BinaryOperationKind.None;
     }
 
     internal static string GetOperationString(BinaryOperationKind kind)
