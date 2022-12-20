@@ -217,13 +217,14 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     float4 V_6;
     int4 V_7;
     uint4 V_8;
+    V_0 = float2(7, 7);
     return ;
 }
 ";
 
         AssertFunc((Span<float> values) =>
         {
-            Vector2 q;
+            var q = new Vector2(7, 7);
             Vector2Int w;
             Vector2Uint e;
             Vector3 r;
@@ -297,8 +298,9 @@ int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
 [numthreads(1, 1, 1)]
 int main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
-    int4x4 V_0;
+    int2x2 V_0;
     int V_1;
+    V_0 = int2x2(1, 2, 3, 4);
     V_1 = determinant(V_0);
     return V_1;
 }
@@ -306,7 +308,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
 
         AssertFunc(() =>
         {
-            Matrix4x4Int matrix = default;
+            var matrix = new Matrix2x2Int(1,2,3,4);
             return matrix.GetDeterminant();
         }, expectedResult);
     }

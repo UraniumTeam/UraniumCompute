@@ -15,7 +15,7 @@ internal static class FunctionResolver
         {
             return IntrinsicFunctionSymbol.Resolve(
                 $"{methodReference.DeclaringType.Name}.{methodReference.Name}",
-                methodReference.HasThis ? methodReference.Parameters.Count + 1 : methodReference.Parameters.Count);
+                methodReference.Parameters.Count);
         }
 
         userFunctionCallback(methodReference);
