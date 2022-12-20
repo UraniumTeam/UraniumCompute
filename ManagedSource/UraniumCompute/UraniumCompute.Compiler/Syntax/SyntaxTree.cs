@@ -433,12 +433,6 @@ internal class SyntaxTree
         }
 
         var index = GetArgumentIndex();
-        //todo
-        //the first argument in non-static methods of the class is "this",
-        //so the number of arguments in the SIL code is one more
-        if (Parameters.Count == index)
-            --index;
-        //
         var name = Parameters[index].Name;
         var type = Parameters[index].ParameterType;
         stack.Push(new ArgumentExpressionSyntax(name, type));
@@ -476,6 +470,7 @@ internal class SyntaxTree
         {
             ParseSystemCallExpression,
             ParseIntrinsicCallExpression,
+            ParseConstructorCallExpression,
             ParseOperatorCallExpression,
             ParseGeneralCallExpression
         };
@@ -534,6 +529,24 @@ internal class SyntaxTree
                 throw new InvalidOperationException($"Unknown instruction: {Current}");
         }
 
+        NextInstruction();
+        return true;
+    }
+
+    private bool ParseConstructorCallExpression(MethodReference methodReference)
+    {
+        if (methodReference.Name != ".ctor")
+        {
+            return false;
+        }
+
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
+        var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
+
+        AddStatement(
+            new AssignmentStatementSyntax(
+                new CallExpressionSyntax(functionSymbol, arguments),
+                stack.Pop()));
         NextInstruction();
         return true;
     }

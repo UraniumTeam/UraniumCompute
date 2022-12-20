@@ -86,7 +86,9 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
             new(null, null, BinaryOperationKind.Eq, typeof(bool)),
             new(null, null, BinaryOperationKind.Gt, typeof(bool)),
-            new(null, null, BinaryOperationKind.Lt, typeof(bool))
+            new(null, null, BinaryOperationKind.Lt, typeof(bool)),
+            new(null, null, BinaryOperationKind.Or, typeof(bool)),
+            new(null, null, BinaryOperationKind.And, typeof(bool))
         };
 
         foreach (var type in basicTypes)
@@ -102,7 +104,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         {
             AddOverloadedOperator(type, operation.Key, operation.Value);
         }
-        
+
         foreach (var type in TypeResolver.SupportedMatrixTypes)
         foreach (var operation in operators.Skip(1))
         {

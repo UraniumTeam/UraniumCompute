@@ -21,7 +21,16 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Append(MathF.Max)
             .Append(MathF.Abs)
             .Append(MathF.Acos)
-            .Append(MathF.Asin)
+            .Append(MathF.Atan)
+            .Append(MathF.Atan2)
+            .Append(MathF.Cosh)
+            .Append(MathF.Exp)
+            .Append(MathF.Log2)
+            .Append(MathF.Log10)
+            .Append(MathF.Sinh)
+            .Append(MathF.Sqrt)
+            .Append(MathF.Tan)
+            .Append(MathF.Tanh)
             .Append(Matrix2x2.Transpose)
             .Append(Matrix2x2Int.Transpose)
             .Append(Matrix2x2Uint.Transpose)
@@ -85,7 +94,7 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             var paramTypes = method.GetParameters().Select(x => x.ParameterType).ToList();
             arguments.AddRange(paramTypes.Select(x => TypeResolver.CreateType(x, _ => { })));
             var symbol = new IntrinsicFunctionSymbol(hlslName, returnType, arguments);
-            functions[($"{method.DeclaringType!.Name}.{method.Name}", symbol.ArgumentTypes.Length)] = symbol;
+            functions[($"{method.DeclaringType!.Name}.{method.Name}", symbol.ArgumentTypes.Length - 1)] = symbol;
         }
     }
 
@@ -98,8 +107,6 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
         foreach (var constructor in constructors)
         {
             var arguments = new List<TypeSymbol>();
-            if (constructor.CallingConvention >= CallingConventions.HasThis)
-                arguments.Add(TypeResolver.CreateType(type, _ => { }));
             var paramTypes = constructor.GetParameters().Select(x => x.ParameterType).ToList();
             // todo
             if (paramTypes.Contains(typeof(ReadOnlySpan<float>))
