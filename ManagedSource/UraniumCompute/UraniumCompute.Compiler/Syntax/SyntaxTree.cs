@@ -649,7 +649,6 @@ internal class SyntaxTree
     private ExpressionSyntax CreateFieldExpression()
     {
         var field = (FieldReference)Current!.Operand!;
-        // TODO: ToLower() is a hack that works for now, but must be removed when we add support for user types
         return new PropertyExpressionSyntax(stack.Pop(), field);
     }
 
