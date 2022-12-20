@@ -104,6 +104,12 @@ public struct Vector3Uint : IEquatable<Vector3Uint>
         return new Vector3Uint(right.X * left, right.Y * left, right.Z * left);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint Dot(Vector3Uint left, Vector3Uint right)
+    {
+        return left.X * right.X + left.Y * right.Y + left.Z * right.Z;
+    }
+
     public bool Equals(Vector3Uint other)
     {
         return X.Equals(other.X) &&

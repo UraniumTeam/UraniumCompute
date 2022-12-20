@@ -117,6 +117,12 @@ public struct Vector2Int : IEquatable<Vector2Int>
         var vec = -vector.value;
         return Unsafe.ReadUnaligned<Vector2Int>(ref Unsafe.As<Vector64<int>, byte>(ref vec));
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Dot(Vector2Int left, Vector2Int right)
+    {
+        return left.X * right.X + left.Y * right.Y;
+    }
 
     public bool Equals(Vector2Int other)
     {
