@@ -30,28 +30,6 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         typeof(float)
     };
 
-    private static readonly List<Type> numericsTypes = new()
-    {
-        typeof(Matrix2x2),
-        typeof(Matrix3x3),
-        typeof(Matrix4x4),
-        typeof(Matrix2x2Int),
-        typeof(Matrix3x3Int),
-        typeof(Matrix4x4Int),
-        typeof(Matrix2x2Uint),
-        typeof(Matrix3x3Uint),
-        typeof(Matrix4x4Uint),
-        typeof(Vector2),
-        typeof(Vector3),
-        typeof(Vector4),
-        typeof(Vector2Int),
-        typeof(Vector3Int),
-        typeof(Vector4Int),
-        typeof(Vector2Uint),
-        typeof(Vector3Uint),
-        typeof(Vector4Uint)
-    };
-
     internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
     {
         var type = null as TypeSymbol;
@@ -108,17 +86,7 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
 
             new(null, null, BinaryOperationKind.Eq, typeof(bool)),
             new(null, null, BinaryOperationKind.Gt, typeof(bool)),
-            new(null, null, BinaryOperationKind.Lt, typeof(bool)), 
-            
-            new(typeof(Vector2), typeof(Vector2), BinaryOperationKind.Div, typeof(Vector2)),
-            new(typeof(Vector3), typeof(Vector3), BinaryOperationKind.Div, typeof(Vector3)),
-            new(typeof(Vector4), typeof(Vector4), BinaryOperationKind.Div, typeof(Vector4)),
-            new(typeof(Vector2Int), typeof(Vector2Int), BinaryOperationKind.Div, typeof(Vector2Int)),
-            new(typeof(Vector3Int), typeof(Vector3Int), BinaryOperationKind.Div, typeof(Vector3Int)),
-            new(typeof(Vector4Int), typeof(Vector4Int), BinaryOperationKind.Div, typeof(Vector4Int)),
-            new(typeof(Vector2Uint), typeof(Vector2Uint), BinaryOperationKind.Div, typeof(Vector2Uint)),
-            new(typeof(Vector3Uint), typeof(Vector3Uint), BinaryOperationKind.Div, typeof(Vector3Uint)),
-            new(typeof(Vector4Uint), typeof(Vector4Uint), BinaryOperationKind.Div, typeof(Vector4Uint)),
+            new(null, null, BinaryOperationKind.Lt, typeof(bool))
         };
 
         foreach (var type in basicTypes)
@@ -129,12 +97,16 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Div, type));
         }
 
-        foreach (var type in numericsTypes)
+        foreach (var type in TypeResolver.SupportedVectorTypes)
+        foreach (var operation in operators)
+        {
+            AddOverloadedOperator(type, operation.Key, operation.Value);
+        }
+        
+        foreach (var type in TypeResolver.SupportedMatrixTypes)
         foreach (var operation in operators.Skip(1))
         {
             AddOverloadedOperator(type, operation.Key, operation.Value);
-            definedOperations.Add(new BinaryOperationDesc(type, typeof(int), operation.Value, type));
-            definedOperations.Add(new BinaryOperationDesc(typeof(int), type, operation.Value, type));
         }
     }
 

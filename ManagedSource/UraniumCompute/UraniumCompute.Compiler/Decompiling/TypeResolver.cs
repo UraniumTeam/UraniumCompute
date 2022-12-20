@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Mono.Cecil;
 using UraniumCompute.Common;
+using UraniumCompute.Common.Math;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
@@ -8,6 +9,32 @@ internal static class TypeResolver
 {
     private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
     private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
+    
+    internal static readonly List<Type> SupportedMatrixTypes = new()
+    {
+        typeof(Matrix2x2),
+        typeof(Matrix3x3),
+        typeof(Matrix4x4),
+        typeof(Matrix2x2Int),
+        typeof(Matrix3x3Int),
+        typeof(Matrix4x4Int),
+        typeof(Matrix2x2Uint),
+        typeof(Matrix3x3Uint),
+        typeof(Matrix4x4Uint)
+    };
+
+    internal static readonly List<Type> SupportedVectorTypes = new()
+    {
+        typeof(Vector2),
+        typeof(Vector3),
+        typeof(Vector4),
+        typeof(Vector2Int),
+        typeof(Vector3Int),
+        typeof(Vector4Int),
+        typeof(Vector2Uint),
+        typeof(Vector3Uint),
+        typeof(Vector4Uint)
+    };
 
     internal static void Reset()
     {
