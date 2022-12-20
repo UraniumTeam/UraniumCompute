@@ -49,7 +49,7 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
             Unsafe.Add(ref Unsafe.As<Vector4Uint, uint>(ref this), index) = value;
         }
     }
-    
+
     public Vector4Uint(ReadOnlySpan<uint> values)
     {
         if (values.Length < 4)
@@ -97,6 +97,13 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2Int operator /(Vector4Uint left, uint right)
+    {
+        var vec = left.value / Vector128.Create(right);
+        return Unsafe.ReadUnaligned<Vector2Int>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector4Uint operator *(Vector4Uint left, uint right)
     {
         var vec = left.value * right;
@@ -108,6 +115,12 @@ public struct Vector4Uint : IEquatable<Vector4Uint>
     {
         var vec = right.value * left;
         return Unsafe.ReadUnaligned<Vector4Uint>(ref Unsafe.As<Vector128<uint>, byte>(ref vec));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint Dot(Vector4Uint left, Vector4Uint right)
+    {
+        return left.X * right.X + left.Y * right.Y + left.Z * right.Z + left.W * right.W;
     }
 
     public bool Equals(Vector4Uint other)
