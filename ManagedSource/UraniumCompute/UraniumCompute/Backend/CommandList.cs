@@ -155,5 +155,5 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     /// <param name="Flags">Command list flags.</param>
     [StructLayout(LayoutKind.Sequential)]
     public readonly record struct Desc(NativeString Name, HardwareQueueKindFlags QueueKindFlags,
-        CommandListFlags Flags = CommandListFlags.None);
+        CommandListFlags Flags = CommandListFlags.None) : IDeviceObjectDescriptor;
 }

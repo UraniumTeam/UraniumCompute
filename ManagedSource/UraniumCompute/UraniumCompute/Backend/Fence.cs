@@ -117,5 +117,5 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     /// <param name="Name">Fence debug name.</param>
     /// <param name="InitialState">Fence initial state.</param>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly record struct Desc(NativeString Name, FenceState InitialState);
+    public readonly record struct Desc(NativeString Name, FenceState InitialState) : IDeviceObjectDescriptor;
 }
