@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using UraniumBackend;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
 using UraniumCompute.Compilation;
@@ -131,5 +132,7 @@ internal static class Program
             Trace.Assert(Math.Abs(map[5] - 2 * 5.5f) < 0.001f);
             Console.WriteLine($"Kernel calculation results: {string.Join(", ", map.Take(8))}...");
         }
+        
+        ProfilerInstance.Save();
     }
 }

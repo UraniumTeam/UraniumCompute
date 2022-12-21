@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using UraniumBackend;
 using UraniumCompute.Memory;
 using UraniumCompute.Utils;
 
@@ -65,6 +66,7 @@ public abstract class DeviceObject : NativeObject
 }
 
 public abstract class DeviceObject<TDesc> : DeviceObject
+    where TDesc : unmanaged, IDeviceObjectDescriptor
 {
     /// <summary>
     ///     Device object descriptor.
@@ -100,6 +102,7 @@ public abstract class DeviceObject<TDesc> : DeviceObject
     /// <param name="desc">Device object descriptor.</param>
     public void Init(TDesc desc)
     {
+        using var scope = ProfilerScope.Begin($"Init \"{desc.Name}\"");
         IsInitialized = true;
         InitInternal(desc);
     }
