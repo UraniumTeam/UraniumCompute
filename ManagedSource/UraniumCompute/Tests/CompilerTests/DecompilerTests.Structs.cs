@@ -14,6 +14,11 @@ public struct TestStructOfStructs
     public TestStruct S2;
 }
 
+public struct ConstantBuffer
+{
+    public TestStruct Ts;
+}
+
 public partial class DecompilerTests
 {
     [Test]
@@ -121,6 +126,36 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             values[(int)index].S1.X = index;
             values[(int)index].S1.Y = 1.5f;
             values[(int)index].S2 = s;
+        }, expectedResult);
+    }
+    
+    [Test]
+    public void CompilesCbufferStruct()
+    {
+        var expectedResult = @"struct un_user_defined_TestStruct;
+
+struct un_user_defined_TestStruct
+{
+    float un_user_defined_X;
+    float un_user_defined_Y;
+};
+cbuffer ConstantBuffer
+{
+    un_user_defined_TestStruct ts;
+};
+
+[numthreads(1, 1, 1)]
+void main(uint3 globalInvocationID : SV_DispatchThreadID)
+{
+    un_user_defined_TestStruct V_0;
+    V_0 = ts;
+    return ;
+}
+";
+
+        AssertFunc((ConstantBuffer constants) =>
+        {
+            var x = constants.Ts;
         }, expectedResult);
     }
 }

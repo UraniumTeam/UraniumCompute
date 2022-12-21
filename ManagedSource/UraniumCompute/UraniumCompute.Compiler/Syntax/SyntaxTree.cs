@@ -15,6 +15,7 @@ internal class SyntaxTree
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
     public List<StructDeclarationSyntax> Structs { get; }
+    public List<ConstantsDeclarationSyntax> Constants { get; }
 
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters =>
         Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
@@ -31,9 +32,15 @@ internal class SyntaxTree
     private int instructionIndex;
     private Instruction? Current => instructionIndex < instructions.Length ? instructions[instructionIndex] : null;
 
-    private SyntaxTree(Action<MethodReference> userFunctionCallback, DisassemblyResult disassemblyResult,
-        Instruction[] instructions, int instructionIndex, string methodName, IReadOnlyList<TypeReference> variableTypes,
-        IEnumerable<StructDeclarationSyntax> structs)
+    private SyntaxTree(
+        Action<MethodReference> userFunctionCallback,
+        DisassemblyResult disassemblyResult,
+        Instruction[] instructions,
+        int instructionIndex,
+        string methodName,
+        IReadOnlyList<TypeReference> variableTypes,
+        IEnumerable<StructDeclarationSyntax> structs,
+        List<ConstantsDeclarationSyntax> constants)
     {
         this.userFunctionCallback = userFunctionCallback;
         this.disassemblyResult = disassemblyResult;
@@ -42,36 +49,45 @@ internal class SyntaxTree
         Structs = structs.ToList();
         MethodName = methodName;
         VariableTypes = variableTypes;
+        Constants = constants;
     }
 
-    private SyntaxTree(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute, string methodName,
-        DisassemblyResult dr, IEnumerable<StructDeclarationSyntax> structs)
+    private SyntaxTree(
+        Action<MethodReference> userFunctionCallback,
+        KernelAttribute? attribute,
+        string methodName,
+        DisassemblyResult dr,
+        IEnumerable<StructDeclarationSyntax> structs,
+        List<ConstantsDeclarationSyntax> constants)
     {
         this.userFunctionCallback = userFunctionCallback;
         MethodName = methodName;
         disassemblyResult = dr;
+        Constants = constants;
         VariableTypes = dr.Variables.Select(v => v.VariableType).ToArray();
         instructions = dr.Instructions.ToArray();
         Function = new FunctionDeclarationSyntax(attribute, methodName,
-            TypeResolver.CreateType(dr.ReturnType, UserTypeCallback));
+            TypeResolver.CreateType(dr.ReturnType, TypeCallback));
         Structs = structs.ToList();
     }
 
     public SyntaxTree WithStatements(IEnumerable<StatementSyntax> statements)
     {
         return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
-            VariableTypes, Structs)
+            VariableTypes, Structs, Constants)
         {
             Function = Function?.WithStatements(statements)
         };
     }
 
-    internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
+    internal static SyntaxTree Create(
+        Action<MethodReference> userFunctionCallback,
+        KernelAttribute? attribute,
         DisassemblyResult dr,
         string methodName = "main")
     {
         return new SyntaxTree(userFunctionCallback, attribute, methodName, dr,
-            Enumerable.Empty<StructDeclarationSyntax>());
+            Enumerable.Empty<StructDeclarationSyntax>(), new List<ConstantsDeclarationSyntax>());
     }
 
     internal void Compile()
@@ -82,7 +98,7 @@ internal class SyntaxTree
         for (var i = 0; i < VariableTypes.Count; i++)
         {
             AddStatement(new VariableDeclarationStatementSyntax(
-                TypeResolver.CreateType(VariableTypes[i], UserTypeCallback),
+                TypeResolver.CreateType(VariableTypes[i], TypeCallback),
                 $"V_{i}"));
         }
 
@@ -104,6 +120,11 @@ internal class SyntaxTree
         foreach (var s in Structs)
         {
             generator.EmitStruct(s);
+        }
+
+        foreach (var c in Constants)
+        {
+            generator.EmitConstants(c);
         }
 
         generator.EmitFunction(Function!);
@@ -148,7 +169,9 @@ internal class SyntaxTree
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
-            var parameterType = TypeResolver.CreateType(parameter.ParameterType, UserTypeCallback);
+            if (parameter.ParameterType.Name == "ConstantBuffer")
+                continue;
+            var parameterType = TypeResolver.CreateType(parameter.ParameterType, TypeCallback);
             Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, parameter.Name, i));
         }
     }
@@ -369,7 +392,7 @@ internal class SyntaxTree
             return false;
         }
 
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], TypeCallback);
         AddStatement(new AssignmentStatementSyntax(
             stack.Pop(),
             new VariableExpressionSyntax(variableIndex, variableType)));
@@ -385,7 +408,7 @@ internal class SyntaxTree
             return false;
         }
 
-        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], UserTypeCallback);
+        var variableType = TypeResolver.CreateType(VariableTypes[variableIndex], TypeCallback);
         stack.Push(new VariableExpressionSyntax(variableIndex, variableType));
         NextInstruction();
         return true;
@@ -504,7 +527,7 @@ internal class SyntaxTree
 
         return ParseGeneralCallExpression((MethodReference)Current.Operand);
     }
-    
+
     private bool ParseCallExpression()
     {
         if (Current!.OpCode.Code != Code.Call)
@@ -586,7 +609,7 @@ internal class SyntaxTree
             return false;
         }
 
-        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, TypeCallback);
         var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
 
         AddStatement(
@@ -612,7 +635,7 @@ internal class SyntaxTree
 
     private bool ParseGeneralCallExpression(MethodReference methodReference)
     {
-        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
+        var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, TypeCallback);
         var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
         stack.Push(new CallExpressionSyntax(functionSymbol, arguments));
         NextInstruction();
@@ -677,8 +700,12 @@ internal class SyntaxTree
         Function!.Block.Statements.Add(statement);
     }
 
-    private void UserTypeCallback(TypeReference typeReference)
+    private void TypeCallback(TypeReference typeReference)
     {
-        Structs.Add(new StructDeclarationSyntax(StructTypeSymbol.CreateUserType(typeReference, UserTypeCallback)));
+        if (typeReference.Name == "ConstantBuffer")
+            Constants.Add(
+                new ConstantsDeclarationSyntax(StructTypeSymbol.CreateCbufferType(typeReference, TypeCallback)));
+        else
+            Structs.Add(new StructDeclarationSyntax(StructTypeSymbol.CreateUserType(typeReference, TypeCallback)));
     }
 }

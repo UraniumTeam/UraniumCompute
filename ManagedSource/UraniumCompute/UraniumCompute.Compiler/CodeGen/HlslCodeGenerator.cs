@@ -50,6 +50,19 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.WriteLine("};");
     }
 
+    public void EmitConstants(ConstantsDeclarationSyntax syntax)
+    {
+        Output.WriteLine($"cbuffer {syntax.CbufferType.FullName}");
+        Output.WriteLine("{");
+        foreach (var field in syntax.CbufferType.Fields)
+        {
+            WriteIndent(1);
+            Output.WriteLine($"{field.FieldType} {field.Name};");
+        }
+
+        Output.WriteLine("};");
+    }
+
     private void EmitFunctionDeclarationImpl(FunctionDeclarationSyntax syntax)
     {
         if (syntax.KernelAttribute is not null)
