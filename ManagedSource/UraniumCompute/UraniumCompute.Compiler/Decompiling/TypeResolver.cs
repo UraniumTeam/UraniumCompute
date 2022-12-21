@@ -66,13 +66,13 @@ internal static class TypeResolver
         return typeCache[tr] = CreateTypeImpl(tr, userTypeCallback);
     }
 
-    private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> userTypeCallback)
+    private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback)
     {
         if (tr is GenericInstanceType instance)
         {
             if (instance.Namespace == "System")
             {
-                var argument = CreateType(instance.GenericArguments[0], userTypeCallback);
+                var argument = CreateType(instance.GenericArguments[0], typeCallback);
                 return instance.Name switch
                 {
                     "Span`1" => new GenericTypeSymbol("RWStructuredBuffer", argument),
@@ -81,6 +81,12 @@ internal static class TypeResolver
             }
 
             throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
+        }
+        
+        if (tr.Name == "ConstantBuffer")
+        {
+            typeCallback(tr);
+            return StructTypeSymbol.CreateCbufferType(tr, typeCallback);;
         }
 
         var customAttributes = tr.Resolve().CustomAttributes;
@@ -110,8 +116,8 @@ internal static class TypeResolver
             };
         }
 
-        userTypeCallback(tr);
-        return StructTypeSymbol.CreateUserType(tr, userTypeCallback);
+        typeCallback(tr);
+        return StructTypeSymbol.CreateUserType(tr, typeCallback);
     }
 
     private static PrimitiveTypeSymbol CreatePrimitiveType(TypeReference tr)
