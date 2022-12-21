@@ -637,6 +637,15 @@ internal class SyntaxTree
                     : new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, stack.Pop());
                 AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
                 break;
+            case Code.Bgt:
+            case Code.Bgt_S:
+            case Code.Bgt_Un:
+            case Code.Bgt_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Gt, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
             default:
                 return false;
         }
