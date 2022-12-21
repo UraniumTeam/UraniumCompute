@@ -52,3 +52,19 @@ pipeline.AddDeviceJob("Create buffer B",
 // The jobs can also be create with classes instead of lambdas, this allows us to store frequently used code separately
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB));
 ```
+
+When the pipeline is ready, we can execute it asynchronously:
+```cs
+await pipeline.Run();
+```
+
+The data can be copied from any buffer that was allocated with `MemoryKindFlags.HostAndDeviceAccessible` flag.
+In this case we get the transient buffer from the job's property and request the actual device buffer (`addAB.Result.Buffer`) and call `Map()`
+to access its contents.
+```cs
+using (var map = addAB.Result.Buffer.Map())
+{
+    Console.WriteLine(
+        $"Calculation results: [{string.Join(", ", map.Select(x => x.ToString(CultureInfo.InvariantCulture)).Take(32))}, ...]");
+}
+```
