@@ -35,6 +35,18 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
         SetVariableInternal(bindingIndex, buffer);
     }
 
+    /// <summary>
+    ///     Set kernel variable.
+    /// </summary>
+    /// <param name="bindingIndex">Binding index of the variable to set.</param>
+    /// <param name="buffer">The kernel constants object to assign.</param>
+    /// <typeparam name="T">Type of the kernel constant.</typeparam>
+    public void SetVariable<T>(int bindingIndex, KernelConstants<T> buffer)
+        where T : unmanaged
+    {
+        SetVariableInternal(bindingIndex, buffer);
+    }
+
     internal void SetVariableInternal(int bindingIndex, BufferBase value)
     {
         IResourceBinding_SetVariable(Handle, bindingIndex, value.Handle).ThrowOnError("Couldn't set kernel variable");

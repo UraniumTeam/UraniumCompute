@@ -15,10 +15,21 @@ public static class CompilerUtils
         var resources = new KernelResourceDesc[parameters.Length];
         for (var i = 0; i < parameters.Length; ++i)
         {
-            resources[i] = new KernelResourceDesc(i, KernelResourceKind.RWBuffer);
+            var kind = GetResourceKind(parameters[i].ParameterType);
+            resources[i] = new KernelResourceDesc(i, kind);
         }
 
         resourceBinding.Init(new ResourceBinding.Desc("Resource binding", resources));
         kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
+    }
+
+    private static KernelResourceKind GetResourceKind(Type parameterType)
+    {
+        if (parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Span<>))
+        {
+            return KernelResourceKind.RWBuffer;
+        }
+
+        return KernelResourceKind.ConstantBuffer;
     }
 }
