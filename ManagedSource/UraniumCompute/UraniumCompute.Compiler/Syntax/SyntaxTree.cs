@@ -645,6 +645,33 @@ internal class SyntaxTree
                         new BinaryExpressionSyntax(BinaryOperationKind.Gt, stack.Pop(), stack.Pop()), 
                         ((Instruction)Current!.Operand).Offset));
                 break;
+            case Code.Blt:
+            case Code.Blt_S:
+            case Code.Blt_Un:
+            case Code.Blt_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Lt, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Bge:
+            case Code.Bge_S:
+            case Code.Bge_Un:
+            case Code.Bge_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Ge, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Ble:
+            case Code.Ble_S:
+            case Code.Ble_Un:
+            case Code.Ble_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Le, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
             default:
                 return false;
         }
