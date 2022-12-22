@@ -15,7 +15,7 @@ internal class SyntaxTree
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
     public List<StructDeclarationSyntax> Structs { get; }
-
+    
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters =>
         Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
 
@@ -25,6 +25,7 @@ internal class SyntaxTree
     private readonly Stack<ExpressionSyntax> stack = new();
     private readonly Instruction[] instructions;
     private readonly Action<MethodReference> userFunctionCallback;
+    private int argumentIndexOffset => disassemblyResult.HasThis ? 1 : 0;
 
     private readonly Dictionary<int, LabelStatementSyntax> labels = new();
 
@@ -67,11 +68,9 @@ internal class SyntaxTree
     }
 
     internal static SyntaxTree Create(Action<MethodReference> userFunctionCallback, KernelAttribute? attribute,
-        DisassemblyResult dr,
-        string methodName = "main")
+        DisassemblyResult dr, string methodName = "main")
     {
-        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr,
-            Enumerable.Empty<StructDeclarationSyntax>());
+        return new SyntaxTree(userFunctionCallback, attribute, methodName, dr, Enumerable.Empty<StructDeclarationSyntax>());
     }
 
     internal void Compile()
@@ -212,6 +211,7 @@ internal class SyntaxTree
             ParseAssignmentFieldExpression,
             ParseInitObjectExpression,
             ParseArgumentExpression,
+            ParseNewobjExpression,
             ParseCallExpression,
             ParseBranchExpression,
             ParseFieldExpression
@@ -485,13 +485,23 @@ internal class SyntaxTree
             case Code.Ldarg_S:
             case Code.Ldarga_S:
                 return Current!.Operand is ParameterDefinition p && !store ? p.Index : -1;
-            case Code.Ldarg_0: return store ? -1 : 0;
-            case Code.Ldarg_1: return store ? -1 : 1;
-            case Code.Ldarg_2: return store ? -1 : 2;
-            case Code.Ldarg_3: return store ? -1 : 3;
+            case Code.Ldarg_0: return store ? -1 : 0 - argumentIndexOffset;
+            case Code.Ldarg_1: return store ? -1 : 1 - argumentIndexOffset;
+            case Code.Ldarg_2: return store ? -1 : 2 - argumentIndexOffset;
+            case Code.Ldarg_3: return store ? -1 : 3 - argumentIndexOffset;
             default:
                 return -1;
         }
+    }
+
+    private bool ParseNewobjExpression()
+    {
+        if (Current!.OpCode.Code != Code.Newobj)
+        {
+            return false;
+        }
+
+        return ParseGeneralCallExpression((MethodReference)Current.Operand);
     }
 
     private bool ParseCallExpression()
@@ -625,6 +635,42 @@ internal class SyntaxTree
                     ? stack.Pop()
                     : new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, stack.Pop());
                 AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Bgt:
+            case Code.Bgt_S:
+            case Code.Bgt_Un:
+            case Code.Bgt_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Gt, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Blt:
+            case Code.Blt_S:
+            case Code.Blt_Un:
+            case Code.Blt_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Lt, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Bge:
+            case Code.Bge_S:
+            case Code.Bge_Un:
+            case Code.Bge_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Ge, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
+                break;
+            case Code.Ble:
+            case Code.Ble_S:
+            case Code.Ble_Un:
+            case Code.Ble_Un_S:
+                AddStatement(
+                    new ConditionalGotoStatementSyntax(
+                        new BinaryExpressionSyntax(BinaryOperationKind.Le, stack.Pop(), stack.Pop()), 
+                        ((Instruction)Current!.Operand).Offset));
                 break;
             default:
                 return false;

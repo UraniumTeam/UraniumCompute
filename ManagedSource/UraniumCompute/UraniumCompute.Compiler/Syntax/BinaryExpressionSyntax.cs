@@ -87,6 +87,8 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             new(null, null, BinaryOperationKind.Eq, typeof(bool)),
             new(null, null, BinaryOperationKind.Gt, typeof(bool)),
             new(null, null, BinaryOperationKind.Lt, typeof(bool)),
+            new(null, null, BinaryOperationKind.Ge, typeof(bool)),
+            new(null, null, BinaryOperationKind.Le, typeof(bool)),
             new(null, null, BinaryOperationKind.Or, typeof(bool)),
             new(null, null, BinaryOperationKind.And, typeof(bool))
         };
@@ -164,6 +166,8 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             BinaryOperationKind.Eq => "==",
             BinaryOperationKind.Gt => ">",
             BinaryOperationKind.Lt => "<",
+            BinaryOperationKind.Ge => ">=",
+            BinaryOperationKind.Le => "<=",
             BinaryOperationKind.And => "&",
             BinaryOperationKind.Or => "|",
             BinaryOperationKind.ShiftL => "<<",

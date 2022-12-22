@@ -50,13 +50,28 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.WriteLine("};");
     }
 
+    private void EmitConstants(ParameterDeclarationSyntax syntax)
+    {
+        Output.WriteLine($"cbuffer Constants : register(b{syntax.BindingIndex})");
+        Output.WriteLine("{");
+        WriteIndent(1);
+        Emit(syntax, false);
+        Output.WriteLine("};");
+    }
+
     private void EmitFunctionDeclarationImpl(FunctionDeclarationSyntax syntax)
     {
         if (syntax.KernelAttribute is not null)
         {
             foreach (var parameter in syntax.Parameters)
             {
-                Emit(parameter);
+                if (parameter.ParameterType is GenericBufferTypeSymbol)
+                {
+                    Emit(parameter, true);
+                    continue;
+                }
+
+                EmitConstants(parameter);
             }
 
             Emit(syntax.KernelAttribute, 0);
@@ -279,9 +294,16 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.Write(syntax);
     }
 
-    private void Emit(ParameterDeclarationSyntax syntax)
+    private void Emit(ParameterDeclarationSyntax syntax, bool register)
     {
-        Output.WriteLine($"{syntax.ToStringWithType()} : register(u{syntax.BindingIndex});");
+        Output.Write($"{syntax.ToStringWithType()}");
+
+        if (register)
+        {
+            Output.Write($" : register(u{syntax.BindingIndex})");
+        }
+
+        Output.WriteLine(";");
     }
 
     private void Emit(PropertyExpressionSyntax syntax)
