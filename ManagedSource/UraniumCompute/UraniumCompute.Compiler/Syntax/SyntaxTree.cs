@@ -15,7 +15,7 @@ internal class SyntaxTree
     public string MethodName { get; }
     public IReadOnlyList<TypeReference> VariableTypes { get; }
     public List<StructDeclarationSyntax> Structs { get; }
-    
+
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters =>
         Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
 
@@ -302,7 +302,9 @@ internal class SyntaxTree
             case Code.Conv_U8:
             case Code.Conv_Ovf_U8:
             case Code.Conv_Ovf_U8_Un:
-                throw new Exception("64-bit ints are not supported by GPU");
+            // The C# compiler sometimes converts integers temporarily
+            // We will ignore it and convert to 32-bit instead
+            // throw new Exception("64-bit ints are not supported by GPU");
             case Code.Conv_U:
             case Code.Conv_Ovf_U:
             case Code.Conv_Ovf_U_Un:
@@ -604,7 +606,8 @@ internal class SyntaxTree
             return false;
         }
 
-        stack.Push(new BinaryExpressionSyntax(kind, stack.Pop(), stack.Pop()));
+        var returnType = TypeResolver.CreateType(methodReference.ReturnType, UserTypeCallback);
+        stack.Push(new BinaryExpressionSyntax(kind, stack.Pop(), stack.Pop(), returnType));
         NextInstruction();
         return true;
     }
@@ -618,7 +621,7 @@ internal class SyntaxTree
         return true;
     }
 
-    private bool ParseBranchExpression()
+    private bool ParseGotoStatement()
     {
         var opCode = Current!.OpCode.Code;
         switch (opCode)
@@ -626,7 +629,18 @@ internal class SyntaxTree
             case Code.Br:
             case Code.Br_S:
                 AddStatement(new GotoStatementSyntax(((Instruction)Current!.Operand).Offset));
-                break;
+                NextInstruction();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private bool ParseBranchTrueFalseExpression()
+    {
+        var opCode = Current!.OpCode.Code;
+        switch (opCode)
+        {
             case Code.Brfalse:
             case Code.Brfalse_S:
             case Code.Brtrue:
@@ -635,46 +649,41 @@ internal class SyntaxTree
                     ? stack.Pop()
                     : new UnaryExpressionSyntax(UnaryOperationKind.LogicalNot, stack.Pop());
                 AddStatement(new ConditionalGotoStatementSyntax(comparison, ((Instruction)Current!.Operand).Offset));
-                break;
-            case Code.Bgt:
-            case Code.Bgt_S:
-            case Code.Bgt_Un:
-            case Code.Bgt_Un_S:
-                AddStatement(
-                    new ConditionalGotoStatementSyntax(
-                        new BinaryExpressionSyntax(BinaryOperationKind.Gt, stack.Pop(), stack.Pop()), 
-                        ((Instruction)Current!.Operand).Offset));
-                break;
-            case Code.Blt:
-            case Code.Blt_S:
-            case Code.Blt_Un:
-            case Code.Blt_Un_S:
-                AddStatement(
-                    new ConditionalGotoStatementSyntax(
-                        new BinaryExpressionSyntax(BinaryOperationKind.Lt, stack.Pop(), stack.Pop()), 
-                        ((Instruction)Current!.Operand).Offset));
-                break;
-            case Code.Bge:
-            case Code.Bge_S:
-            case Code.Bge_Un:
-            case Code.Bge_Un_S:
-                AddStatement(
-                    new ConditionalGotoStatementSyntax(
-                        new BinaryExpressionSyntax(BinaryOperationKind.Ge, stack.Pop(), stack.Pop()), 
-                        ((Instruction)Current!.Operand).Offset));
-                break;
-            case Code.Ble:
-            case Code.Ble_S:
-            case Code.Ble_Un:
-            case Code.Ble_Un_S:
-                AddStatement(
-                    new ConditionalGotoStatementSyntax(
-                        new BinaryExpressionSyntax(BinaryOperationKind.Le, stack.Pop(), stack.Pop()), 
-                        ((Instruction)Current!.Operand).Offset));
-                break;
+                NextInstruction();
+                return true;
             default:
                 return false;
         }
+    }
+
+    private bool ParseBranchExpression()
+    {
+        if (ParseGotoStatement())
+        {
+            return true;
+        }
+
+        if (ParseBranchTrueFalseExpression())
+        {
+            return true;
+        }
+
+        var kind = Current!.OpCode.Code switch
+        {
+            Code.Bgt or Code.Bgt_S or Code.Bgt_Un or Code.Bgt_Un_S => BinaryOperationKind.Gt,
+            Code.Blt or Code.Blt_S or Code.Blt_Un or Code.Blt_Un_S => BinaryOperationKind.Lt,
+            Code.Bge or Code.Bge_S or Code.Bge_Un or Code.Bge_Un_S => BinaryOperationKind.Ge,
+            Code.Ble or Code.Ble_S or Code.Ble_Un or Code.Ble_Un_S => BinaryOperationKind.Le,
+            _ => BinaryOperationKind.None
+        };
+
+        if (kind == BinaryOperationKind.None)
+        {
+            return false;
+        }
+
+        var condition = new BinaryExpressionSyntax(kind, stack.Pop(), stack.Pop());
+        AddStatement(new ConditionalGotoStatementSyntax(condition, ((Instruction)Current!.Operand).Offset));
 
         NextInstruction();
         return true;
