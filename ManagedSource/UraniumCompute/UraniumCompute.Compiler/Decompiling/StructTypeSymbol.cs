@@ -33,11 +33,6 @@ internal sealed class StructTypeSymbol : TypeSymbol
         return new StructTypeSymbol(MethodCompilation.DecorateName(typeReference.Name), typeReference,
             MethodCompilation.DecorateName, userTypeCallback);
     }
-    
-    public static StructTypeSymbol CreateCbufferType(TypeReference tr, Action<TypeReference> typeCallback)
-    {
-        return new StructTypeSymbol(tr.Name, tr, x => x.ToLower(), typeCallback);
-    }
 
     public override bool TryGetFieldDesc(FieldReference field, [MaybeNullWhen(false)] out FieldDesc desc)
     {

@@ -140,29 +140,24 @@ struct un_user_defined_TestStruct
     float un_user_defined_X;
     float un_user_defined_Y;
 };
-
 struct un_user_defined_ConstantBuffer
 {
     un_user_defined_TestStruct un_user_defined_Ts;
 };
-
 RWStructuredBuffer<int> buffer : register(u0);
-
 cbuffer Constants : register(b1)
 {
-    ConstantBuffer constants;
+    un_user_defined_ConstantBuffer constants;
 };
-
 [numthreads(1, 1, 1)]
 float main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     un_user_defined_TestStruct V_0;
     float V_1;
-    V_0 = constants.ts;
+    V_0 = constants.un_user_defined_Ts;
     V_1 = (V_0.un_user_defined_X + ((float)buffer[0]));
     return V_1;
 }
-
 ";
 
         AssertFunc((Span<int> buffer, ConstantBuffer constants) =>
