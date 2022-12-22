@@ -16,6 +16,10 @@ internal class IndexerExpressionSyntax : ExpressionSyntax
         {
             ExpressionType = type.Argument;
         }
+        else
+        {
+            throw new ArgumentException($"Invalid indexed type: {IndexedExpression.ExpressionType}");
+        }
     }
 
     public override string ToString()

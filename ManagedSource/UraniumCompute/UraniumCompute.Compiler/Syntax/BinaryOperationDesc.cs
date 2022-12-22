@@ -2,7 +2,7 @@
 
 namespace UraniumCompute.Compiler.Syntax;
 
-internal struct BinaryOperationDesc
+internal readonly struct BinaryOperationDesc
 {
     public TypeSymbol? Left { get; }
     public TypeSymbol? Right { get; }
@@ -22,5 +22,10 @@ internal struct BinaryOperationDesc
         return (left == Left || Left is null)
                && (right == Right || Right is null)
                && kind == Kind;
+    }
+
+    public override string ToString()
+    {
+        return $"{{ {Left} {Kind} {Right} => {ResultType} }}";
     }
 }

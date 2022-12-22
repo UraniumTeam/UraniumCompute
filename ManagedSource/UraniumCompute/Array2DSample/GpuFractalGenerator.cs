@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.ColorSpaces.Conversion;
 using SixLabors.ImageSharp.PixelFormats;
@@ -23,10 +25,13 @@ public sealed class GpuFractalGenerator : IFractalGenerator
     private readonly DeviceFactory factory;
     private readonly ComputeDevice device;
 
+    private readonly KernelConstants<Constants> constants;
+
     private readonly Buffer2D<int> hostBuffer;
     private readonly Buffer2D<int> deviceBuffer;
     private DeviceMemory? hostMemory;
     private DeviceMemory? deviceMemory;
+    private DeviceMemory? constantMemory;
 
     private readonly ResourceBinding resourceBinding;
     private readonly Kernel kernel;
@@ -51,22 +56,23 @@ public sealed class GpuFractalGenerator : IFractalGenerator
         return iteration;
     }
 
-    private static string kernelSource = MethodCompilation.Compile((Span<int> result) =>
+    private static void KernelMethod(Span<int> result, Constants constants)
     {
-        int width = 1024 * 2, maxIter = 64;
-        uint workGrSize = 64;
-        var spaceStart = new Vector2(-2.0f, -1.125f);
-        var spaceSize = new Vector2(2.5f, 2.5f);
-        var start = new Vector2Uint(GpuIntrinsic.GetGlobalInvocationId().X, GpuIntrinsic.GetGlobalInvocationId().Y)
-                    * workGrSize;
-        for (uint wx = 0; wx < workGrSize; ++wx)
-        for (uint wy = 0; wy < workGrSize; ++wy)
+        var width = constants.Width;
+        var maxIter = constants.MaxIter;
+        var spaceStart = constants.StartPoint;
+        var spaceSize = new Vector2(1, 1) * constants.FractalSize;
+        var globalInvocationId = GpuIntrinsic.GetGlobalInvocationId();
+        var start = new Vector2Uint(globalInvocationId.X, globalInvocationId.Y) * workgroupSize;
+        
+        for (var wx = 0; wx < workgroupSize; ++wx)
+        for (var wy = 0; wy < workgroupSize; ++wy)
         {
             var screenPoint = new Vector2(wx + start.X, wy + start.Y);
             var fractalSpacePoint = screenPoint * spaceSize / width + spaceStart;
             result[MapIndex(screenPoint, width)] = IterCount(fractalSpacePoint, maxIter);
         }
-    });
+    }
 
     public GpuFractalGenerator(string appName)
     {
@@ -78,6 +84,7 @@ public sealed class GpuFractalGenerator : IFractalGenerator
 
         hostBuffer = device.CreateBuffer2D<int>();
         deviceBuffer = device.CreateBuffer2D<int>();
+        constants = device.CreateKernelConstants<Constants>();
 
         resourceBinding = device.CreateResourceBinding();
         kernel = device.CreateKernel();
@@ -100,25 +107,19 @@ public sealed class GpuFractalGenerator : IFractalGenerator
         deviceMemory = deviceBuffer.AllocateMemory("Device memory", MemoryKindFlags.DeviceAccessible);
         deviceBuffer.BindMemory(deviceMemory);
 
+        constants.Init("Constant buffer");
+        constantMemory = constants.AllocateMemory("Constant memory", MemoryKindFlags.HostAndDeviceAccessible);
+        constants.BindMemory(constantMemory);
+        var constantValue = new Constants(maxIter, width, startPoint, fractalSize);
+        constants.Set(constantValue);
+        Debug.Assert(constantValue == constants.Get());
+
         using var compiler = factory.CreateKernelCompiler();
         compiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-        using var bytecode = compiler.Compile(
-            new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main", new[]
-            {
-                new KernelCompiler.Define("WORKGROUP_SIZE", workgroupSize.ToString()),
-                new KernelCompiler.Define("IMG_WIDTH", width.ToString()),
-                new KernelCompiler.Define("MAX_ITER", maxIter.ToString()),
-                new KernelCompiler.Define("START_POINT", $"{startPoint.X}, {startPoint.Y}"),
-                new KernelCompiler.Define("FRACTAL_SIZE", $"{fractalSize}, {fractalSize}")
-            }));
-
-        resourceBinding.Init(new ResourceBinding.Desc("Resource binding", stackalloc[]
-        {
-            new KernelResourceDesc(0, KernelResourceKind.RWBuffer)
-        }));
+        CompilerUtils.CompileKernel(KernelMethod, compiler, kernel, resourceBinding);
 
         resourceBinding.SetVariable(0, deviceBuffer);
-        kernel.Init(new Kernel.Desc("Compute kernel", resourceBinding, bytecode[..]));
+        resourceBinding.SetVariable(1, constants);
     }
 
     public void Render()
@@ -171,5 +172,50 @@ public sealed class GpuFractalGenerator : IFractalGenerator
         resourceBinding.Dispose();
         kernel.Dispose();
         commandList.Dispose();
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private readonly struct Constants
+    {
+        public readonly Vector2 StartPoint;
+        public readonly int MaxIter;
+        public readonly int Width;
+        public readonly float FractalSize;
+
+        public Constants(int maxIter, int width, Vector2 startPoint, float fractalSize)
+        {
+            MaxIter = maxIter;
+            Width = width;
+            StartPoint = startPoint;
+            FractalSize = fractalSize;
+        }
+
+        public bool Equals(Constants other)
+        {
+            return StartPoint.Equals(other.StartPoint)
+                   && MaxIter == other.MaxIter
+                   && Width == other.Width
+                   && FractalSize.Equals(other.FractalSize);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Constants other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(StartPoint, MaxIter, Width, FractalSize);
+        }
+
+        public static bool operator ==(Constants left, Constants right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(Constants left, Constants right)
+        {
+            return !left.Equals(right);
+        }
     }
 }
