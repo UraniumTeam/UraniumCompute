@@ -83,12 +83,6 @@ internal static class TypeResolver
             throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
         }
         
-        if (tr.Name == "ConstantBuffer")
-        {
-            typeCallback(tr);
-            return StructTypeSymbol.CreateCbufferType(tr, typeCallback);;
-        }
-
         var customAttributes = tr.Resolve().CustomAttributes;
         var attribute = customAttributes
             .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?
