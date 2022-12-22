@@ -30,6 +30,29 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
         typeof(float)
     };
 
+    internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left, TypeSymbol type)
+    {
+        Kind = kind;
+        Left = left;
+        Right = right;
+        ExpressionType = type;
+
+        if (Left.ExpressionType.FullName != "bool" && Right.ExpressionType.FullName != "bool")
+        {
+            return;
+        }
+
+        if (Left is LiteralExpressionSyntax { Value: not bool } l)
+        {
+            Left = new LiteralExpressionSyntax(Convert.ToBoolean(l.Value));
+        }
+
+        if (Right is LiteralExpressionSyntax { Value: not bool } r)
+        {
+            Right = new LiteralExpressionSyntax(Convert.ToBoolean(r.Value));
+        }
+    }
+
     internal BinaryExpressionSyntax(BinaryOperationKind kind, ExpressionSyntax right, ExpressionSyntax left)
     {
         var type = null as TypeSymbol;
@@ -99,32 +122,6 @@ internal class BinaryExpressionSyntax : ExpressionSyntax
             definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Sub, type));
             definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Mul, type));
             definedOperations.Add(new BinaryOperationDesc(type, type, BinaryOperationKind.Div, type));
-        }
-
-        foreach (var type in TypeResolver.SupportedVectorTypes)
-        foreach (var operation in operators)
-        {
-            AddOverloadedOperator(type, operation.Key, operation.Value);
-        }
-
-        foreach (var type in TypeResolver.SupportedMatrixTypes)
-        foreach (var operation in operators.Skip(1))
-        {
-            AddOverloadedOperator(type, operation.Key, operation.Value);
-        }
-    }
-
-    private static void AddOverloadedOperator(Type type, string name, BinaryOperationKind kind)
-    {
-        var methods = type.GetMethods().Where(m => m.Name == name).ToList();
-        if (methods.Count == 0)
-            throw new ArgumentException();
-        var returnType = methods[0].ReturnType;
-        foreach (var method in methods)
-        {
-            var paramTypes = method.GetParameters().Select(x => x.ParameterType).ToList();
-            definedOperations.Add(
-                new BinaryOperationDesc(paramTypes[0], paramTypes[1], kind, returnType));
         }
     }
 
