@@ -133,29 +133,42 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
     public void CompilesCbufferStruct()
     {
         var expectedResult = @"struct un_user_defined_TestStruct;
+struct un_user_defined_ConstantBuffer;
 
 struct un_user_defined_TestStruct
 {
     float un_user_defined_X;
     float un_user_defined_Y;
 };
-cbuffer ConstantBuffer
+
+struct un_user_defined_ConstantBuffer
 {
-    un_user_defined_TestStruct ts;
+    un_user_defined_TestStruct un_user_defined_Ts;
+};
+
+RWStructuredBuffer<int> buffer : register(u0);
+
+cbuffer Constants : register(b1)
+{
+    ConstantBuffer constants;
 };
 
 [numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
+float main(uint3 globalInvocationID : SV_DispatchThreadID)
 {
     un_user_defined_TestStruct V_0;
-    V_0 = ts;
-    return ;
+    float V_1;
+    V_0 = constants.ts;
+    V_1 = (V_0.un_user_defined_X + ((float)buffer[0]));
+    return V_1;
 }
+
 ";
 
-        AssertFunc((ConstantBuffer constants) =>
+        AssertFunc((Span<int> buffer, ConstantBuffer constants) =>
         {
             var x = constants.Ts;
+            return x.X + buffer[0];
         }, expectedResult);
     }
 }

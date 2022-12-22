@@ -75,7 +75,7 @@ internal static class TypeResolver
                 var argument = CreateType(instance.GenericArguments[0], typeCallback);
                 return instance.Name switch
                 {
-                    "Span`1" => new GenericTypeSymbol("RWStructuredBuffer", argument),
+                    "Span`1" => new GenericBufferTypeSymbol("RWStructuredBuffer", argument),
                     _ => throw new ArgumentException($"Unknown generic type: {instance.Name}")
                 };
             }
