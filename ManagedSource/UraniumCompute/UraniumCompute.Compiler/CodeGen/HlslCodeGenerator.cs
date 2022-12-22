@@ -50,16 +50,12 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.WriteLine("};");
     }
 
-    public void EmitConstants(ConstantsDeclarationSyntax syntax)
+    private void EmitConstants(ParameterDeclarationSyntax syntax)
     {
-        Output.WriteLine($"cbuffer {syntax.CbufferType.FullName}");
+        Output.WriteLine($"cbuffer Constants : register(b{syntax.BindingIndex})");
         Output.WriteLine("{");
-        foreach (var field in syntax.CbufferType.Fields)
-        {
-            WriteIndent(1);
-            Output.WriteLine($"{field.FieldType} {field.Name};");
-        }
-
+        WriteIndent(1);
+        Emit(syntax, false);
         Output.WriteLine("};");
     }
 
@@ -69,7 +65,13 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         {
             foreach (var parameter in syntax.Parameters)
             {
-                Emit(parameter);
+                if (parameter.ParameterType is GenericBufferTypeSymbol)
+                {
+                    Emit(parameter, true);
+                    continue;
+                }
+
+                EmitConstants(parameter);
             }
 
             Emit(syntax.KernelAttribute, 0);
@@ -292,9 +294,16 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
         Output.Write(syntax);
     }
 
-    private void Emit(ParameterDeclarationSyntax syntax)
+    private void Emit(ParameterDeclarationSyntax syntax, bool register)
     {
-        Output.WriteLine($"{syntax.ToStringWithType()} : register(u{syntax.BindingIndex});");
+        Output.Write($"{syntax.ToStringWithType()}");
+
+        if (register)
+        {
+            Output.Write($" : register(u{syntax.BindingIndex})");
+        }
+
+        Output.WriteLine(";");
     }
 
     private void Emit(PropertyExpressionSyntax syntax)

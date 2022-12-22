@@ -3,14 +3,14 @@ using Mono.Cecil;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
-internal sealed class GenericTypeSymbol : TypeSymbol
+internal sealed class GenericBufferTypeSymbol : TypeSymbol
 {
     public override string FullName => $"{Name}<{Argument}>";
 
     public string Name { get; }
     public TypeSymbol Argument { get; }
 
-    public GenericTypeSymbol(string name, TypeSymbol argument)
+    public GenericBufferTypeSymbol(string name, TypeSymbol argument)
     {
         Name = name;
         Argument = argument;
