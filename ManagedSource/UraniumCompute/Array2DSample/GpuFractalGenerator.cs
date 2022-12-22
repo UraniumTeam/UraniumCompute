@@ -4,7 +4,10 @@ using SixLabors.ImageSharp.ColorSpaces.Conversion;
 using SixLabors.ImageSharp.PixelFormats;
 using UraniumCompute.Acceleration;
 using UraniumCompute.Backend;
+using UraniumCompute.Common.Math;
 using UraniumCompute.Compilation;
+using UraniumCompute.Compiler.Decompiling;
+using UraniumCompute.Compiler.InterimStructs;
 using UraniumCompute.Utils;
 
 namespace Array2DSample;
@@ -31,42 +34,39 @@ public sealed class GpuFractalGenerator : IFractalGenerator
 
     private const int workgroupSize = 64;
 
-    private const string kernelSource = @"
-RWStructuredBuffer<int> result : register(u0);
+    private static int MapIndex(Vector2 index, int width)
+        => (int)(index.X + index.Y * width);
 
-uint mapIndex(uint2 index)
-{
-    return index.x + index.y * IMG_WIDTH;
-}
-
-int IterCount(float2 c)
-{
-    float2 p = float2(0, 0);
-    int iteration = 0;
-    while (dot(p, p) <= 2*2 && iteration < MAX_ITER)
+    private static int IterCount(Vector2 c, int maxIter)
     {
-        p = float2(p.x*p.x - p.y*p.y,  2*p.x*p.y) + c;
-        iteration++;
+        var iteration = 0;
+        var p = new Vector2(0, 0);
+        var b = Vector2.Dot(p, p) <= 2 * 2;
+        for (; iteration < maxIter && b; ++iteration)
+        {
+            p = c + new Vector2(p.X * p.X - p.Y * p.Y, 2 * p.X * p.Y);
+            b = Vector2.Dot(p, p) <= 2 * 2;
+        }
+
+        return iteration;
     }
 
-    return iteration;
-}
-
-[numthreads(1, 1, 1)]
-void main(uint3 coord : SV_DispatchThreadID)
-{
-    float2 spaceStart = float2(START_POINT);
-    float2 spaceSize  = float2(FRACTAL_SIZE);
-
-    uint2 start = coord.xy * WORKGROUP_SIZE;
-    for (uint wx = 0; wx < WORKGROUP_SIZE; ++wx)
-    for (uint wy = 0; wy < WORKGROUP_SIZE; ++wy)
+    private static string kernelSource = MethodCompilation.Compile((Span<int> result) =>
     {
-        uint2 screenPoint = uint2(wx, wy) + start;
-        float2 fractalSpacePoint = (float2)screenPoint * spaceSize / IMG_WIDTH + spaceStart;
-        result[mapIndex(screenPoint)] = IterCount(fractalSpacePoint);
-    }
-}";
+        int width = 1024 * 2, maxIter = 64;
+        uint workGrSize = 64;
+        var spaceStart = new Vector2(-2.0f, -1.125f);
+        var spaceSize = new Vector2(2.5f, 2.5f);
+        var start = new Vector2Uint(GpuIntrinsic.GetGlobalInvocationId().X, GpuIntrinsic.GetGlobalInvocationId().Y)
+                    * workGrSize;
+        for (uint wx = 0; wx < workGrSize; ++wx)
+        for (uint wy = 0; wy < workGrSize; ++wy)
+        {
+            var screenPoint = new Vector2(wx + start.X, wy + start.Y);
+            var fractalSpacePoint = screenPoint * spaceSize / width + spaceStart;
+            result[MapIndex(screenPoint, width)] = IterCount(fractalSpacePoint, maxIter);
+        }
+    });
 
     public GpuFractalGenerator(string appName)
     {
@@ -102,8 +102,8 @@ void main(uint3 coord : SV_DispatchThreadID)
 
         using var compiler = factory.CreateKernelCompiler();
         compiler.Init(new KernelCompiler.Desc("Kernel compiler"));
-        using var bytecode = compiler.Compile(new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main",
-            new[]
+        using var bytecode = compiler.Compile(
+            new KernelCompiler.Args(kernelSource, CompilerOptimizationLevel.Max, "main", new[]
             {
                 new KernelCompiler.Define("WORKGROUP_SIZE", workgroupSize.ToString()),
                 new KernelCompiler.Define("IMG_WIDTH", width.ToString()),
