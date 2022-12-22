@@ -60,13 +60,13 @@ public sealed class GpuFractalGenerator : IFractalGenerator
     {
         var width = constants.Width;
         var maxIter = constants.MaxIter;
-        var workGroupSize = 64u;
         var spaceStart = constants.StartPoint;
         var spaceSize = new Vector2(1, 1) * constants.FractalSize;
-        var start = new Vector2Uint(GpuIntrinsic.GetGlobalInvocationId().X, GpuIntrinsic.GetGlobalInvocationId().Y)
-                    * workGroupSize;
-        for (uint wx = 0; wx < workGroupSize; ++wx)
-        for (uint wy = 0; wy < workGroupSize; ++wy)
+        var globalInvocationId = GpuIntrinsic.GetGlobalInvocationId();
+        var start = new Vector2Uint(globalInvocationId.X, globalInvocationId.Y) * workgroupSize;
+        
+        for (var wx = 0; wx < workgroupSize; ++wx)
+        for (var wy = 0; wy < workgroupSize; ++wy)
         {
             var screenPoint = new Vector2(wx + start.X, wy + start.Y);
             var fractalSpacePoint = screenPoint * spaceSize / width + spaceStart;
