@@ -11,6 +11,8 @@ internal enum BinaryOperationKind
     Eq,
     Gt,
     Lt,
+    Ge,
+    Le,
     And,
     Or,
     Xor,

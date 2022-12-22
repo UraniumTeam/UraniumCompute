@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿using System.Diagnostics;
+using Mono.Cecil;
 
 namespace UraniumCompute.Compiler.Disassembling;
 
@@ -22,7 +23,8 @@ internal sealed class Disassembler
             MethodDefinition.Body.Instructions,
             MethodDefinition.Parameters,
             MethodDefinition.ReturnType,
-            MethodDefinition.Body.Variables
+            MethodDefinition.Body.Variables,
+            MethodDefinition.HasThis
         );
     }
 }

@@ -12,7 +12,7 @@ internal class IndexerExpressionSyntax : ExpressionSyntax
     {
         Index = index;
         IndexedExpression = indexedExpression;
-        if (IndexedExpression.ExpressionType is GenericTypeSymbol type)
+        if (IndexedExpression.ExpressionType is GenericBufferTypeSymbol type)
         {
             ExpressionType = type.Argument;
         }
