@@ -38,6 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\ThirdParty\uranium-backend-c-sharp\UraniumBackend\UraniumBackend.csproj" />
         <ProjectReference Include="..\UraniumCompute.Common\UraniumCompute.Common.csproj" />
         <ProjectReference Include="..\UraniumCompute.Compiler\UraniumCompute.Compiler.csproj" />
     </ItemGroup>

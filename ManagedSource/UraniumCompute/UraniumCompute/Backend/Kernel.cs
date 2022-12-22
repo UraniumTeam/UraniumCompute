@@ -38,12 +38,12 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
     ///     Kernel descriptor.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Desc
+    public readonly struct Desc : IDeviceObjectDescriptor
     {
         /// <summary>
         ///     Kernel debug name.
         /// </summary>
-        public NativeString Name { internal get; init; }
+        public NativeString Name { get; init; }
 
         /// <summary>
         ///     Resource binding object that binds resources for the kernel.

@@ -13,3 +13,6 @@
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = git@github.com:jothepro/doxygen-awesome-css.git
+[submodule "ManagedSource/ThirdParty/uranium-backend-c-sharp"]
+	path = ManagedSource/ThirdParty/uranium-backend-c-sharp
+	url = https://github.com/UraniumTeam/uranium-backend-c-sharp

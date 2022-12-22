@@ -105,7 +105,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     ///     Device memory descriptor.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Desc
+    public readonly struct Desc : IDeviceObjectDescriptor
     {
         /// <summary>Device memory debug name.</summary>
         public NativeString Name { get; init; }

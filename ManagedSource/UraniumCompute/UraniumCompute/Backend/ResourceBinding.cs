@@ -70,7 +70,7 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     ///     Resource binding descriptor.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly struct Desc
+    public readonly struct Desc : IDeviceObjectDescriptor
     {
         /// <summary>Resource binding debug name.</summary>
         public NativeString Name { get; init; }
