@@ -32,12 +32,11 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     /// </summary>
     /// <param name="memoryDebugName">Debug name that will be set to the allocated device memory.</param>
     /// <param name="flags"><see cref="MemoryKindFlags" /> to allocate the memory with.</param>
-    /// <param name="overrideSize">Use the size that is not equal to the buffer's size.</param>
+    /// <param name="memorySize">Set to a non-zero value to use the size that is not equal to the buffer's size.</param>
     /// <returns>The allocated device memory.</returns>
-    public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong overrideSize = ulong.MaxValue)
+    public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong memorySize = 0)
     {
         ReadOnlySpan<IntPtr> handle = stackalloc IntPtr[] { Handle };
-        var memorySize = overrideSize == ulong.MaxValue ? Descriptor.Size : overrideSize;
         var memory = Device.CreateMemory();
         memory.Init(new DeviceMemory.Desc(memoryDebugName, memorySize, handle, flags));
         return memory;

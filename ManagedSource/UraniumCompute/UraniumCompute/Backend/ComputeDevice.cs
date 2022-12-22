@@ -76,6 +76,21 @@ public sealed class ComputeDevice : NativeObject
     }
 
     /// <summary>
+    ///     Create <see cref="KernelConstants{T}" /> object.
+    /// </summary>
+    /// <returns>The created object.</returns>
+    /// <exception cref="ErrorResultException">The object was not created successfully.</exception>
+    public KernelConstants<T> CreateKernelConstants<T>()
+        where T : unmanaged
+    {
+        return IComputeDevice_CreateBuffer(Handle, out var buffer) switch
+        {
+            ResultCode.Success => new KernelConstants<T>(buffer),
+            var resultCode => throw new ErrorResultException("Couldn't create kernel constants", resultCode)
+        };
+    }
+
+    /// <summary>
     ///     Create <see cref="Fence" /> object.
     /// </summary>
     /// <returns>The created object.</returns>
