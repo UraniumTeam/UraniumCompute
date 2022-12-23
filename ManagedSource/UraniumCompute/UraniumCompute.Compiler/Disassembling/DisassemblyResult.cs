@@ -10,19 +10,20 @@ internal class DisassemblyResult
     public Collection<ParameterDefinition> Parameters { get; }
     public TypeReference ReturnType { get; }
     public Collection<VariableDefinition> Variables { get; }
-    public bool HasThis { get; }
+    public MethodDefinition MethodDefinition { get; }
+    public bool HasThis => MethodDefinition.HasThis;
 
     public DisassemblyResult(
         IEnumerable<Instruction> instructions,
         Collection<ParameterDefinition> parameters,
         TypeReference returnType,
         Collection<VariableDefinition> variables,
-        bool hasThis)
+        MethodDefinition methodDefinition)
     {
         Instructions = instructions;
         Parameters = parameters;
         ReturnType = returnType;
         Variables = variables;
-        HasThis = hasThis;
+        MethodDefinition = methodDefinition;
     }
 }

@@ -25,7 +25,19 @@ internal class SyntaxTree
     private readonly Stack<ExpressionSyntax> stack = new();
     private readonly Instruction[] instructions;
     private readonly Action<MethodReference> userFunctionCallback;
-    private int argumentIndexOffset => disassemblyResult.HasThis ? 1 : 0;
+
+    private int argumentIndexOffset
+    {
+        get
+        {
+            if (!disassemblyResult.HasThis)
+            {
+                return 0;
+            }
+
+            return Function!.IsEntryPoint ? 1 : 0;
+        }
+    }
 
     private readonly Dictionary<int, LabelStatementSyntax> labels = new();
 
@@ -144,6 +156,12 @@ internal class SyntaxTree
 
     private void ParseParameters()
     {
+        if (disassemblyResult.HasThis && !Function!.IsEntryPoint)
+        {
+            var parameterType = TypeResolver.CreateType(disassemblyResult.MethodDefinition.DeclaringType, UserTypeCallback);
+            Function!.Parameters.Add(new ParameterDeclarationSyntax(parameterType, "un_Self", -1));
+        }
+
         for (var i = 0; i < disassemblyResult.Parameters.Count; ++i)
         {
             var parameter = disassemblyResult.Parameters[i];
@@ -616,7 +634,16 @@ internal class SyntaxTree
     {
         var functionSymbol = FunctionResolver.Resolve(methodReference, userFunctionCallback, UserTypeCallback);
         var arguments = functionSymbol.ArgumentTypes.Select(_ => stack.Pop()).Reverse();
-        stack.Push(new CallExpressionSyntax(functionSymbol, arguments));
+        var expression = new CallExpressionSyntax(functionSymbol, arguments);
+        if (functionSymbol.ReturnType is PrimitiveTypeSymbol { FullName: "void" })
+        {
+            AddStatement(new ExpressionStatementSyntax(expression));
+        }
+        else
+        {
+            stack.Push(expression);
+        }
+
         NextInstruction();
         return true;
     }
