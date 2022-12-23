@@ -87,6 +87,9 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     {
         switch (statement)
         {
+            case ExpressionStatementSyntax syntax:
+                Emit(syntax, indent);
+                break;
             case AssignmentStatementSyntax syntax:
                 Emit(syntax, indent);
                 break;
@@ -173,6 +176,13 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     private void Emit(ArgumentExpressionSyntax syntax)
     {
         Output.Write(syntax.Name);
+    }
+
+    private void Emit(ExpressionStatementSyntax syntax, int indent)
+    {
+        WriteIndent(indent);
+        EmitExpression(syntax.Expression);
+        Output.WriteLine(';');
     }
 
     private void Emit(AssignmentStatementSyntax syntax, int indent)

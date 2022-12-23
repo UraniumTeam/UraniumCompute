@@ -24,7 +24,7 @@ internal sealed class Disassembler
             MethodDefinition.Parameters,
             MethodDefinition.ReturnType,
             MethodDefinition.Body.Variables,
-            MethodDefinition.HasThis
+            MethodDefinition
         );
     }
 }
