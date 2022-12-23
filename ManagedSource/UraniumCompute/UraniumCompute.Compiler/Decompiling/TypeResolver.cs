@@ -8,7 +8,7 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
-    private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
+    private static readonly Dictionary<string, TypeSymbol> typeCache = new();
     private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
 
     internal static IReadOnlyList<Type> SupportedMatrixTypes { get; }
@@ -48,7 +48,7 @@ internal static class TypeResolver
     {
         if (typeRefCache.ContainsKey(type))
         {
-            return typeCache[typeRefCache[type]];
+            return typeCache[typeRefCache[type].FullName];
         }
 
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
@@ -58,12 +58,12 @@ internal static class TypeResolver
 
     internal static TypeSymbol CreateType(TypeReference tr, Action<TypeReference> userTypeCallback)
     {
-        if (typeCache.ContainsKey(tr))
+        if (typeCache.ContainsKey(tr.FullName))
         {
-            return typeCache[tr];
+            return typeCache[tr.FullName];
         }
 
-        return typeCache[tr] = CreateTypeImpl(tr, userTypeCallback);
+        return typeCache[tr.FullName] = CreateTypeImpl(tr, userTypeCallback);
     }
 
     private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback)
