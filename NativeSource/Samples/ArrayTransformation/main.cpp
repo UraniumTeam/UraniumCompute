@@ -54,7 +54,8 @@ int main()
     constexpr UInt64 bufferSize         = bufferElementCount * sizeof(BufferType);
     UN_VerifyResultFatal(pStagingBuffer->Init(BufferDesc("Staging buffer", bufferSize)), "Couldn't initialize buffer");
     UN_VerifyResultFatal(pDeviceBuffer->Init(BufferDesc("Device local buffer", bufferSize)), "Couldn't initialize buffer");
-    UN_VerifyResultFatal(pConstantBuffer->Init(BufferDesc("Constant buffer", bufferSize)), "Couldn't initialize buffer");
+    UN_VerifyResultFatal(pConstantBuffer->Init(BufferDesc("Constant buffer", sizeof(BufferType), BufferUsage::Constant)),
+                         "Couldn't initialize buffer");
 
     UNLOG_Info("Allocating 2x {} of memory", MemorySize(bufferSize));
     Ptr<IDeviceMemory> pStagingMemory, pDeviceMemory, pConstantMemory;
