@@ -8,7 +8,7 @@ namespace UraniumCompute.Compiler.Decompiling;
 
 internal static class TypeResolver
 {
-    private static readonly Dictionary<TypeReference, TypeSymbol> typeCache = new();
+    private static readonly Dictionary<string, TypeSymbol> typeCache = new();
     private static readonly Dictionary<Type, TypeReference> typeRefCache = new();
 
     internal static IReadOnlyList<Type> SupportedMatrixTypes { get; }
@@ -48,7 +48,7 @@ internal static class TypeResolver
     {
         if (typeRefCache.ContainsKey(type))
         {
-            return typeCache[typeRefCache[type]];
+            return typeCache[typeRefCache[type].FullName];
         }
 
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
@@ -58,16 +58,22 @@ internal static class TypeResolver
 
     internal static TypeSymbol CreateType(TypeReference tr, Action<TypeReference> userTypeCallback)
     {
-        if (typeCache.ContainsKey(tr))
+        if (typeCache.ContainsKey(tr.FullName))
         {
-            return typeCache[tr];
+            return typeCache[tr.FullName];
         }
 
-        return typeCache[tr] = CreateTypeImpl(tr, userTypeCallback);
+        return typeCache[tr.FullName] = CreateTypeImpl(tr, userTypeCallback);
     }
 
     private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback)
     {
+        if (tr is ByReferenceType reference)
+        {
+            var baseType = CreateType(reference.ElementType, typeCallback);
+            return new RefTypeSymbol(baseType);
+        }
+
         if (tr is GenericInstanceType instance)
         {
             if (instance.Namespace == "System")
@@ -82,7 +88,7 @@ internal static class TypeResolver
 
             throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
         }
-        
+
         var customAttributes = tr.Resolve().CustomAttributes;
         var attribute = customAttributes
             .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?

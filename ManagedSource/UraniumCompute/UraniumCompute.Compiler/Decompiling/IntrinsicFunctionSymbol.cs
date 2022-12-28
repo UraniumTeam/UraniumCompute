@@ -49,6 +49,13 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Append(Vector4.Dot)
             .Append(Vector4Int.Dot)
             .Append(Vector4Uint.Dot)
+            .Append(Vector2.Normalize)
+            .Append(Vector3.Normalize)
+            .Append(Vector4.Normalize)
+            .Append(Vector3.Cross)
+            .Append(Vector2.Distance)
+            .Append(Vector3.Distance)
+            .Append(Vector4.Distance)
             .Select(CreateIntrinsic)
             .ToDictionary(x => (x.Item1, x.Item2.ArgumentTypes.Length), x => x.Item2);
 
