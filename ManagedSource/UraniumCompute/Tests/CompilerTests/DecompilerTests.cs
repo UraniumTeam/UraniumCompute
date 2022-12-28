@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.InterimStructs;
@@ -9,135 +10,135 @@ public partial class DecompilerTests
     [Test]
     public void CompilesLiterals()
     {
-        var expectedResult = @"[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    return 100000;
-}
-";
-        AssertFunc(() => 100000, expectedResult);
+        AssertFunc(() => 100000, """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                return 100000;
+            }
+            """);
     }
 
     [Test]
     public void CompilesKernelAttribute()
     {
-        var expectedResult = @"[numthreads(3, 4, 5)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    return 100000;
-}
-";
-        AssertFunc([Kernel(X = 3, Y = 4, Z = 5)]() => 100000, expectedResult);
+        AssertFunc([Kernel(X = 3, Y = 4, Z = 5)]() => 100000, """
+            [numthreads(3, 4, 5)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                return 100000;
+            }
+            """);
     }
 
     [Test]
     public void CompilesExplicitReturn()
     {
-        var expectedResult = @"[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    V_0 = 100000;
-    return V_0;
-}
-";
-        AssertFunc(() => { return 100000; }, expectedResult);
+        AssertFunc(() => { return 100000; }, """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = 100000;
+                return V_0;
+            }
+            """);
     }
 
     [Test]
     public void CompilesBinaryExpressions()
     {
-        var expectedResult = @"[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    int V_1;
-    V_0 = 9;
-    V_1 = (V_0 + (V_0 * V_0));
-    return V_1;
-}
-";
         AssertFunc((Func<int>)(() =>
         {
             var index = 9;
             return index + index * index;
-        }), expectedResult);
+        }), """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                int V_1;
+                V_0 = 9;
+                V_1 = (V_0 + (V_0 * V_0));
+                return V_1;
+            }
+            """);
     }
 
     [Test]
     public void CompilesBinaryExpressions_WithParentheses()
     {
-        var expectedResult = @"[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    int V_1;
-    V_0 = 9;
-    V_1 = ((V_0 + V_0) * V_0);
-    return V_1;
-}
-";
         AssertFunc((Func<int>)(() =>
         {
             var index = 9;
             return (index + index) * index;
-        }), expectedResult);
+        }), """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                int V_1;
+                V_0 = 9;
+                V_1 = ((V_0 + V_0) * V_0);
+                return V_1;
+            }
+            """);
     }
 
     [Test]
     public void CompilesBufferParameter_ReadOnly()
     {
-        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    return a[10];
-}
-";
-        AssertFunc((Span<int> a) => a[10], expectedResult);
+        AssertFunc((Span<int> a) => a[10], """
+            RWStructuredBuffer<int> a : register(u0);
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                return a[10];
+            }
+            """);
     }
 
     [Test]
     public void CompilesBufferParameter_WriteOnly()
     {
-        var expectedResult = @"RWStructuredBuffer<int> a : register(u0);
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    a[0] = 6;
-    V_0 = 0;
-    return V_0;
-}
-";
         AssertFunc((Span<int> a) =>
         {
             a[0] = 6;
             return 0;
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<int> a : register(u0);
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                a[0] = 6;
+                V_0 = 0;
+                return V_0;
+            }
+            """);
     }
 
     [Test]
     public void CompilesIntFloatConversion()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    uint V_0;
-    V_0 = globalInvocationID.x;
-    values[V_0] = ((float)((float)V_0));
-    return ;
-}
-";
         AssertFunc((Span<float> values) =>
         {
             var index = GpuIntrinsic.GetGlobalInvocationId().X;
             values[(int)index] = index;
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                uint V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = ((float)((float)V_0));
+                return ;
+            }
+            """);
     }
 
-    private static void AssertFunc(Delegate func, string expectedHlslCode)
+    private static void AssertFunc(Delegate func, [StringSyntax("Cpp")] string expectedHlslCode)
     {
         var actualCode = MethodCompilation.Compile(func);
         Assert.That(NormalizeCode(actualCode), Is.EqualTo(NormalizeCode(expectedHlslCode)));
