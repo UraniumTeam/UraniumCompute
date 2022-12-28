@@ -3,6 +3,14 @@ using UraniumCompute.Compiler.InterimStructs;
 
 namespace CompilerTests;
 
+public enum TestEnum
+{
+    T0,
+    T1,
+    T2,
+    T123 = 123
+}
+
 public struct TestStruct
 {
     public float X;
@@ -13,6 +21,7 @@ public struct TestStructOfStructs
 {
     public TestStruct S1;
     public TestStruct S2;
+    public TestEnum E;
 }
 
 public struct ConstantBuffer
@@ -22,6 +31,40 @@ public struct ConstantBuffer
 
 public partial class DecompilerTests
 {
+    [Test]
+    public void CompilesUserEnum()
+    {
+        AssertFunc((Span<TestEnum> values) =>
+        {
+            values[1] = values[0];
+            if (values[0] == TestEnum.T123)
+            {
+                return -1;
+            }
+
+            return (int)values[0];
+        }, """
+            RWStructuredBuffer<int> values : register(u0);
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                bool V_0;
+                int V_1;
+                values[1] = values[0];
+                V_0 = (values[0] == 123);
+                if ((!(!V_0)))
+                {
+                    V_1 = -1;
+                }
+                else
+                {
+                    V_1 = values[0];
+                }
+                return V_1;
+            }
+            """);
+    }
+
     [Test]
     public void CompilesUserStruct()
     {
@@ -92,6 +135,7 @@ public partial class DecompilerTests
             values[(int)index].S1.X = index;
             values[(int)index].S1.Y = 1.5f;
             values[(int)index].S2 = s;
+            values[(int)index].E = TestEnum.T123;
         }, """
             struct un_user_defined_TestStruct;
             struct un_user_defined_TestStructOfStructs;
@@ -106,6 +150,7 @@ public partial class DecompilerTests
             {
                 un_user_defined_TestStruct un_user_defined_S1;
                 un_user_defined_TestStruct un_user_defined_S2;
+                int un_user_defined_E;
             };
             
             RWStructuredBuffer<un_user_defined_TestStructOfStructs> values : register(u0);
@@ -122,6 +167,7 @@ public partial class DecompilerTests
                 values[V_1].un_user_defined_S1.un_user_defined_X = ((float)((float)V_1));
                 values[V_1].un_user_defined_S1.un_user_defined_Y = 1.5;
                 values[V_1].un_user_defined_S2 = V_0;
+                values[V_1].un_user_defined_E = 123;
                 return ;
             }
             """);
