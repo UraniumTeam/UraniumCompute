@@ -177,9 +177,10 @@ internal class SyntaxTree
             return;
         }
 
-        // For now load indirect instructions do nothing in our case
+        // For now these instructions do nothing in our case:
         switch (Current!.OpCode.Code)
         {
+            // load indirect
             case Code.Ldind_I:
             case Code.Ldind_I1:
             case Code.Ldind_I2:
@@ -191,6 +192,8 @@ internal class SyntaxTree
             case Code.Ldind_U1:
             case Code.Ldind_U2:
             case Code.Ldind_U4:
+            // load object
+            case Code.Ldobj:
                 NextInstruction();
                 return;
         }
@@ -207,6 +210,9 @@ internal class SyntaxTree
             case Code.Dup:
                 stack.Push(stack.Peek());
                 NextInstruction();
+                return;
+            case Code.Pop:
+                stack.Pop();
                 return;
             default:
                 Debug.Fail($"Unknown instruction: {Current}");
@@ -422,6 +428,7 @@ internal class SyntaxTree
             case Code.Stind_R4:
             case Code.Stind_R8:
             case Code.Stind_Ref:
+            case Code.Stobj:
                 break;
             default:
                 return false;
