@@ -68,6 +68,12 @@ internal static class TypeResolver
 
     private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback)
     {
+        if (tr is ByReferenceType reference)
+        {
+            var baseType = CreateType(reference.ElementType, typeCallback);
+            return new RefTypeSymbol(baseType);
+        }
+
         if (tr is GenericInstanceType instance)
         {
             if (instance.Namespace == "System")
@@ -82,7 +88,7 @@ internal static class TypeResolver
 
             throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
         }
-        
+
         var customAttributes = tr.Resolve().CustomAttributes;
         var attribute = customAttributes
             .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?
