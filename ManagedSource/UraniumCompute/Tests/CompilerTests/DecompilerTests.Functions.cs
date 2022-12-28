@@ -308,7 +308,7 @@ int main(uint3 globalInvocationID : SV_DispatchThreadID)
 
         AssertFunc(() =>
         {
-            var matrix = new Matrix2x2Int(1,2,3,4);
+            var matrix = new Matrix2x2Int(1, 2, 3, 4);
             return matrix.GetDeterminant();
         }, expectedResult);
     }
@@ -396,5 +396,90 @@ int2 main(uint3 globalInvocationID : SV_DispatchThreadID)
             var t2 = vector * 6;
             return t1;
         }, expectedResult);
+    }
+
+    [Test]
+    public void CompilesRefParameters()
+    {
+        var expectedResult = @"float un_user_defined_UseInVector(inout float3 v);
+void un_user_defined_UseOutVector2(inout float3 v);
+void un_user_defined_UseOutVector1(inout float3 v);
+void un_user_defined_UseRefVector(inout float3 v);
+[numthreads(1, 1, 1)]
+float main(uint3 globalInvocationID : SV_DispatchThreadID) {
+    float3 V_0;
+    float3 V_1;
+    float3 V_2;
+    float3 V_3;
+    float V_4;
+    un_user_defined_UseRefVector(V_0);
+    un_user_defined_UseOutVector1(V_1);
+    un_user_defined_UseOutVector2(V_2);
+    V_3 = (V_1 + V_2);
+    V_4 = un_user_defined_UseInVector(V_3);
+    return V_4;
+}
+float un_user_defined_UseInVector(inout float3 v) {
+    float V_0;
+    V_0 = ((v.x + v.y) + v.z);
+    return V_0;
+}
+void un_user_defined_UseOutVector2(inout float3 v) {
+    v.x = 1;
+    v.y = 2;
+    v.z = 3;
+    return ;
+}
+void un_user_defined_UseOutVector1(inout float3 v) {
+    float3 V_0;
+    V_0.x = 1;
+    V_0.y = 2;
+    V_0.z = 3;
+    v = V_0;
+    return ;
+}
+void un_user_defined_UseRefVector(inout float3 v) {
+    v = (0.2 * v);
+    v.x = 1;
+    return ;
+}";
+
+        AssertFunc(() =>
+        {
+            var a = new Vector3();
+            UseRefVector(ref a);
+            UseOutVector1(out var b);
+            UseOutVector2(out var c);
+            var d = b + c;
+            return UseInVector(in d);
+        }, expectedResult);
+    }
+
+    private static void UseRefVector(ref Vector3 v)
+    {
+        v = 0.2f * v;
+        v.X = 1;
+    }
+
+    private static void UseOutVector1(out Vector3 v)
+    {
+        v = new Vector3
+        {
+            X = 1,
+            Y = 2,
+            Z = 3
+        };
+    }
+
+    private static void UseOutVector2(out Vector3 v)
+    {
+        v.X = 1;
+        v.Y = 2;
+        v.Z = 3;
+    }
+
+    private static float UseInVector(in Vector3 v)
+    {
+        return v.X + v.Y + v.Z;
     }
 }
