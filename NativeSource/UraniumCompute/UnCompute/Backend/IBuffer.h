@@ -19,9 +19,10 @@ namespace UN
 
         inline BufferDesc() = default;
 
-        inline BufferDesc(const char* name, UInt64 size)
+        inline BufferDesc(const char* name, UInt64 size, BufferUsage usage = BufferUsage::Storage)
             : Name(name)
             , Size(size)
+            , Usage(usage)
         {
         }
     };
