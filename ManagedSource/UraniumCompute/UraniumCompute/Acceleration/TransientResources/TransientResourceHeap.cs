@@ -44,7 +44,7 @@ public sealed class TransientResourceHeap : IDisposable
 
         cache = new Cache<int, BufferBase>(desc.CacheSize);
 
-        ReadOnlySpan<IntPtr> bufferHandle = stackalloc IntPtr[] { referenceBuffer.Handle };
+        ReadOnlySpan<nint> bufferHandle = stackalloc nint[] { referenceBuffer.Handle };
         Memory.Init(new DeviceMemory.Desc($"{nameof(TransientResourceHeap)} memory", Descriptor.ByteSize, bufferHandle,
             desc.MemoryKindFlags));
 

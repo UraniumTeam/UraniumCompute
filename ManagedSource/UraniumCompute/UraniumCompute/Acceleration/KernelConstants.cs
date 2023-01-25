@@ -16,7 +16,7 @@ public sealed class KernelConstants<T> : BufferBase
 
     private static readonly unsafe int ElementSize = sizeof(T);
 
-    internal KernelConstants(IntPtr handle) : base(handle)
+    internal KernelConstants(nint handle) : base(handle)
     {
     }
 

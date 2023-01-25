@@ -19,7 +19,7 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
         }
     }
 
-    internal Kernel(IntPtr handle) : base(handle)
+    internal Kernel(nint handle) : base(handle)
     {
     }
 
@@ -29,10 +29,10 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IKernel_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IKernel_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IKernel_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IKernel_GetDesc(nint self, out Desc desc);
 
     /// <summary>
     ///     Kernel descriptor.
@@ -71,7 +71,7 @@ public sealed class Kernel : DeviceObject<Kernel.Desc>
             }
         }
 
-        private readonly IntPtr resourceBinding;
+        private readonly nint resourceBinding;
         private readonly ArraySliceBase bytecode;
 
         /// <summary>

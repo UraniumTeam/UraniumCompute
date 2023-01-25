@@ -23,7 +23,7 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     /// </summary>
     public DeviceMemorySlice BoundMemory { get; private set; }
 
-    internal BufferBase(IntPtr handle) : base(handle)
+    internal BufferBase(nint handle) : base(handle)
     {
     }
 
@@ -36,7 +36,7 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     /// <returns>The allocated device memory.</returns>
     public DeviceMemory AllocateMemory(NativeString memoryDebugName, MemoryKindFlags flags, ulong memorySize = 0)
     {
-        ReadOnlySpan<IntPtr> handle = stackalloc IntPtr[] { Handle };
+        ReadOnlySpan<nint> handle = stackalloc nint[] { Handle };
         var memory = Device.CreateMemory();
         memory.Init(new DeviceMemory.Desc(memoryDebugName, memorySize, handle, flags));
         return memory;
@@ -81,16 +81,16 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IBuffer_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IBuffer_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IBuffer_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IBuffer_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IBuffer_BindMemory(IntPtr self, in DeviceMemorySliceNative slice);
+    private static extern ResultCode IBuffer_BindMemory(nint self, in DeviceMemorySliceNative slice);
 
     [StructLayout(LayoutKind.Sequential)]
-    private readonly record struct DeviceMemorySliceNative(IntPtr Memory, ulong Offset, ulong Size);
+    private readonly record struct DeviceMemorySliceNative(nint Memory, ulong Offset, ulong Size);
 
     /// <summary>
     ///     Buffer usage type.

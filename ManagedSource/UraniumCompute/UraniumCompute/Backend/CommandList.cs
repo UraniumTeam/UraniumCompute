@@ -32,7 +32,7 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
 
     private Fence? fence;
 
-    internal CommandList(IntPtr handle) : base(handle)
+    internal CommandList(nint handle) : base(handle)
     {
     }
 
@@ -69,37 +69,37 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode ICommandList_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode ICommandList_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void ICommandList_GetDesc(IntPtr self, out Desc desc);
+    private static extern void ICommandList_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern IntPtr ICommandList_GetFence(IntPtr self);
+    private static extern nint ICommandList_GetFence(nint self);
 
     [DllImport("UnCompute")]
-    private static extern CommandListState ICommandList_GetState(IntPtr self);
+    private static extern CommandListState ICommandList_GetState(nint self);
 
     [DllImport("UnCompute")]
-    private static extern bool ICommandList_Begin(IntPtr self, out NativeBuilder builder);
+    private static extern bool ICommandList_Begin(nint self, out NativeBuilder builder);
 
     [DllImport("UnCompute")]
-    private static extern void ICommandList_ResetState(IntPtr self);
+    private static extern void ICommandList_ResetState(nint self);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode ICommandList_Submit(IntPtr self);
+    private static extern ResultCode ICommandList_Submit(nint self);
 
     [StructLayout(LayoutKind.Sequential)]
     private readonly struct NativeBuilder
     {
-        private readonly IntPtr commandListHandle;
+        private readonly nint commandListHandle;
     }
 
     private sealed class Builder : ICommandRecordingContext
     {
         private NativeBuilder builder;
 
-        internal Builder(IntPtr commandListHandle)
+        internal Builder(nint commandListHandle)
         {
             if (!ICommandList_Begin(commandListHandle, out builder))
             {
@@ -136,15 +136,15 @@ public sealed class CommandList : DeviceObject<CommandList.Desc>
         private static extern void CommandListBuilder_End(ref NativeBuilder self);
 
         [DllImport("UnCompute")]
-        private static extern void CommandListBuilder_MemoryBarrier(ref NativeBuilder self, IntPtr buffer,
+        private static extern void CommandListBuilder_MemoryBarrier(ref NativeBuilder self, nint buffer,
             in MemoryBarrierDesc barrierDesc);
 
         [DllImport("UnCompute")]
-        private static extern void CommandListBuilder_Copy(ref NativeBuilder self, IntPtr source, IntPtr destination,
+        private static extern void CommandListBuilder_Copy(ref NativeBuilder self, nint source, nint destination,
             in BufferCopyRegion region);
 
         [DllImport("UnCompute")]
-        private static extern void CommandListBuilder_Dispatch(ref NativeBuilder self, IntPtr kernel, int x, int y, int z);
+        private static extern void CommandListBuilder_Dispatch(ref NativeBuilder self, nint kernel, int x, int y, int z);
     }
 
     /// <summary>

@@ -41,4 +41,5 @@ image.Mutate(context => context
     .DrawText(text, font, Color.Black, new PointF(20, 2) * imageScale)
     .Resize(new Size(2048, 2048)));
 
-image.Save("../../fractal.png");
+var path = args.Length == 0 ? "../../fractal.png" : args[0];
+image.Save(path);

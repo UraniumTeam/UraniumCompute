@@ -138,7 +138,7 @@ public partial class DecompilerTests
             """);
     }
 
-    private static void AssertFunc(Delegate func, [StringSyntax("Cpp")] string expectedHlslCode)
+    private static void AssertFunc(Delegate func, string expectedHlslCode)
     {
         var actualCode = MethodCompilation.Compile(func);
         Assert.That(NormalizeCode(actualCode), Is.EqualTo(NormalizeCode(expectedHlslCode)));

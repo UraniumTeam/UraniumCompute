@@ -21,7 +21,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         }
     }
 
-    internal DeviceMemory(IntPtr handle) : base(handle)
+    internal DeviceMemory(nint handle) : base(handle)
     {
     }
 
@@ -87,19 +87,19 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceMemory_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IDeviceMemory_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IDeviceMemory_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IDeviceMemory_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceMemory_Map(IntPtr self, ulong byteOffset, ulong byteSize, out IntPtr data);
+    private static extern ResultCode IDeviceMemory_Map(nint self, ulong byteOffset, ulong byteSize, out nint data);
 
     [DllImport("UnCompute")]
-    private static extern void IDeviceMemory_Unmap(IntPtr self);
+    private static extern void IDeviceMemory_Unmap(nint self);
 
     [DllImport("UnCompute")]
-    private static extern bool IDeviceMemory_IsCompatible(IntPtr self, IntPtr deviceObject);
+    private static extern bool IDeviceMemory_IsCompatible(nint self, nint deviceObject);
 
     /// <summary>
     ///     Device memory descriptor.
@@ -114,14 +114,14 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         public ulong Size { get; init; }
 
         /// <summary>Resource objects that the memory must be compatible with.</summary>
-        public ReadOnlySpan<IntPtr> Objects
+        public ReadOnlySpan<nint> Objects
         {
-            get => objects.AsSpan<IntPtr>();
+            get => objects.AsSpan<nint>();
             init
             {
                 unsafe
                 {
-                    fixed (IntPtr* p = value)
+                    fixed (nint* p = value)
                     {
                         objects = new ArraySliceBase
                         {
@@ -145,7 +145,7 @@ public sealed class DeviceMemory : DeviceObject<DeviceMemory.Desc>
         /// <param name="size">Memory size in bytes.</param>
         /// <param name="objects">Resource objects that the memory must be compatible with.</param>
         /// <param name="flags">Memory kind flags.</param>
-        public Desc(NativeString name, ulong size, ReadOnlySpan<IntPtr> objects, MemoryKindFlags flags)
+        public Desc(NativeString name, ulong size, ReadOnlySpan<nint> objects, MemoryKindFlags flags)
         {
             Name = name;
             Size = size;
