@@ -38,12 +38,12 @@ public readonly struct NullableHandle
         return new NullableHandle((ulong)offset);
     }
 
-    public static NullableHandle FromIntPtr(IntPtr ptr)
+    public static NullableHandle FromIntPtr(nint ptr)
     {
         return FromOffset(ptr.ToInt64());
     }
 
-    public static NullableHandle FromUIntPtr(UIntPtr ptr)
+    public static NullableHandle FromUIntPtr(nuint ptr)
     {
         return FromOffset(ptr.ToUInt64());
     }

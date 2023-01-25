@@ -27,11 +27,11 @@ public sealed class Buffer2D<T> : Buffer<T>
     /// </summary>
     public ulong LongHeight { get; private set; }
 
-    internal Buffer2D(IntPtr handle) : base(handle)
+    internal Buffer2D(nint handle) : base(handle)
     {
     }
 
-    internal Buffer2D(ulong width, ulong height, IntPtr handle) : base(handle)
+    internal Buffer2D(ulong width, ulong height, nint handle) : base(handle)
     {
         LongWidth = width;
         LongHeight = height;

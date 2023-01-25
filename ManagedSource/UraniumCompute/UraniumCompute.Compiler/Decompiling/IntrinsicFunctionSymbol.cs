@@ -31,6 +31,7 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Append(MathF.Sqrt)
             .Append(MathF.Tan)
             .Append(MathF.Tanh)
+            .Append(MathF.Pow)
             .Append(Matrix2x2.Transpose)
             .Append(Matrix2x2Int.Transpose)
             .Append(Matrix2x2Uint.Transpose)
@@ -53,6 +54,7 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             .Append(Vector3.Normalize)
             .Append(Vector4.Normalize)
             .Append(Vector3.Cross)
+            .Append(Vector3.Reflect)
             .Append(Vector2.Distance)
             .Append(Vector3.Distance)
             .Append(Vector4.Distance)
@@ -64,6 +66,10 @@ internal sealed class IntrinsicFunctionSymbol : FunctionSymbol
             CreateMemberCtorIntrinsic(type);
             CreateMemberIntrinsic(type, nameof(Matrix2x2.GetDeterminant), "determinant");
         }
+
+        CreateMemberIntrinsic(typeof(Vector2), nameof(Vector2.Length), "length");
+        CreateMemberIntrinsic(typeof(Vector3), nameof(Vector3.Length), "length");
+        CreateMemberIntrinsic(typeof(Vector4), nameof(Vector4.Length), "length");
 
         foreach (var type in TypeResolver.SupportedVectorTypes)
         {

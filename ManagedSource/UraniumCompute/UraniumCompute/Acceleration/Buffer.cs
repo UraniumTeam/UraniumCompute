@@ -21,7 +21,7 @@ public abstract class Buffer<T> : BufferBase
     /// </summary>
     public int Count => (int)LongCount;
 
-    protected Buffer(IntPtr handle) : base(handle)
+    protected Buffer(nint handle) : base(handle)
     {
     }
 }

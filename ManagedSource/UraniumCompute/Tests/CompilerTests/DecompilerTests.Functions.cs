@@ -192,6 +192,52 @@ public partial class DecompilerTests
     }
 
     [Test]
+    public void CompilesSpanParametersInFunction()
+    {
+        AssertFunc((Span<float> values) =>
+        {
+            var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
+            values[index] = ProcessAt(values, index);
+        }, """
+            float un_user_defined_ProcessAt(RWStructuredBuffer<float> values, int index, int depth);
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = un_user_defined_ProcessAt(values, V_0, 3);
+                return ;
+            }
+            float un_user_defined_ProcessAt(RWStructuredBuffer<float> values, int index, int depth)
+            {
+                bool V_0;
+                float V_1;
+                V_0 = (depth == 0);
+                if ((!(!V_0)))
+                {
+                    V_1 = values[index];
+                }
+                else
+                {
+                    V_1 = (values[index] * un_user_defined_ProcessAt(values, index, (depth - 1)));
+                }
+                return V_1;
+            }
+            """);
+    }
+
+    private static float ProcessAt(Span<float> values, int index, int depth = 3)
+    {
+        if (depth == 0)
+        {
+            return values[index];
+        }
+
+        return values[index] * ProcessAt(values, index, depth - 1);
+    }
+
+    [Test]
     public void CompilesVectorDeclaration()
     {
         AssertFunc((Span<float> values) =>
