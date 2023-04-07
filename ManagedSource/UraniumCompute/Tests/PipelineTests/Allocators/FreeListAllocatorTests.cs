@@ -99,6 +99,35 @@ public class FreeListAllocatorTests
     }
 
     [Test]
+    public void FreeListAllocator_ConcatenatesNodes()
+    {
+        var allocator = new FreeListDeviceAllocator();
+        allocator.Init(new IDeviceAllocator.Desc(1024));
+        var a = allocator.Allocate(256);
+        var b = allocator.Allocate(256);
+        var c = allocator.Allocate(256);
+        var d = allocator.Allocate(256);
+
+        Assert.That(allocator.AllocatedByteCount, Is.EqualTo(1024));
+
+        allocator.DeAllocate(b);
+        allocator.DeAllocate(c);
+        allocator.GarbageCollectForce();
+
+        Assert.That(allocator.AllocatedByteCount, Is.EqualTo(512));
+
+        var e = allocator.Allocate(512);
+
+        Assert.That(allocator.AllocatedByteCount, Is.EqualTo(1024));
+        Assert.Multiple(() =>
+        {
+            Assert.That(e.IsValid, Is.True);
+            Assert.That((ulong)e, Is.EqualTo(256));
+            Assert.That(e, Is.EqualTo(b));
+        });
+    }
+
+    [Test]
     public void FreeListAllocator_AllocatesMemoryRandom()
     {
         const int runCount = 10000;
