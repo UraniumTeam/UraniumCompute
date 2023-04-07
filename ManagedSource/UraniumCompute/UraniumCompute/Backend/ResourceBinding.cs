@@ -19,7 +19,7 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
         }
     }
 
-    internal ResourceBinding(IntPtr handle) : base(handle)
+    internal ResourceBinding(nint handle) : base(handle)
     {
     }
 
@@ -58,13 +58,13 @@ public sealed class ResourceBinding : DeviceObject<ResourceBinding.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IResourceBinding_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IResourceBinding_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IResourceBinding_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IResourceBinding_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IResourceBinding_SetVariable(IntPtr self, int bindingIndex, IntPtr buffer);
+    private static extern ResultCode IResourceBinding_SetVariable(nint self, int bindingIndex, nint buffer);
 
     /// <summary>
     ///     Resource binding descriptor.

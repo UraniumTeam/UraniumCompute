@@ -7,7 +7,7 @@ namespace UraniumCompute.Acceleration;
 public sealed class Buffer1D<T> : Buffer<T>
     where T : unmanaged
 {
-    internal Buffer1D(IntPtr handle) : base(handle)
+    internal Buffer1D(nint handle) : base(handle)
     {
     }
     

@@ -9,165 +9,155 @@ public partial class DecompilerTests
     [Test]
     public void CompilesCos()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    V_0 = globalInvocationID.x;
-    values[V_0] = cos(values[V_0]);
-    return ;
-}
-";
-
         AssertFunc((Span<float> values) =>
         {
             var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
             values[index] = MathF.Cos(values[index]);
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = cos(values[V_0]);
+                return ;
+            }
+            """);
     }
 
     [Test]
     public void CompilesMinMax()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    V_0 = globalInvocationID.x;
-    values[V_0] = max(values[V_0], min(1, values[V_0]));
-    return ;
-}";
-
         AssertFunc((Span<float> values) =>
         {
             var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
             values[index] = MathF.Max(values[index], MathF.Min(1, values[index]));
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = max(values[V_0], min(1, values[V_0]));
+                return ;
+            }
+            """);
     }
 
     [Test]
     public void CompilesSinCos()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    V_0 = globalInvocationID.x;
-    values[V_0] = (cos(values[V_0]) + sin(values[V_0]));
-    return ;
-}
-";
-
         AssertFunc((Span<float> values) =>
         {
             var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
             values[index] = MathF.Cos(values[index]) + MathF.Sin(values[index]);
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = (cos(values[V_0]) + sin(values[V_0]));
+                return ;
+            }
+            """);
     }
 
     [Test]
     public void CompilesFunction()
     {
-        var expectedResult = @"uint un_user_defined_Fib(uint n);
-
-RWStructuredBuffer<uint> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    V_0 = globalInvocationID.x;
-    values[V_0] = un_user_defined_Fib(values[V_0]);
-    return ;
-}
-
-uint un_user_defined_Fib(uint n)
-{
-    uint V_0;
-    uint V_1;
-    bool V_2;
-    uint V_3;
-    uint V_4;
-    uint V_5;
-    bool V_6;
-    n = (n % 16);
-    V_2 = ((n > 1) == false);
-    if ((!(!V_2)))
-    {
-        V_3 = n;
-    }
-    else
-    {
-        V_0 = 1;
-        V_1 = 1;
-        V_4 = 2;
-        while (true)
-        {
-            V_6 = (V_4 < n);
-            if ((!V_6))
-            {
-                break;
-            }
-            V_5 = V_0;
-            V_0 = (V_0 + V_1);
-            V_1 = V_5;
-            V_4 = (V_4 + 1);
-        }
-        V_3 = V_0;
-    }
-    return V_3;
-}
-";
-
         AssertFunc((Span<uint> values) =>
         {
             var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
             values[index] = Fib(values[index]);
-        }, expectedResult);
+        }, """
+            uint un_user_defined_Fib(uint n);
+            RWStructuredBuffer<uint> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = un_user_defined_Fib(values[V_0]);
+                return ;
+            }
+            uint un_user_defined_Fib(uint n)
+            {
+                uint V_0;
+                uint V_1;
+                bool V_2;
+                uint V_3;
+                uint V_4;
+                uint V_5;
+                bool V_6;
+                n = (n % 16);
+                V_2 = ((n > 1) == false);
+                if ((!(!V_2)))
+                {
+                    V_3 = n;
+                }
+                else
+                {
+                    V_0 = 1;
+                    V_1 = 1;
+                    V_4 = 2;
+                    while (true)
+                    {
+                        V_6 = (V_4 < n);
+                        if ((!V_6))
+                        {
+                            break;
+                        }
+                        V_5 = V_0;
+                        V_0 = (V_0 + V_1);
+                        V_1 = V_5;
+                        V_4 = (V_4 + 1);
+                    }
+                    V_3 = V_0;
+                }
+                return V_3;
+            }
+            """);
     }
 
     [Test]
     public void CompilesDoubleReferencedFunction()
     {
-        var expectedResult = @"int un_user_defined_Bar();
-
-int un_user_defined_Foo();
-
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int V_0;
-    int V_1;
-    int V_2;
-    V_0 = un_user_defined_Foo();
-    V_1 = un_user_defined_Bar();
-    V_2 = (V_0 + V_1);
-    return V_2;
-}
-
-int un_user_defined_Bar()
-{
-    int V_0;
-    V_0 = 123;
-    return V_0;
-}
-
-int un_user_defined_Foo()
-{
-    int V_0;
-    V_0 = (un_user_defined_Bar() * 2);
-    return V_0;
-}
-";
-
         AssertFunc(() =>
         {
             var a = Foo();
             var b = Bar();
             return a + b;
-        }, expectedResult);
+        }, """
+            int un_user_defined_Bar();
+            int un_user_defined_Foo();
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                int V_1;
+                int V_2;
+                V_0 = un_user_defined_Foo();
+                V_1 = un_user_defined_Bar();
+                V_2 = (V_0 + V_1);
+                return V_2;
+            }
+            int un_user_defined_Bar()
+            {
+                int V_0;
+                V_0 = 123;
+                return V_0;
+            }
+            int un_user_defined_Foo()
+            {
+                int V_0;
+                V_0 = (un_user_defined_Bar() * 2);
+                return V_0;
+            }
+            """);
     }
 
     private static uint Fib(uint n)
@@ -202,26 +192,54 @@ int un_user_defined_Foo()
     }
 
     [Test]
+    public void CompilesSpanParametersInFunction()
+    {
+        AssertFunc((Span<float> values) =>
+        {
+            var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
+            values[index] = ProcessAt(values, index);
+        }, """
+            float un_user_defined_ProcessAt(RWStructuredBuffer<float> values, int index, int depth);
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int V_0;
+                V_0 = globalInvocationID.x;
+                values[V_0] = un_user_defined_ProcessAt(values, V_0, 3);
+                return ;
+            }
+            float un_user_defined_ProcessAt(RWStructuredBuffer<float> values, int index, int depth)
+            {
+                bool V_0;
+                float V_1;
+                V_0 = (depth == 0);
+                if ((!(!V_0)))
+                {
+                    V_1 = values[index];
+                }
+                else
+                {
+                    V_1 = (values[index] * un_user_defined_ProcessAt(values, index, (depth - 1)));
+                }
+                return V_1;
+            }
+            """);
+    }
+
+    private static float ProcessAt(Span<float> values, int index, int depth = 3)
+    {
+        if (depth == 0)
+        {
+            return values[index];
+        }
+
+        return values[index] * ProcessAt(values, index, depth - 1);
+    }
+
+    [Test]
     public void CompilesVectorDeclaration()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    float2 V_0;
-    int2 V_1;
-    uint2 V_2;
-    float3 V_3;
-    int3 V_4;
-    uint3 V_5;
-    float4 V_6;
-    int4 V_7;
-    uint4 V_8;
-    V_0 = float2(7, 7);
-    return ;
-}
-";
-
         AssertFunc((Span<float> values) =>
         {
             var q = new Vector2(7, 7);
@@ -233,29 +251,29 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             Vector4 u;
             Vector4Int i;
             Vector4Uint o;
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                float2 V_0;
+                int2 V_1;
+                uint2 V_2;
+                float3 V_3;
+                int3 V_4;
+                uint3 V_5;
+                float4 V_6;
+                int4 V_7;
+                uint4 V_8;
+                V_0 = float2(7, 7);
+                return ;
+            }
+            """);
     }
 
     [Test]
     public void CompilesMatrixDeclaration()
     {
-        var expectedResult = @"RWStructuredBuffer<float> values : register(u0);
-[numthreads(1, 1, 1)]
-void main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    float2x2 V_0;
-    int2x2 V_1;
-    uint2x2 V_2;
-    float3x3 V_3;
-    int3x3 V_4;
-    uint3x3 V_5;
-    float4x4 V_6;
-    int4x4 V_7;
-    uint4x4 V_8;
-    return ;
-}
-";
-
         AssertFunc((Span<float> values) =>
         {
             Matrix2x2 q;
@@ -267,93 +285,86 @@ void main(uint3 globalInvocationID : SV_DispatchThreadID)
             Matrix4x4 u;
             Matrix4x4Int i;
             Matrix4x4Uint o;
-        }, expectedResult);
+        }, """
+            RWStructuredBuffer<float> values : register(u0);
+            [numthreads(1, 1, 1)]
+            void main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                float2x2 V_0;
+                int2x2 V_1;
+                uint2x2 V_2;
+                float3x3 V_3;
+                int3x3 V_4;
+                uint3x3 V_5;
+                float4x4 V_6;
+                int4x4 V_7;
+                uint4x4 V_8;
+                return ;
+            }
+            """);
     }
 
     [Test]
     public void CompilesTranspose()
     {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int4x4 V_0;
-    int4x4 V_1;
-    V_1 = transpose(V_0);
-    return V_1;
-}
-";
-
         AssertFunc(() =>
         {
             Matrix4x4Int matrix = default;
             return Matrix4x4Int.Transpose(matrix);
-        }, expectedResult);
+        }, """
+            [numthreads(1, 1, 1)]
+            int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int4x4 V_0;
+                int4x4 V_1;
+                V_1 = transpose(V_0);
+                return V_1;
+            }
+            """);
     }
 
     [Test]
     public void CompilesDeterminant()
     {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int2x2 V_0;
-    int V_1;
-    V_0 = int2x2(1, 2, 3, 4);
-    V_1 = determinant(V_0);
-    return V_1;
-}
-";
-
         AssertFunc(() =>
         {
             var matrix = new Matrix2x2Int(1, 2, 3, 4);
             return matrix.GetDeterminant();
-        }, expectedResult);
+        }, """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int2x2 V_0;
+                int V_1;
+                V_0 = int2x2(1, 2, 3, 4);
+                V_1 = determinant(V_0);
+                return V_1;
+            }
+            """);
     }
 
     [Test]
     public void CompilesDot()
     {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int2 V_0;
-    int V_1;
-    V_1 = dot(V_0, V_0);
-    return V_1;
-}
-";
-
         AssertFunc(() =>
         {
             Vector2Int vector = default;
             return Vector2Int.Dot(vector, vector);
-        }, expectedResult);
+        }, """
+            [numthreads(1, 1, 1)]
+            int main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int2 V_0;
+                int V_1;
+                V_1 = dot(V_0, V_0);
+                return V_1;
+            }
+            """);
     }
 
     [Test]
     public void CompilesMatrixMathOperators()
     {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int4x4 V_0;
-    int4x4 V_1;
-    int4x4 V_2;
-    int4x4 V_3;
-    V_1 = (V_0 + V_0);
-    V_1 = (V_0 - V_0);
-    V_1 = (V_0 * V_0);
-    V_2 = (V_0 * 9);
-    V_3 = V_1;
-    return V_3;
-}
-";
-
         AssertFunc(() =>
         {
             Matrix4x4Int matrix = default;
@@ -362,30 +373,27 @@ int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
             t1 = matrix * matrix;
             var t2 = matrix * 9;
             return t1;
-        }, expectedResult);
+        }, """
+            [numthreads(1, 1, 1)]
+            int4x4 main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int4x4 V_0;
+                int4x4 V_1;
+                int4x4 V_2;
+                int4x4 V_3;
+                V_1 = (V_0 + V_0);
+                V_1 = (V_0 - V_0);
+                V_1 = (V_0 * V_0);
+                V_2 = (V_0 * 9);
+                V_3 = V_1;
+                return V_3;
+            }
+            """);
     }
 
     [Test]
     public void CompilesVectorMathOperators()
     {
-        var expectedResult = @"
-[numthreads(1, 1, 1)]
-int2 main(uint3 globalInvocationID : SV_DispatchThreadID)
-{
-    int2 V_0;
-    int2 V_1;
-    int2 V_2;
-    int2 V_3;
-    V_1 = (V_0 + V_0);
-    V_1 = (V_0 - V_0);
-    V_1 = (V_0 * V_0);
-    V_1 = (V_0 / V_0);
-    V_2 = (V_0 * 6);
-    V_3 = V_1;
-    return V_3;
-}
-";
-
         AssertFunc(() =>
         {
             Vector2Int vector = default;
@@ -395,55 +403,28 @@ int2 main(uint3 globalInvocationID : SV_DispatchThreadID)
             t1 = vector / vector;
             var t2 = vector * 6;
             return t1;
-        }, expectedResult);
+        }, """
+            [numthreads(1, 1, 1)]
+            int2 main(uint3 globalInvocationID : SV_DispatchThreadID)
+            {
+                int2 V_0;
+                int2 V_1;
+                int2 V_2;
+                int2 V_3;
+                V_1 = (V_0 + V_0);
+                V_1 = (V_0 - V_0);
+                V_1 = (V_0 * V_0);
+                V_1 = (V_0 / V_0);
+                V_2 = (V_0 * 6);
+                V_3 = V_1;
+                return V_3;
+            }
+            """);
     }
 
     [Test]
     public void CompilesRefParameters()
     {
-        var expectedResult = @"float un_user_defined_UseInVector(inout float3 v);
-void un_user_defined_UseOutVector2(inout float3 v);
-void un_user_defined_UseOutVector1(inout float3 v);
-void un_user_defined_UseRefVector(inout float3 v);
-[numthreads(1, 1, 1)]
-float main(uint3 globalInvocationID : SV_DispatchThreadID) {
-    float3 V_0;
-    float3 V_1;
-    float3 V_2;
-    float3 V_3;
-    float V_4;
-    un_user_defined_UseRefVector(V_0);
-    un_user_defined_UseOutVector1(V_1);
-    un_user_defined_UseOutVector2(V_2);
-    V_3 = (V_1 + V_2);
-    V_4 = un_user_defined_UseInVector(V_3);
-    return V_4;
-}
-float un_user_defined_UseInVector(inout float3 v) {
-    float V_0;
-    V_0 = ((v.x + v.y) + v.z);
-    return V_0;
-}
-void un_user_defined_UseOutVector2(inout float3 v) {
-    v.x = 1;
-    v.y = 2;
-    v.z = 3;
-    return ;
-}
-void un_user_defined_UseOutVector1(inout float3 v) {
-    float3 V_0;
-    V_0.x = 1;
-    V_0.y = 2;
-    V_0.z = 3;
-    v = V_0;
-    return ;
-}
-void un_user_defined_UseRefVector(inout float3 v) {
-    v = (0.2 * v);
-    v.x = 1;
-    return ;
-}";
-
         AssertFunc(() =>
         {
             var a = new Vector3();
@@ -452,7 +433,50 @@ void un_user_defined_UseRefVector(inout float3 v) {
             UseOutVector2(out var c);
             var d = b + c;
             return UseInVector(in d);
-        }, expectedResult);
+        }, """
+            float un_user_defined_UseInVector(inout float3 v);
+            void un_user_defined_UseOutVector2(inout float3 v);
+            void un_user_defined_UseOutVector1(inout float3 v);
+            void un_user_defined_UseRefVector(inout float3 v);
+            [numthreads(1, 1, 1)]
+            float main(uint3 globalInvocationID : SV_DispatchThreadID) {
+                float3 V_0;
+                float3 V_1;
+                float3 V_2;
+                float3 V_3;
+                float V_4;
+                un_user_defined_UseRefVector(V_0);
+                un_user_defined_UseOutVector1(V_1);
+                un_user_defined_UseOutVector2(V_2);
+                V_3 = (V_1 + V_2);
+                V_4 = un_user_defined_UseInVector(V_3);
+                return V_4;
+            }
+            float un_user_defined_UseInVector(inout float3 v) {
+                float V_0;
+                V_0 = ((v.x + v.y) + v.z);
+                return V_0;
+            }
+            void un_user_defined_UseOutVector2(inout float3 v) {
+                v.x = 1;
+                v.y = 2;
+                v.z = 3;
+                return ;
+            }
+            void un_user_defined_UseOutVector1(inout float3 v) {
+                float3 V_0;
+                V_0.x = 1;
+                V_0.y = 2;
+                V_0.z = 3;
+                v = V_0;
+                return ;
+            }
+            void un_user_defined_UseRefVector(inout float3 v) {
+                v = (0.2 * v);
+                v.x = 1;
+                return ;
+            }
+            """);
     }
 
     private static void UseRefVector(ref Vector3 v)

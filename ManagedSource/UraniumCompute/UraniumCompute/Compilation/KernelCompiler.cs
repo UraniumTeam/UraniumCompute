@@ -20,7 +20,7 @@ public sealed class KernelCompiler : NativeObject
         }
     }
 
-    internal KernelCompiler(IntPtr handle) : base(handle)
+    internal KernelCompiler(nint handle) : base(handle)
     {
     }
 
@@ -65,13 +65,13 @@ public sealed class KernelCompiler : NativeObject
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IKernelCompiler_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IKernelCompiler_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IKernelCompiler_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IKernelCompiler_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IKernelCompiler_Compile(IntPtr self, in ArgsNative args, ref NativeArrayBase bytecode);
+    private static extern ResultCode IKernelCompiler_Compile(nint self, in ArgsNative args, ref NativeArrayBase bytecode);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
     private readonly record struct DefineNative(NativeString Name, NativeString Value);

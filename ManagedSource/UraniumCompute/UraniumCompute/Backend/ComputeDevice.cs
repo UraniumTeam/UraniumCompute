@@ -14,9 +14,9 @@ namespace UraniumCompute.Backend;
 /// and other higher-level objects.
 public sealed class ComputeDevice : NativeObject
 {
-    private static readonly Dictionary<IntPtr, ComputeDevice> devices = new();
+    private static readonly Dictionary<nint, ComputeDevice> devices = new();
 
-    internal ComputeDevice(IntPtr handle) : base(handle)
+    internal ComputeDevice(nint handle) : base(handle)
     {
         devices[handle] = this;
     }
@@ -147,7 +147,7 @@ public sealed class ComputeDevice : NativeObject
     }
 
     [Pure]
-    internal static bool TryGetDevice(IntPtr handle, [MaybeNullWhen(false)] out ComputeDevice device)
+    internal static bool TryGetDevice(nint handle, [MaybeNullWhen(false)] out ComputeDevice device)
     {
         return devices.TryGetValue(handle, out device);
     }
@@ -159,25 +159,25 @@ public sealed class ComputeDevice : NativeObject
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IComputeDevice_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateBuffer(IntPtr self, out IntPtr buffer);
+    private static extern ResultCode IComputeDevice_CreateBuffer(nint self, out nint buffer);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateMemory(IntPtr self, out IntPtr memory);
+    private static extern ResultCode IComputeDevice_CreateMemory(nint self, out nint memory);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateFence(IntPtr self, out IntPtr fence);
+    private static extern ResultCode IComputeDevice_CreateFence(nint self, out nint fence);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateCommandList(IntPtr self, out IntPtr commandList);
+    private static extern ResultCode IComputeDevice_CreateCommandList(nint self, out nint commandList);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateResourceBinding(IntPtr self, out IntPtr kernel);
+    private static extern ResultCode IComputeDevice_CreateResourceBinding(nint self, out nint kernel);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IComputeDevice_CreateKernel(IntPtr self, out IntPtr kernel);
+    private static extern ResultCode IComputeDevice_CreateKernel(nint self, out nint kernel);
 
     /// <summary>
     ///     Compute device descriptor.
