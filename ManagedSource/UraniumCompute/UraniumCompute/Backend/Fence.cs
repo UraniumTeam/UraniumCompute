@@ -37,7 +37,7 @@ public sealed class Fence : DeviceObject<Fence.Desc>
         }
     }
 
-    internal Fence(IntPtr handle) : base(handle)
+    internal Fence(nint handle) : base(handle)
     {
     }
 
@@ -91,25 +91,25 @@ public sealed class Fence : DeviceObject<Fence.Desc>
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IFence_Init(IntPtr self, in Desc desc);
+    private static extern ResultCode IFence_Init(nint self, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IFence_GetDesc(IntPtr self, out Desc desc);
+    private static extern void IFence_GetDesc(nint self, out Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IFence_SignalOnCpu(IntPtr self);
+    private static extern ResultCode IFence_SignalOnCpu(nint self);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IFence_WaitOnCpu_Timeout(IntPtr self, ulong timeout);
+    private static extern ResultCode IFence_WaitOnCpu_Timeout(nint self, ulong timeout);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IFence_WaitOnCpu(IntPtr self);
+    private static extern ResultCode IFence_WaitOnCpu(nint self);
 
     [DllImport("UnCompute")]
-    private static extern void IFence_ResetState(IntPtr self);
+    private static extern void IFence_ResetState(nint self);
 
     [DllImport("UnCompute")]
-    private static extern FenceState IFence_GetState(IntPtr self);
+    private static extern FenceState IFence_GetState(nint self);
 
     /// <summary>
     ///     Fence descriptor.

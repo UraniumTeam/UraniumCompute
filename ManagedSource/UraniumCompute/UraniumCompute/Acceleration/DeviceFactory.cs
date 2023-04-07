@@ -34,7 +34,7 @@ public sealed class DeviceFactory : NativeObject
 
     private NativeArray<AdapterInfo> adapters;
 
-    private DeviceFactory(IntPtr handle, BackendKind backendKind)
+    private DeviceFactory(nint handle, BackendKind backendKind)
         : base(handle)
     {
         BackendKind = backendKind;
@@ -120,19 +120,19 @@ public sealed class DeviceFactory : NativeObject
     }
 
     [DllImport("UnCompute")]
-    private static extern ResultCode CreateDeviceFactory(BackendKind backendKind, out IntPtr deviceFactory);
+    private static extern ResultCode CreateDeviceFactory(BackendKind backendKind, out nint deviceFactory);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceFactory_Init(IntPtr handle, in Desc desc);
+    private static extern ResultCode IDeviceFactory_Init(nint handle, in Desc desc);
 
     [DllImport("UnCompute")]
-    private static extern void IDeviceFactory_EnumerateAdapters(IntPtr handle, out NativeArray<AdapterInfo> adapters);
+    private static extern void IDeviceFactory_EnumerateAdapters(nint handle, out NativeArray<AdapterInfo> adapters);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceFactory_CreateDevice(IntPtr self, out IntPtr device);
+    private static extern ResultCode IDeviceFactory_CreateDevice(nint self, out nint device);
 
     [DllImport("UnCompute")]
-    private static extern ResultCode IDeviceFactory_CreateKernelCompiler(IntPtr self, out IntPtr compiler);
+    private static extern ResultCode IDeviceFactory_CreateKernelCompiler(nint self, out nint compiler);
 
     /// <summary>
     ///     Device factory descriptor.

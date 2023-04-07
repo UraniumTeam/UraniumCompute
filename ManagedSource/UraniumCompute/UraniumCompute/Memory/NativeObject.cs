@@ -12,9 +12,9 @@ public abstract class NativeObject : IDisposable
     /// <summary>
     ///     A pointer to the native object.
     /// </summary>
-    public IntPtr Handle { get; private set; }
+    public nint Handle { get; private set; }
 
-    protected NativeObject(IntPtr handle)
+    protected NativeObject(nint handle)
     {
         Handle = handle;
     }
@@ -32,13 +32,13 @@ public abstract class NativeObject : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        if (Handle == IntPtr.Zero)
+        if (Handle == nint.Zero)
         {
             return;
         }
 
         _ = IObject_Release(Handle);
-        Handle = IntPtr.Zero;
+        Handle = nint.Zero;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -55,10 +55,10 @@ public abstract class NativeObject : IDisposable
     }
 
     [DllImport("UnCompute")]
-    private static extern uint IObject_AddRef(IntPtr self);
+    private static extern uint IObject_AddRef(nint self);
 
     [DllImport("UnCompute")]
-    private static extern uint IObject_Release(IntPtr self);
+    private static extern uint IObject_Release(nint self);
 
     ~NativeObject()
     {

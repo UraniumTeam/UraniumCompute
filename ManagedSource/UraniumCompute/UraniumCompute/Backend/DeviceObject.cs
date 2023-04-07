@@ -38,7 +38,7 @@ public abstract class DeviceObject : NativeObject
 
     private ComputeDevice? device;
 
-    protected DeviceObject(IntPtr handle) : base(handle)
+    protected DeviceObject(nint handle) : base(handle)
     {
     }
 
@@ -56,13 +56,13 @@ public abstract class DeviceObject : NativeObject
     }
 
     [DllImport("UnCompute")]
-    private static extern void IDeviceObject_Reset(IntPtr self);
+    private static extern void IDeviceObject_Reset(nint self);
 
     [DllImport("UnCompute")]
-    private static extern IntPtr IDeviceObject_GetDevice(IntPtr self);
+    private static extern nint IDeviceObject_GetDevice(nint self);
 
     [DllImport("UnCompute")]
-    private static extern NativeString IDeviceObject_GetDebugName(IntPtr self);
+    private static extern NativeString IDeviceObject_GetDebugName(nint self);
 }
 
 public abstract class DeviceObject<TDesc> : DeviceObject
@@ -92,7 +92,7 @@ public abstract class DeviceObject<TDesc> : DeviceObject
 
     private bool isInitialized;
 
-    protected DeviceObject(IntPtr handle) : base(handle)
+    protected DeviceObject(nint handle) : base(handle)
     {
     }
 

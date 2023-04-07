@@ -89,6 +89,14 @@ internal static class TypeResolver
             throw new ArgumentException($"Unknown namespace: {instance.Namespace}");
         }
 
+        if (tr is TypeDefinition definition)
+        {
+            if (definition.BaseType.Namespace == "System" && definition.BaseType.Name == "Enum")
+            {
+                return CreateType<int>();
+            }
+        }
+
         var customAttributes = tr.Resolve().CustomAttributes;
         var attribute = customAttributes
             .FirstOrDefault(x => x.AttributeType.Name == nameof(DeviceTypeAttribute))?

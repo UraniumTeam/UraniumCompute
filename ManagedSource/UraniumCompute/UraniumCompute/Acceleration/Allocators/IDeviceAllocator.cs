@@ -15,7 +15,7 @@ public interface IDeviceAllocator
     public record struct Desc(NullableHandle AddressBase, ulong CapacityInBytes, ulong AlignmentInBytes, int GCLatency = 3)
     {
         public Desc(ulong capacityInBytes, int gcLatency = 3)
-            : this(NullableHandle.Zero, capacityInBytes, IDeviceAllocator.DefaultAlignment, gcLatency)
+            : this(NullableHandle.Zero, capacityInBytes, DefaultAlignment, gcLatency)
         {
         }
     }
