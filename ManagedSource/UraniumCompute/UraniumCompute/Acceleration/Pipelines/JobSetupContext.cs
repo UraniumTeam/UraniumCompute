@@ -9,15 +9,15 @@ public abstract class JobSetupContext : IJobSetupContext
     public List<ITransientResource> ReadResources { get; } = new();
     public List<ITransientResource> WrittenResources { get; } = new();
 
-    public ulong RequiredDeviceMemoryInBytes { get; private set; }
-    public ulong RequiredHostMemoryInBytes { get; private set; }
+    protected ulong RequiredDeviceMemoryInBytes { get; private set; }
+    protected ulong RequiredHostMemoryInBytes { get; private set; }
 
     public Pipeline Pipeline { get; }
 
     protected readonly List<ITransientResource> variables = new();
     private readonly List<Action> initActions = new();
 
-    public JobSetupContext(Pipeline pipeline)
+    protected JobSetupContext(Pipeline pipeline)
     {
         Pipeline = pipeline;
     }
