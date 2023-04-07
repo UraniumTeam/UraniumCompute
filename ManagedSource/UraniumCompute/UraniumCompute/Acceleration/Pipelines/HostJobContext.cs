@@ -1,45 +1,17 @@
-﻿using UraniumCompute.Acceleration.TransientResources;
-using UraniumCompute.Backend;
-using UraniumCompute.Memory;
+﻿using UraniumCompute.Backend;
 
 namespace UraniumCompute.Acceleration.Pipelines;
 
-internal sealed class HostJobContext : IHostJobSetupContext, IJobRunContext
+internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJobRunContext
 {
     public IHostJob Job { get; }
-    public Pipeline Pipeline { get; }
 
-    public List<ITransientResource> CreatedResources => initializer.CreatedResources;
-    public List<ITransientResource> ReadResources { get; } = new();
-    public List<ITransientResource> WrittenResources { get; } = new();
-
-    private readonly JobInitializer initializer;
     private Action? kernel;
 
     public HostJobContext(IHostJob job, Pipeline pipeline)
+        : base(pipeline)
     {
         Job = job;
-        Pipeline = pipeline;
-        initializer = new JobInitializer(pipeline);
-    }
-
-    public IJobSetupContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, Buffer1D<T>.Desc desc,
-        MemoryKindFlags memoryKindFlags) where T : unmanaged
-    {
-        initializer.CreateBuffer(out buffer, desc, memoryKindFlags);
-        return this;
-    }
-
-    public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
-    {
-        ReadResources.Add(buffer);
-        return this;
-    }
-
-    public IJobSetupContext WriteBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
-    {
-        WrittenResources.Add(buffer);
-        return this;
     }
 
     public void Run(Delegate jobDelegate)
@@ -47,25 +19,25 @@ internal sealed class HostJobContext : IHostJobSetupContext, IJobRunContext
         kernel = (Action)jobDelegate;
     }
 
-    public void Dispose()
-    {
-    }
-
-    public void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
+    public override void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
     {
         Job.Setup(this);
-        requiredDeviceMemory = initializer.RequiredDeviceMemoryInBytes;
-        requiredHostMemory = initializer.RequiredHostMemoryInBytes;
+        requiredDeviceMemory = RequiredDeviceMemoryInBytes;
+        requiredHostMemory = RequiredHostMemoryInBytes;
     }
 
-    public void Init()
+    public override void Init()
     {
-        initializer.Init();
+        base.Init();
         Job.Run(this);
     }
 
-    public void Run(ICommandRecordingContext ctx)
+    public override void Run(ICommandRecordingContext ctx)
     {
         kernel!();
+    }
+
+    public override void Dispose()
+    {
     }
 }
