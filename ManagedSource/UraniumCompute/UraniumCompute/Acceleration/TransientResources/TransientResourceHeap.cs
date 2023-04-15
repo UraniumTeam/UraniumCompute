@@ -26,9 +26,9 @@ public sealed class TransientResourceHeap : IDisposable
         cache = new Cache<int, BufferBase>(1, CacheReplacementPolicy.ThrowException);
     }
 
-    public void Init(MemoryKindFlags memoryKindFlags, ulong heapSize = 256 * 1024)
+    public void Init(MemoryKindFlags memoryKindFlags, int gcLatency, ulong heapSize = 256 * 1024)
     {
-        Init(new Desc(heapSize, 256, 256, memoryKindFlags, new FreeListDeviceAllocator()));
+        Init(new Desc(heapSize, 256, 256, gcLatency, memoryKindFlags, new FreeListDeviceAllocator()));
     }
 
     public void Init(in Desc desc)
@@ -48,7 +48,8 @@ public sealed class TransientResourceHeap : IDisposable
         Memory.Init(new DeviceMemory.Desc($"{nameof(TransientResourceHeap)} memory", Descriptor.ByteSize, bufferHandle,
             desc.MemoryKindFlags));
 
-        Allocator.Init(new IDeviceAllocator.Desc(NullableHandle.Zero, desc.ByteSize, desc.ByteAlignment));
+        Allocator.Init(new IDeviceAllocator.Desc(NullableHandle.Zero, desc.ByteSize, desc.ByteAlignment,
+            desc.GCLatency));
     }
 
     public Buffer1D<T> CreateBuffer1D<T>(int id, Buffer1D<T>.Desc desc, out AllocationInfo info)
@@ -136,7 +137,7 @@ public sealed class TransientResourceHeap : IDisposable
         Allocator.DeAllocate(resource.Handle);
     }
 
-    public record struct Desc(ulong ByteSize, ulong ByteAlignment, int CacheSize, MemoryKindFlags MemoryKindFlags,
+    public record struct Desc(ulong ByteSize, ulong ByteAlignment, int CacheSize, int GCLatency, MemoryKindFlags MemoryKindFlags,
         IDeviceAllocator Allocator);
 
     public readonly struct AllocationInfo
