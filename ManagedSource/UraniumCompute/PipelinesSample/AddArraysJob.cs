@@ -14,13 +14,12 @@ public sealed class AddArraysJob : IDeviceJob
     public TransientBuffer1D<float> Second { get; }
     public TransientBuffer1D<float> Result => result;
 
-    private TransientBuffer1D<float> result;
+    private TransientBuffer1D<float> result = null!;
 
     public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second)
     {
         First = first;
         Second = second;
-        result = TransientBuffer1D<float>.Null;
     }
 
     public IJobSetupContext Setup(IDeviceJobSetupContext ctx)

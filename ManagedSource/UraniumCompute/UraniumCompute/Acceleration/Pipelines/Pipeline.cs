@@ -1,4 +1,5 @@
-﻿using UraniumCompute.Acceleration.TransientResources;
+﻿using System.Diagnostics;
+using UraniumCompute.Acceleration.TransientResources;
 using UraniumCompute.Backend;
 
 namespace UraniumCompute.Acceleration.Pipelines;
@@ -8,7 +9,9 @@ public sealed class Pipeline : IDisposable
     public JobScheduler JobScheduler { get; }
     public bool IsInitialized { get; private set; }
     
-    private readonly List<ResourceInfo> resources = new();
+    public int GCLatency { get; set; }
+
+    private readonly List<ITransientResource> resources = new();
     private readonly List<IJobContext> jobs = new();
 
     private readonly TransientResourceHeap deviceHeap;
@@ -66,23 +69,28 @@ public sealed class Pipeline : IDisposable
         _ = AddDeviceJob(new DelegateDeviceJob(name, initializer, kernel));
     }
 
-    public Task Run()
+    public async Task<Result> Run()
     {
         if (!IsInitialized)
         {
             if (requiredHostMemory > 0)
             {
-                hostHeap.Init(MemoryKindFlags.HostAndDeviceAccessible, requiredHostMemory);
+                hostHeap.Init(MemoryKindFlags.HostAndDeviceAccessible, GCLatency, requiredHostMemory);
             }
 
             if (requiredDeviceMemory > 0)
             {
-                deviceHeap.Init(MemoryKindFlags.DeviceAccessible, requiredDeviceMemory);
+                deviceHeap.Init(MemoryKindFlags.DeviceAccessible, GCLatency, requiredDeviceMemory);
             }
 
             foreach (var jobContext in jobs)
             {
                 jobContext.Init();
+                hostHeap.Allocator.GarbageCollect();
+                deviceHeap.Allocator.GarbageCollect();
+                
+                Console.WriteLine($"Host   heap: {hostHeap.Allocator.AllocatedByteCount}");
+                Console.WriteLine($"Device heap: {deviceHeap.Allocator.AllocatedByteCount}");
             }
 
             commandList.Init(new CommandList.Desc("Command list", HardwareQueueKindFlags.Compute));
@@ -98,7 +106,11 @@ public sealed class Pipeline : IDisposable
         }
 
         commandList.Submit();
-        return Task.Run(() => commandList.CompletionFence.WaitOnCpu());
+        var sw = new Stopwatch();
+        sw.Start();
+        await Task.Run(() => commandList.CompletionFence.WaitOnCpu());
+        sw.Stop();
+        return new Result(sw.ElapsedMilliseconds);
     }
 
     public void Dispose()
@@ -111,15 +123,15 @@ public sealed class Pipeline : IDisposable
         }
     }
 
-    internal int AddResource(object descriptor)
+    internal void AddResource(ITransientResource resource)
     {
-        resources.Add(new ResourceInfo(descriptor));
-        return resources.Count - 1;
+        resources.Add(resource);
+        resource.Id = resources.Count - 1;
     }
 
     internal BufferBase InitResource(int id, BufferBase resource)
     {
-        resources[id] = resources[id] with { Resource = resource };
+        resources[id].Resource = resource;
         return resource;
     }
 
@@ -128,31 +140,10 @@ public sealed class Pipeline : IDisposable
         return resources[id].Resource ?? throw new ArgumentException($"Resource {id} was uninitialized");
     }
 
-    internal T GetResourceDescriptor<T>(int id)
-        where T : struct
-    {
-        return resources[id].GetDescriptor<T>();
-    }
-
     public TransientResourceHeap GetTransientResourceHeap(MemoryKindFlags memoryKindFlags)
     {
         return memoryKindFlags.HasFlag(MemoryKindFlags.HostAccessible) ? hostHeap : deviceHeap;
     }
 
-    private readonly record struct ResourceInfo
-    {
-        public BufferBase? Resource { get; init; }
-
-        private readonly object descriptor;
-
-        public ResourceInfo(object desc)
-        {
-            descriptor = desc;
-        }
-
-        public T GetDescriptor<T>()
-        {
-            return (T)descriptor;
-        }
-    }
+    public record struct Result(long ElapsedMilliseconds);
 }
