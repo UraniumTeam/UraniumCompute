@@ -34,12 +34,9 @@ pipeline.AddDeviceJob("Create buffer B",
 );
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB));
 
-var task = pipeline.Run();
-var sw = new Stopwatch();
-sw.Start();
 Console.WriteLine("Waiting for tasks to complete...");
-await task;
-Console.WriteLine($"Task was completed in {sw.ElapsedMilliseconds}ms");
+var result = await pipeline.Run();
+Console.WriteLine($"Task was completed in {result.ElapsedMilliseconds}ms");
 
 using (var map = addAB.Result.Buffer.Map())
 {

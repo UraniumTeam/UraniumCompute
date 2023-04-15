@@ -6,6 +6,7 @@ namespace UraniumCompute.Acceleration.Pipelines;
 
 internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext, IJobRunContext
 {
+    public override IComputeJob ComputeJob => Job;
     public IDeviceJob Job { get; }
 
     private readonly Kernel kernel;
@@ -42,6 +43,11 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         Job.Setup(this);
         requiredDeviceMemory = RequiredDeviceMemoryInBytes;
         requiredHostMemory = RequiredHostMemoryInBytes;
+
+        if (workgroupCount == Vector3Int.Zero)
+        {
+            throw new ArgumentException("Workgroups must be set for all device jobs");
+        }
     }
 
     public override void Init()
