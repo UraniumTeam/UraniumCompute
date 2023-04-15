@@ -5,6 +5,8 @@ namespace UraniumCompute.Acceleration.Pipelines;
 
 public abstract class JobSetupContext : IJobSetupContext
 {
+    public abstract IComputeJob ComputeJob { get; }
+
     public List<ITransientResource> CreatedResources { get; } = new();
     public List<ITransientResource> ReadResources { get; } = new();
     public List<ITransientResource> WrittenResources { get; } = new();
@@ -25,9 +27,17 @@ public abstract class JobSetupContext : IJobSetupContext
     public IJobSetupContext CreateBuffer<T>(out TransientBuffer1D<T> buffer, Buffer1D<T>.Desc desc,
         MemoryKindFlags memoryKindFlags) where T : unmanaged
     {
-        var id = Pipeline.AddResource(desc);
-        buffer = new TransientBuffer1D<T>(Pipeline, id);
-        initActions.Add(() => InitBuffer(id, desc, memoryKindFlags));
+        buffer = new TransientBuffer1D<T>(desc, memoryKindFlags)
+        {
+            Creator = ComputeJob
+        };
+
+        CreatedResources.Add(buffer);
+        Pipeline.AddResource(buffer);
+
+        var resource = buffer;
+        initActions.Add(() => InitBuffer(resource));
+
         if (memoryKindFlags.HasFlag(MemoryKindFlags.HostAccessible))
         {
             RequiredHostMemoryInBytes += desc.ByteSize;
@@ -41,11 +51,12 @@ public abstract class JobSetupContext : IJobSetupContext
         return this;
     }
 
-    private void InitBuffer<T>(int id, Buffer1D<T>.Desc desc, MemoryKindFlags memoryKindFlags)
+    private void InitBuffer<T>(TransientBuffer1D<T> resource)
         where T : unmanaged
     {
-        var buffer = Pipeline.GetTransientResourceHeap(memoryKindFlags).CreateBuffer1D(id, desc, out var info);
-        Pipeline.InitResource(id, buffer);
+        var buffer = Pipeline.GetTransientResourceHeap(resource.MemoryKindFlags)
+            .CreateBuffer1D(resource.Id, resource.Descriptor, out var info);
+        Pipeline.InitResource(resource.Id, buffer);
         // TODO: place barrier
     }
 
@@ -53,6 +64,10 @@ public abstract class JobSetupContext : IJobSetupContext
     {
         variables.Add(buffer);
         ReadResources.Add(buffer);
+        buffer.Readers.Add(ComputeJob);
+        // TODO: for now we just set the latest reader or writer of the resource as the deleter
+        // Later, when job cancelling will be implemented this will no longer work
+        buffer.Deleter = ComputeJob;
         return this;
     }
 
@@ -60,6 +75,8 @@ public abstract class JobSetupContext : IJobSetupContext
     {
         variables.Add(buffer);
         WrittenResources.Add(buffer);
+        buffer.Writers.Add(ComputeJob);
+        buffer.Deleter = ComputeJob;
         return this;
     }
 
@@ -70,6 +87,15 @@ public abstract class JobSetupContext : IJobSetupContext
 
     public virtual void Init()
     {
+        foreach (var resource in variables)
+        {
+            if (resource.Deleter == ComputeJob)
+            {
+                Pipeline.GetTransientResourceHeap(resource.MemoryKindFlags)
+                    .ReleaseResource(resource.Id);
+            }
+        }
+
         foreach (var action in initActions)
         {
             action();

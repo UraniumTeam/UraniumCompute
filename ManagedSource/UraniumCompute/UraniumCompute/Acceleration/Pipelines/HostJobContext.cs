@@ -4,6 +4,7 @@ namespace UraniumCompute.Acceleration.Pipelines;
 
 internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJobRunContext
 {
+    public override IComputeJob ComputeJob => Job;
     public IHostJob Job { get; }
 
     private Action? kernel;
