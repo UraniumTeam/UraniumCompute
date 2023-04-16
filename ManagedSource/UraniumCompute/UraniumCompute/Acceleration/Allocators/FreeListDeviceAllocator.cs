@@ -113,6 +113,17 @@ public sealed class FreeListDeviceAllocator : IDeviceAllocator
         gcCycle++;
     }
 
+    public void GarbageCollectForce()
+    {
+        gcCycle = 0;
+        foreach (var g in garbage)
+        {
+            GarbageCollectInternal(g);
+        }
+
+        garbage.Clear();
+    }
+
     private bool IsGarbageReady(in Garbage g)
     {
         return gcCycle - g.GCCycle >= Descriptor.GCLatency;

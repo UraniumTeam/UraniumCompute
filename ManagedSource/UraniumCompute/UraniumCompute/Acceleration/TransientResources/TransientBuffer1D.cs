@@ -3,14 +3,22 @@ using UraniumCompute.Backend;
 
 namespace UraniumCompute.Acceleration.TransientResources;
 
-public readonly struct TransientBuffer1D<T> : ITransientBuffer<Buffer1D<T>.Desc>
+public sealed class TransientBuffer1D<T> : ITransientBuffer<Buffer1D<T>.Desc>
     where T : unmanaged
 {
-    public int Id { get; }
-    public Buffer1D<T>.Desc Descriptor => pipeline.GetResourceDescriptor<Buffer1D<T>.Desc>(Id);
-    public Buffer1D<T> Buffer => (Buffer1D<T>)pipeline.GetResource(Id);
+    public int Id { get; set; }
+    public Buffer1D<T>.Desc Descriptor { get; }
+    public Buffer1D<T> Buffer => (Buffer1D<T>)Resource;
 
-    public BufferBase Resource => pipeline.GetResource(Id);
+    public BufferBase Resource { get; set; } = null!;
+
+    public ICollection<IComputeJob> Readers { get; } = new List<IComputeJob>();
+    public ICollection<IComputeJob> Writers { get; } = new List<IComputeJob>();
+    
+    public IComputeJob Creator { get; set; } = null!;
+    public IComputeJob Deleter { get; set; } = null!;
+
+    public MemoryKindFlags MemoryKindFlags { get; }
 
     /// <summary>
     ///     Size of a single buffer element in bytes.
@@ -21,13 +29,14 @@ public readonly struct TransientBuffer1D<T> : ITransientBuffer<Buffer1D<T>.Desc>
 
     public int Count => (int)LongCount;
 
-    public static readonly TransientBuffer1D<T> Null = new();
+    /// <summary>
+    ///     Can be used to suppress nullable reference type warnings.
+    /// </summary>
+    public static readonly TransientBuffer1D<T> Null = null!;
 
-    private readonly Pipeline pipeline;
-
-    internal TransientBuffer1D(Pipeline pipeline, int id)
+    internal TransientBuffer1D(Buffer1D<T>.Desc desc, MemoryKindFlags memoryKindFlags)
     {
-        this.pipeline = pipeline;
-        Id = id;
+        Descriptor = desc;
+        MemoryKindFlags = memoryKindFlags;
     }
 }
