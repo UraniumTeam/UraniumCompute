@@ -1,40 +1,49 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute", "UraniumCompute\UraniumCompute.csproj", "{076DB3C9-6A35-4CE4-AAC2-E778457951D2}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumCompute", "UraniumCompute\UraniumCompute.csproj", "{076DB3C9-6A35-4CE4-AAC2-E778457951D2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{D49CD7B7-43E6-4891-8CCC-CC830743B97B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{C6D61B2E-7CEA-4DF8-BB65-6392A541F769}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleProject", "SampleProject\SampleProject.csproj", "{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleProject", "SampleProject\SampleProject.csproj", "{39B4C30B-A47D-4165-A38E-BF4C0DEA4731}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1C90E1A7-E5D8-44AB-B187-7BC851F4E02F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Compiler", "UraniumCompute.Compiler\UraniumCompute.Compiler.csproj", "{6BC76B2C-67CD-4925-885A-4232CE5C4EE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumCompute.Compiler", "UraniumCompute.Compiler\UraniumCompute.Compiler.csproj", "{6BC76B2C-67CD-4925-885A-4232CE5C4EE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArrayTransform", "ArrayTransform\ArrayTransform.csproj", "{CAC28557-4398-45F2-B125-F1B15C83B7B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArrayTransform", "ArrayTransform\ArrayTransform.csproj", "{CAC28557-4398-45F2-B125-F1B15C83B7B5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilationSample", "CompilationSample\CompilationSample.csproj", "{06395A44-F62A-4666-B237-BD6477C91CCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilationSample", "CompilationSample\CompilationSample.csproj", "{06395A44-F62A-4666-B237-BD6477C91CCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Array2DSample", "Array2DSample\Array2DSample.csproj", "{D77D360B-AC71-457E-9122-22A84371F513}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Array2DSample", "Array2DSample\Array2DSample.csproj", "{D77D360B-AC71-457E-9122-22A84371F513}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompilerTests", "Tests\CompilerTests\CompilerTests.csproj", "{D53FC66C-BB8C-4972-BCC3-1DA58F620DE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerTests", "Tests\CompilerTests\CompilerTests.csproj", "{D53FC66C-BB8C-4972-BCC3-1DA58F620DE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainersTests", "Tests\ContainersTests\ContainersTests.csproj", "{3581AC4C-BE65-4B72-9D9E-DE62625B5EDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainersTests", "Tests\ContainersTests\ContainersTests.csproj", "{3581AC4C-BE65-4B72-9D9E-DE62625B5EDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Common", "UraniumCompute.Common\UraniumCompute.Common.csproj", "{4B7D3DC4-556D-419F-A3A4-2844DB82A02A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumCompute.Common", "UraniumCompute.Common\UraniumCompute.Common.csproj", "{4B7D3DC4-556D-419F-A3A4-2844DB82A02A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathTests", "Tests\MathTests\MathTests.csproj", "{2E9D174F-2206-4DD1-8E15-59FD3E1B5E9A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MathTests", "Tests\MathTests\MathTests.csproj", "{2E9D174F-2206-4DD1-8E15-59FD3E1B5E9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PipelinesSample", "PipelinesSample\PipelinesSample.csproj", "{7300B56D-F6A4-40B8-A52A-C12109239925}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PipelinesSample", "PipelinesSample\PipelinesSample.csproj", "{7300B56D-F6A4-40B8-A52A-C12109239925}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{382B2F6E-B818-46AB-853D-47F57B159BDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumBackend", "..\ThirdParty\uranium-backend-c-sharp\UraniumBackend\UraniumBackend.csproj", "{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumBackend", "..\ThirdParty\uranium-backend-c-sharp\UraniumBackend\UraniumBackend.csproj", "{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Tensors", "UraniumCompute.Tensors\UraniumCompute.Tensors.csproj", "{C8861A26-7E14-42F9-889B-D91546173F05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumCompute.Generator", "UraniumCompute.Generator\UraniumCompute.Generator.csproj", "{AD765A12-30CD-4977-B761-CBD8A9CE12EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TensorSample", "TensorSample\TensorSample.csproj", "{24C51FF7-3413-4682-A249-238322759F78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UraniumCompute.Tensors", "UraniumCompute.Tensors\UraniumCompute.Tensors.csproj", "{C8861A26-7E14-42F9-889B-D91546173F05}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TensorSample", "TensorSample\TensorSample.csproj", "{24C51FF7-3413-4682-A249-238322759F78}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeneratorSample", "GeneratorSample\GeneratorSample.csproj", "{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UraniumCompute.Generator.Attributes", "UraniumCompute.Generator.Attributes\UraniumCompute.Generator.Attributes.csproj", "{F4023CAF-7716-4D5C-B7AC-D7E1E1900673}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -90,6 +99,10 @@ Global
 		{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD765A12-30CD-4977-B761-CBD8A9CE12EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD765A12-30CD-4977-B761-CBD8A9CE12EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD765A12-30CD-4977-B761-CBD8A9CE12EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD765A12-30CD-4977-B761-CBD8A9CE12EE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C8861A26-7E14-42F9-889B-D91546173F05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C8861A26-7E14-42F9-889B-D91546173F05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8861A26-7E14-42F9-889B-D91546173F05}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,6 +111,17 @@ Global
 		{24C51FF7-3413-4682-A249-238322759F78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24C51FF7-3413-4682-A249-238322759F78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24C51FF7-3413-4682-A249-238322759F78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4023CAF-7716-4D5C-B7AC-D7E1E1900673}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4023CAF-7716-4D5C-B7AC-D7E1E1900673}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4023CAF-7716-4D5C-B7AC-D7E1E1900673}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4023CAF-7716-4D5C-B7AC-D7E1E1900673}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{076DB3C9-6A35-4CE4-AAC2-E778457951D2} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
@@ -112,7 +136,13 @@ Global
 		{2E9D174F-2206-4DD1-8E15-59FD3E1B5E9A} = {1C90E1A7-E5D8-44AB-B187-7BC851F4E02F}
 		{7300B56D-F6A4-40B8-A52A-C12109239925} = {C6D61B2E-7CEA-4DF8-BB65-6392A541F769}
 		{E14AD4B6-6B5D-44C7-9FCA-25D4794DDCD4} = {382B2F6E-B818-46AB-853D-47F57B159BDA}
+		{AD765A12-30CD-4977-B761-CBD8A9CE12EE} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
 		{C8861A26-7E14-42F9-889B-D91546173F05} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
 		{24C51FF7-3413-4682-A249-238322759F78} = {C6D61B2E-7CEA-4DF8-BB65-6392A541F769}
+		{B38C7FDA-7D9A-405F-B3AF-B6997D72E4D9} = {C6D61B2E-7CEA-4DF8-BB65-6392A541F769}
+		{F4023CAF-7716-4D5C-B7AC-D7E1E1900673} = {D49CD7B7-43E6-4891-8CCC-CC830743B97B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB5A8A6D-1391-4DA7-840F-7FD36837B65A}
 	EndGlobalSection
 EndGlobal
