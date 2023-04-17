@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>netstandard2.0</TargetFrameworks>
+	<LangVersion>Latest</LangVersion>
+	<Nullable>enable</Nullable>
+	<RootNamespace>UraniumCompute.Generator</RootNamespace>
+	<IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>
