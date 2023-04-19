@@ -65,6 +65,12 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
 
     public override void Run(ICommandRecordingContext ctx)
     {
+        foreach (var variable in variables)
+        {
+            var desc = new MemoryBarrierDesc(AccessFlags.All, AccessFlags.All);
+            ctx.MemoryBarrierUnsafe(variable.Resource, desc);
+        }
+
         ctx.Dispatch(kernel, workgroupCount);
     }
 
