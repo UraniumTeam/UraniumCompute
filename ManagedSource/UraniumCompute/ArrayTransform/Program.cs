@@ -59,11 +59,8 @@ using var kernel = device.CreateKernel();
 CompilerUtils.CompileKernel((Span<uint> values) =>
 {
     var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
-    for (var i = index * workgroupSize; i < (index + 1) * workgroupSize; ++i)
-    {
-        values[i] = Fib(values[i]);
-    }
-}, compiler, kernel, resourceBinding);
+    values[index] = Fib(values[index]);
+}, compiler, kernel, resourceBinding, workgroupSize);
 
 resourceBinding.SetVariable(0, deviceBuffer);
 
