@@ -18,11 +18,16 @@ internal sealed class HlslCodeGenerator : ICodeGenerator
     {
         var temp = Output;
         Output = new StringWriter();
-        EmitFunctionDeclarationImpl(syntax);
-        Output.WriteLine(';');
+        EmitForwardDeclaration(syntax);
         var result = Output.ToString();
         Output = temp;
         return result!;
+    }
+
+    public void EmitForwardDeclaration(FunctionDeclarationSyntax syntax)
+    {
+        EmitFunctionDeclarationImpl(syntax);
+        Output.WriteLine(';');
     }
 
     public string CreateForwardDeclaration(StructDeclarationSyntax syntax)
