@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Mono.Cecil;
-using UraniumCompute.Common.Math;
 
 namespace UraniumCompute.Compiler.Decompiling;
 
@@ -41,7 +40,7 @@ internal static class FunctionResolver
 
     private static bool IsIntrinsicType(TypeReference type)
     {
-        var t = TypeResolver.CreateType(type, _ => { });
+        var t = TypeResolver.CreateType(type, _ => { }, true);
         return t is StructTypeSymbol { IsIntrinsicType: true };
     }
 }
