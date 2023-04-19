@@ -10,16 +10,17 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
     public TypeSymbol ReturnType { get; }
     public List<ParameterDeclarationSyntax> Parameters { get; }
     public BlockStatementSyntax Block { get; }
-    public bool IsEntryPoint => KernelAttribute is not null;
+    public bool IsEntryPoint { get; }
 
     public FunctionDeclarationSyntax(KernelAttribute? kernelAttribute, string functionName, TypeSymbol returnType,
-        List<ParameterDeclarationSyntax> parameters, BlockStatementSyntax block)
+        List<ParameterDeclarationSyntax> parameters, BlockStatementSyntax block, bool isEntryPoint = false)
     {
         KernelAttribute = kernelAttribute;
         FunctionName = functionName;
         ReturnType = returnType;
         Parameters = parameters;
         Block = block;
+        IsEntryPoint = kernelAttribute is not null || isEntryPoint;
     }
 
     public FunctionDeclarationSyntax(KernelAttribute? kernelAttribute, string functionName, TypeSymbol returnType)
@@ -30,7 +31,7 @@ internal sealed class FunctionDeclarationSyntax : SyntaxNode
     public FunctionDeclarationSyntax WithStatements(IEnumerable<StatementSyntax> statements)
     {
         return new FunctionDeclarationSyntax(KernelAttribute, FunctionName, ReturnType, Parameters.ToList(),
-            new BlockStatementSyntax(statements));
+            new BlockStatementSyntax(statements), IsEntryPoint);
     }
 
     public override string ToString()
