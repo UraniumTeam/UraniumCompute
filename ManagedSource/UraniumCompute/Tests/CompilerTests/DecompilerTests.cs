@@ -146,6 +146,9 @@ public partial class DecompilerTests
 
     private static string NormalizeCode(string code)
     {
-        return Regex.Replace(code, @"\s+", " ").Trim();
+        return WhiteSpaceRegex().Replace(code, " ").Trim();
     }
+
+    [GeneratedRegex("\\s+")]
+    private static partial Regex WhiteSpaceRegex();
 }
