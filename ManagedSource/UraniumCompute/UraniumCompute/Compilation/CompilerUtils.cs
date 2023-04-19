@@ -6,9 +6,9 @@ namespace UraniumCompute.Compilation;
 public static class CompilerUtils
 {
     public static void CompileKernel(Delegate kernelMethod, KernelCompiler compiler, Kernel kernel,
-        ResourceBinding resourceBinding)
+        ResourceBinding resourceBinding, int batchSize = 1)
     {
-        var sourceCode = MethodCompilation.Compile(kernelMethod);
+        var sourceCode = MethodCompilation.Compile(kernelMethod, batchSize);
         using var bytecode = compiler.Compile(new KernelCompiler.Args(sourceCode, CompilerOptimizationLevel.Max, "main"));
 
         var parameters = kernelMethod.Method.GetParameters();

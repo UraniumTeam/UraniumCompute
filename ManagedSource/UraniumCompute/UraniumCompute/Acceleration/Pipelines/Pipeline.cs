@@ -8,7 +8,7 @@ public sealed class Pipeline : IDisposable
 {
     public JobScheduler JobScheduler { get; }
     public bool IsInitialized { get; private set; }
-    
+
     public int GCLatency { get; set; }
 
     private readonly List<ITransientResource> resources = new();
@@ -88,7 +88,7 @@ public sealed class Pipeline : IDisposable
                 jobContext.Init();
                 hostHeap.Allocator.GarbageCollect();
                 deviceHeap.Allocator.GarbageCollect();
-                
+
                 Console.WriteLine($"Host   heap: {hostHeap.Allocator.AllocatedByteCount}");
                 Console.WriteLine($"Device heap: {deviceHeap.Allocator.AllocatedByteCount}");
             }
