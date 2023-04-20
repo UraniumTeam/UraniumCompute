@@ -12,5 +12,9 @@ public enum AccessFlags
     TransferRead = 1 << 3,
     TransferWrite = 1 << 4,
     HostRead = 1 << 5,
-    HostWrite = 1 << 6
+    HostWrite = 1 << 6,
+
+    All = KernelRead | KernelWrite |
+          TransferRead | TransferWrite |
+          HostRead | HostWrite
 }

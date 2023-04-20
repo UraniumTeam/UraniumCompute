@@ -7,14 +7,18 @@
         <Nullable>enable</Nullable>
         <StartupObject></StartupObject>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
 	
     <ItemGroup>
-		<ProjectReference Include="..\UraniumCompute.Generator\UraniumCompute.Generator.csproj" 
-						  OutputItemType="Analyzer" 
-						  ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\UraniumCompute.Generator.Attributes\UraniumCompute.Generator.Attributes.csproj"
-							OutputItemType="Analyzer"
-							ReferenceOutputAssembly="true" />
+		<ProjectReference Include="..\UraniumCompute.Generator\UraniumCompute.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\UraniumCompute.Generator.Attributes\UraniumCompute.Generator.Attributes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
     </ItemGroup>
 	
     

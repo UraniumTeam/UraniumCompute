@@ -5,4 +5,5 @@ namespace UraniumCompute.Acceleration.Pipelines;
 public interface IDeviceJobSetupContext : IJobSetupContext
 {
     IDeviceJobSetupContext SetWorkgroups(Vector3Int workgroups);
+    IDeviceJobSetupContext SetWorkgroupSize(int size);
 }
