@@ -11,8 +11,9 @@ using var pipeline = scheduler.CreatePipeline();
 var bufferA = TransientBuffer1D<float>.Null;
 var bufferB = TransientBuffer1D<float>.Null;
 
+const int batchSize = 128;
 pipeline.AddHostJob("Create buffer A",
-    ctx => ctx.CreateBuffer(out bufferA, "buffer A", 256 * 1024, MemoryKindFlags.HostAndDeviceAccessible),
+    ctx => ctx.CreateBuffer(out bufferA, "buffer A", 1024 * 1024, MemoryKindFlags.HostAndDeviceAccessible),
     () =>
     {
         using var map = bufferA.Buffer.Map();
@@ -24,15 +25,15 @@ pipeline.AddHostJob("Create buffer A",
     }
 );
 pipeline.AddDeviceJob("Transform buffer A",
-    ctx => ctx.SetWorkgroups(bufferA).WriteBuffer(bufferA),
+    ctx => ctx.SetWorkgroups(bufferA, batchSize).WriteBuffer(bufferA),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2; }
 );
 pipeline.AddDeviceJob("Create buffer B",
-    ctx => ctx.SetWorkgroups(bufferA.Count)
+    ctx => ctx.SetWorkgroups(bufferA, batchSize)
         .CreateBuffer(out bufferB, "buffer B", bufferA.LongCount, MemoryKindFlags.DeviceAccessible),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X; }
 );
-var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB));
+var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, batchSize));
 
 Console.WriteLine("Waiting for tasks to complete...");
 var result = await pipeline.Run();
@@ -40,6 +41,10 @@ Console.WriteLine($"Task was completed in {result.ElapsedMilliseconds}ms");
 
 using (var map = addAB.Result.Buffer.Map())
 {
+    for (var i = 0; i < map.Count; i++)
+    {
+        Trace.Assert(Math.Abs(i + 2 * i - map[i]) < 0.0001f);
+    }
     Console.WriteLine(
         $"Calculation results: [{string.Join(", ", map.Select(x => x.ToString(CultureInfo.InvariantCulture)).Take(32))}, ...]");
 }

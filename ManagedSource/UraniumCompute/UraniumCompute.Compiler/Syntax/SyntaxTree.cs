@@ -171,10 +171,9 @@ internal class SyntaxTree
             generator.EmitStruct(s);
         }
 
-        generator.EmitForwardDeclaration(Function!);
-
         if (entryPoint is not null)
         {
+            generator.EmitForwardDeclaration(Function!);
             generator.EmitFunction(entryPoint);
         }
 
