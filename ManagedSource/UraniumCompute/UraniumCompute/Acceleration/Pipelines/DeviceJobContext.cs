@@ -17,6 +17,17 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
     private Vector3Int workgroupCount;
     private int workgroupSize = 1;
 
+    private static readonly AccessFlags[] writeFlags =
+    {
+        AccessFlags.KernelWrite,
+        AccessFlags.TransferWrite,
+        AccessFlags.HostWrite
+    };
+
+    private static readonly AccessFlags[] allFlags = Enum.GetValues<AccessFlags>()
+        .Where(x => x != AccessFlags.None && x != AccessFlags.All)
+        .ToArray();
+
     public DeviceJobContext(IDeviceJob job, Pipeline pipeline)
         : base(pipeline)
     {
@@ -45,6 +56,8 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         {
             resourceBinding.SetVariableInternal(i, variables[i].Resource);
         }
+
+        AddBarriers();
     }
 
     public override void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
@@ -84,5 +97,57 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
     {
         kernel.Dispose();
         resourceBinding.Dispose();
+    }
+
+    private void AddBarriers()
+    {
+        foreach (var resource in CreatedResources)
+        {
+            var barrier = new MemoryBarrierDesc(AccessFlags.None, AccessFlags.KernelWrite);
+            AddBarrier(in barrier, resource.Resource);
+            resource.CurrentAccess = AccessFlags.KernelWrite;
+        }
+
+        foreach (var resource in ReadResources)
+        {
+            var sourceAccess = AccessFlags.None;
+            const AccessFlags destAccess = AccessFlags.KernelRead;
+            foreach (var flag in writeFlags)
+            {
+                if (resource.CurrentAccess.HasFlag(flag))
+                {
+                    sourceAccess |= flag;
+                }
+            }
+
+            if (sourceAccess != AccessFlags.None)
+            {
+                var barrier = new MemoryBarrierDesc(sourceAccess, destAccess);
+                AddBarrier(in barrier, resource.Resource);
+            }
+
+            resource.CurrentAccess = destAccess;
+        }
+
+        foreach (var resource in WrittenResources)
+        {
+            var sourceAccess = AccessFlags.None;
+            const AccessFlags destAccess = AccessFlags.KernelWrite | AccessFlags.KernelRead;
+            foreach (var flag in allFlags)
+            {
+                if (resource.CurrentAccess.HasFlag(flag))
+                {
+                    sourceAccess |= flag;
+                }
+            }
+
+            if (sourceAccess != AccessFlags.None)
+            {
+                var barrier = new MemoryBarrierDesc(sourceAccess, destAccess);
+                AddBarrier(in barrier, resource.Resource);
+            }
+
+            resource.CurrentAccess = destAccess;
+        }
     }
 }

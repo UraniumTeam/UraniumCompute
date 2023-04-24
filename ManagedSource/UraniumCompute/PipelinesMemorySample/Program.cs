@@ -8,7 +8,7 @@ using UraniumCompute.Compiler.InterimStructs;
 using var scheduler = JobScheduler.CreateForVulkan();
 using var pipeline = scheduler.CreatePipeline();
 
-const int workgroupSize = 32 * 1024;
+const int workgroupSize = 128;
 
 var sourceData = Enumerable.Range(0, 2 * 1024 * 1024).Select(x => (float)(x % 16)).ToArray();
 

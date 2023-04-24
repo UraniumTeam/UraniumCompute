@@ -82,11 +82,10 @@ internal sealed class AliasedResourceTracker
     {
         if (barriers.Contains((oldResource, newResource)))
         {
-            Console.WriteLine($"Barrier skipped: {oldResource.Resource} -> {newResource.Resource}");
             return;
         }
-        
-        Console.WriteLine($"Barrier added: {oldResource.Resource} -> {newResource.Resource}");
+
+        Console.WriteLine($"Buffer alias: {oldResource.Resource} -> {newResource.Resource}");
 
         barriers.Add((oldResource, newResource));
 

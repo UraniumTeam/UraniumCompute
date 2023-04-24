@@ -19,6 +19,7 @@ public sealed class TransientBuffer2D<T> : ITransientBuffer<Buffer2D<T>.Desc>
     public IComputeJob Deleter { get; set; } = null!;
 
     public MemoryKindFlags MemoryKindFlags { get; }
+    public AccessFlags CurrentAccess { get; set; }
 
     /// <summary>
     ///     Size of a single buffer element in bytes.
