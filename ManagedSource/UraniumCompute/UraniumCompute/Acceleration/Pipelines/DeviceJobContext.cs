@@ -12,6 +12,8 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
     private readonly Kernel kernel;
     private readonly ResourceBinding resourceBinding;
 
+    private readonly List<(MemoryBarrierDesc, BufferBase)> barriers = new();
+
     private Vector3Int workgroupCount;
     private int workgroupSize = 1;
 
@@ -57,6 +59,11 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         }
     }
 
+    public override void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource)
+    {
+        barriers.Add((barrier, resource));
+    }
+
     public override void Init()
     {
         base.Init();
@@ -65,10 +72,9 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
 
     public override void Run(ICommandRecordingContext ctx)
     {
-        foreach (var variable in variables)
+        foreach (var barrier in barriers)
         {
-            var desc = new MemoryBarrierDesc(AccessFlags.All, AccessFlags.All);
-            ctx.MemoryBarrierUnsafe(variable.Resource, desc);
+            ctx.MemoryBarrierUnsafe(barrier.Item2, barrier.Item1);
         }
 
         ctx.Dispatch(kernel, workgroupCount);
