@@ -118,7 +118,11 @@ public class BufferBase : DeviceObject<BufferBase.Desc>
     {
         public override int GetHashCode()
         {
+#if DEBUG
+            return HashCode.Combine(Name, Size, Usage);
+#else
             return HashCode.Combine(Size, Usage);
+#endif
         }
     }
 }
