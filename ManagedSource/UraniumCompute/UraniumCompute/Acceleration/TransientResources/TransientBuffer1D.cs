@@ -19,6 +19,7 @@ public sealed class TransientBuffer1D<T> : ITransientBuffer<Buffer1D<T>.Desc>
     public IComputeJob Deleter { get; set; } = null!;
 
     public MemoryKindFlags MemoryKindFlags { get; }
+    public AccessFlags CurrentAccess { get; set; }
 
     /// <summary>
     ///     Size of a single buffer element in bytes.
