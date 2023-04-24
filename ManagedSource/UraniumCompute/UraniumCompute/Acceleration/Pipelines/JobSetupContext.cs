@@ -82,6 +82,7 @@ public abstract class JobSetupContext : IJobSetupContext
 
     public abstract void Run(ICommandRecordingContext ctx);
     public abstract void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory);
+    public abstract void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource);
 
     public abstract void Dispose();
 

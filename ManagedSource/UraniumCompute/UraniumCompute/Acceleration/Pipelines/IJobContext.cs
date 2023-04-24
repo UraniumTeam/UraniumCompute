@@ -15,4 +15,5 @@ public interface IJobContext : IDisposable
     void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory);
     void Init();
     void Run(ICommandRecordingContext ctx);
+    void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource);
 }

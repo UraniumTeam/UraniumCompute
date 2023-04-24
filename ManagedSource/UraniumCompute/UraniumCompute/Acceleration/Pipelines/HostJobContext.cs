@@ -27,6 +27,10 @@ internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJ
         requiredHostMemory = RequiredHostMemoryInBytes;
     }
 
+    public override void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource)
+    {
+    }
+
     public override void Init()
     {
         base.Init();
