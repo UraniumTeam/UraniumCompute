@@ -1,4 +1,5 @@
 ﻿using UraniumCompute.Acceleration.Allocators;
+using UraniumCompute.Acceleration.Pipelines;
 using UraniumCompute.Backend;
 using UraniumCompute.Memory;
 using UraniumCompute.Utils;
@@ -13,8 +14,9 @@ public sealed class TransientResourceHeap : IDisposable
     public bool IsInitialized { get; private set; }
 
     private readonly ComputeDevice device;
+    private readonly AliasedResourceTracker resourceTracker = new();
     private Cache<int, BufferBase> cache;
-    private readonly Dictionary<int, RegisteredResourceInfo> registeredResources = new();
+    private readonly Dictionary<int, TransientResourceInfo> registeredResources = new();
 
     private readonly Buffer1D<int> referenceBuffer;
 
@@ -52,7 +54,7 @@ public sealed class TransientResourceHeap : IDisposable
             desc.GCLatency));
     }
 
-    public Buffer1D<T> CreateBuffer1D<T>(int id, Buffer1D<T>.Desc desc, out AllocationInfo info)
+    public Buffer1D<T> CreateBuffer1D<T>(int id, Buffer1D<T>.Desc desc, IJobContext creator)
         where T : unmanaged
     {
         if (!IsInitialized)
@@ -84,12 +86,12 @@ public sealed class TransientResourceHeap : IDisposable
             result.BindMemory(memory);
         }
 
-        registeredResources[id] = new RegisteredResourceInfo(result, address, baseDesc.Size);
-        info = new AllocationInfo(address, baseDesc.Size);
+        registeredResources[id] =
+            new TransientResourceInfo(result, creator, address, baseDesc.Size);
         return result;
     }
 
-    public Buffer2D<T> CreateBuffer2D<T>(int id, Buffer2D<T>.Desc desc, out AllocationInfo info)
+    public Buffer2D<T> CreateBuffer2D<T>(int id, Buffer2D<T>.Desc desc, IJobContext creator)
         where T : unmanaged
     {
         if (!IsInitialized)
@@ -121,8 +123,8 @@ public sealed class TransientResourceHeap : IDisposable
             result.BindMemory(memory);
         }
 
-        registeredResources[id] = new RegisteredResourceInfo(result, address, baseDesc.Size);
-        info = new AllocationInfo(address, baseDesc.Size);
+        registeredResources[id] =
+            new TransientResourceInfo(result, creator, address, baseDesc.Size);
         return result;
     }
 
@@ -134,28 +136,12 @@ public sealed class TransientResourceHeap : IDisposable
         }
 
         var resource = registeredResources[id];
-        Allocator.DeAllocate(resource.Handle);
+        Allocator.DeAllocate(resource.Address);
+        resourceTracker.Add(in resource);
     }
 
     public record struct Desc(ulong ByteSize, ulong ByteAlignment, int CacheSize, int GCLatency, MemoryKindFlags MemoryKindFlags,
         IDeviceAllocator Allocator);
-
-    public readonly struct AllocationInfo
-    {
-        public NullableHandle Address { get; }
-        public ulong AllocationSize { get; }
-
-        public ulong MinOffset => (ulong)Address;
-        public ulong MaxOffset => MinOffset + AllocationSize - 1;
-
-        public AllocationInfo(NullableHandle address, ulong allocationSize)
-        {
-            Address = address;
-            AllocationSize = allocationSize;
-        }
-    }
-
-    private readonly record struct RegisteredResourceInfo(BufferBase Resource, NullableHandle Handle, ulong Size);
 
     public void Dispose()
     {

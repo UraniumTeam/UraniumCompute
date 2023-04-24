@@ -55,9 +55,8 @@ public abstract class JobSetupContext : IJobSetupContext
         where T : unmanaged
     {
         var buffer = Pipeline.GetTransientResourceHeap(resource.MemoryKindFlags)
-            .CreateBuffer1D(resource.Id, resource.Descriptor, out var info);
+            .CreateBuffer1D(resource.Id, resource.Descriptor, this);
         Pipeline.InitResource(resource.Id, buffer);
-        // TODO: place barrier
     }
 
     public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
@@ -88,6 +87,11 @@ public abstract class JobSetupContext : IJobSetupContext
 
     public virtual void Init()
     {
+        foreach (var action in initActions)
+        {
+            action();
+        }
+
         foreach (var resource in variables)
         {
             if (resource.Deleter == ComputeJob)
@@ -95,11 +99,6 @@ public abstract class JobSetupContext : IJobSetupContext
                 Pipeline.GetTransientResourceHeap(resource.MemoryKindFlags)
                     .ReleaseResource(resource.Id);
             }
-        }
-
-        foreach (var action in initActions)
-        {
-            action();
         }
     }
 }
