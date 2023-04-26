@@ -39,7 +39,7 @@ public sealed class MethodCompilation
         return sb.ToString();
     }
 
-    public static string Compile(Delegate method)
+    public static string Compile(Delegate method, int batchSize = 1)
     {
         var results = new List<MethodCompilationResult>();
         var methods = new Stack<MethodCompilation>();
@@ -52,7 +52,7 @@ public sealed class MethodCompilation
             if (compiledMethods.Add(m.MethodDefinition))
             {
                 var result = m.Compile(x =>
-                    methods.Push(new MethodCompilation(DecorateName(x.Name), null, x.Resolve())));
+                    methods.Push(new MethodCompilation(DecorateName(x.Name), null, x.Resolve())), batchSize);
                 results.Add(result);
             }
         }
@@ -75,12 +75,12 @@ public sealed class MethodCompilation
         return new MethodCompilation("main", kernelAttribute, definition);
     }
 
-    private MethodCompilationResult Compile(Action<MethodReference> userFunctionCallback)
+    private MethodCompilationResult Compile(Action<MethodReference> userFunctionCallback, int batchSize)
     {
         var disassembler = Disassembler.Create(MethodDefinition);
         var disassemblyResult = disassembler.Disassemble();
         var syntaxTree = SyntaxTree.Create(userFunctionCallback, Attribute, disassemblyResult, MethodName);
-        syntaxTree.Compile();
+        syntaxTree.Compile(batchSize);
         syntaxTree = syntaxTree.Rewrite(SyntaxTree.GetStandardPasses());
 
         var textWriter = new StringWriter();
