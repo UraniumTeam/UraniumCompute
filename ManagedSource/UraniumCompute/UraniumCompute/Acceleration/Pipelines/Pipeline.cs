@@ -9,7 +9,7 @@ public sealed class Pipeline : IDisposable
     public JobScheduler JobScheduler { get; }
     public bool IsInitialized { get; private set; }
 
-    public int GCLatency { get; set; }
+    public int GCLatency { get; set; } = 1;
 
     private readonly List<ITransientResource> resources = new();
     private readonly List<IJobContext> jobs = new();

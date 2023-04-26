@@ -18,6 +18,21 @@ internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJ
     public void Run(Delegate jobDelegate)
     {
         kernel = (Action)jobDelegate;
+
+        foreach (var resource in CreatedResources)
+        {
+            resource.CurrentAccess = AccessFlags.HostWrite | AccessFlags.HostRead;
+        }
+
+        foreach (var resource in ReadResources)
+        {
+            resource.CurrentAccess = AccessFlags.HostRead;
+        }
+
+        foreach (var resource in WrittenResources)
+        {
+            resource.CurrentAccess = AccessFlags.HostRead | AccessFlags.HostWrite;
+        }
     }
 
     public override void Setup(out ulong requiredDeviceMemory, out ulong requiredHostMemory)
@@ -25,6 +40,10 @@ internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJ
         Job.Setup(this);
         requiredDeviceMemory = RequiredDeviceMemoryInBytes;
         requiredHostMemory = RequiredHostMemoryInBytes;
+    }
+
+    public override void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource)
+    {
     }
 
     public override void Init()

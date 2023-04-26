@@ -15,4 +15,5 @@ public interface ITransientResource
     IComputeJob Deleter { get; set; }
 
     MemoryKindFlags MemoryKindFlags { get; }
+    AccessFlags CurrentAccess { get; set; }
 }
