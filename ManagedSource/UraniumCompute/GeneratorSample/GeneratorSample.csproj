@@ -1,21 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-		<OutputType>Exe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <StartupObject></StartupObject>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <GeneratedFolder>Generated</GeneratedFolder>
+        <CompilerGeneratedFilesOutputPath>$(GeneratedFolder)\$(TargetFramework)</CompilerGeneratedFilesOutputPath>
     </PropertyGroup>
-	
+
     <ItemGroup>
-		<ProjectReference Include="..\UraniumCompute.Generator\UraniumCompute.Generator.csproj" 
-						  OutputItemType="Analyzer" 
-						  ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\UraniumCompute.Generator.Attributes\UraniumCompute.Generator.Attributes.csproj"
-							OutputItemType="Analyzer"
-							ReferenceOutputAssembly="true" />
+        <Compile Remove="$(GeneratedFolder)/**/*.cs"/>
     </ItemGroup>
-	
-    
+
+    <ItemGroup>
+        <ProjectReference Include="..\UraniumCompute.Generator\UraniumCompute.Generator.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\UraniumCompute.Generator.Attributes\UraniumCompute.Generator.Attributes.csproj"
+                          OutputItemType="Analyzer"
+                          ReferenceOutputAssembly="true"/>
+    </ItemGroup>
+
+
 </Project>
