@@ -9,6 +9,13 @@ internal class PropertyExpressionSyntax : ExpressionSyntax
     internal string PropertyName { get; }
     public override TypeSymbol ExpressionType { get; }
 
+    public PropertyExpressionSyntax(ExpressionSyntax instance, FieldDesc fieldDesc)
+    {
+        Instance = instance;
+        PropertyName = fieldDesc.Name;
+        ExpressionType = fieldDesc.FieldType;
+    }
+
     public PropertyExpressionSyntax(ExpressionSyntax instance, FieldReference fieldReference)
     {
         Instance = instance;

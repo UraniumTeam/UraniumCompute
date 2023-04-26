@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using UraniumCompute.Compiler.Decompiling;
 using UraniumCompute.Compiler.InterimStructs;
@@ -138,14 +137,17 @@ public partial class DecompilerTests
             """);
     }
 
-    private static void AssertFunc(Delegate func, string expectedHlslCode)
+    private static void AssertFunc(Delegate func, string expectedHlslCode, int batchSize = 1)
     {
-        var actualCode = MethodCompilation.Compile(func);
+        var actualCode = MethodCompilation.Compile(func, batchSize);
         Assert.That(NormalizeCode(actualCode), Is.EqualTo(NormalizeCode(expectedHlslCode)));
     }
 
     private static string NormalizeCode(string code)
     {
-        return Regex.Replace(code, @"\s+", " ").Trim();
+        return WhiteSpaceRegex().Replace(code, " ").Trim();
     }
+
+    [GeneratedRegex("\\s+")]
+    private static partial Regex WhiteSpaceRegex();
 }

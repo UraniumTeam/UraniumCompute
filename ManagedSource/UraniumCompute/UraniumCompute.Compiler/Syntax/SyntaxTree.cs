@@ -19,7 +19,8 @@ internal class SyntaxTree
     public IReadOnlyList<ParameterDeclarationSyntax> Parameters =>
         Function?.Parameters ?? new List<ParameterDeclarationSyntax>();
 
-    public FunctionDeclarationSyntax? Function { get; init; }
+    public FunctionDeclarationSyntax? Function { get; private set; }
+    private FunctionDeclarationSyntax? entryPoint;
 
     private readonly DisassemblyResult disassemblyResult;
     private readonly Stack<ExpressionSyntax> stack = new();
@@ -75,7 +76,8 @@ internal class SyntaxTree
         return new SyntaxTree(userFunctionCallback, disassemblyResult, instructions, instructionIndex, MethodName,
             VariableTypes, Structs)
         {
-            Function = Function?.WithStatements(statements)
+            Function = Function?.WithStatements(statements),
+            entryPoint = entryPoint
         };
     }
 
@@ -85,10 +87,15 @@ internal class SyntaxTree
         return new SyntaxTree(userFunctionCallback, attribute, methodName, dr, Enumerable.Empty<StructDeclarationSyntax>());
     }
 
-    internal void Compile()
+    internal void Compile(int batchSize)
     {
         FindLabels();
         ParseParameters();
+
+        if (!Function!.IsEntryPoint)
+        {
+            batchSize = 1;
+        }
 
         for (var i = 0; i < VariableTypes.Count; i++)
         {
@@ -99,12 +106,59 @@ internal class SyntaxTree
 
         while (Current is not null)
         {
-            if (labels.ContainsKey(Current.Offset))
+            if (labels.TryGetValue(Current.Offset, out var value))
             {
-                AddStatement(labels[Current.Offset]);
+                AddStatement(value);
             }
 
             ParseStatement();
+        }
+
+        if (batchSize > 1)
+        {
+            var oneLiteral = new LiteralExpressionSyntax(1);
+            var batchSizeLiteral = new LiteralExpressionSyntax(batchSize);
+
+            var vectorType = (StructTypeSymbol)TypeResolver.CreateType<Vector3Uint>();
+            var xField = vectorType.Fields.First(x => x.Name == "x");
+            var id = new ArgumentExpressionSyntax("globalInvocationID", vectorType);
+            var idX = new PropertyExpressionSyntax(id, xField);
+            var loopIterator = new VariableExpressionSyntax(0, TypeResolver.CreateType<int>());
+
+            var condition = new BinaryExpressionSyntax(BinaryOperationKind.Lt,
+                batchSizeLiteral, loopIterator);
+
+            var increment = new AssignmentStatementSyntax(
+                new BinaryExpressionSyntax(BinaryOperationKind.Add, oneLiteral, loopIterator),
+                loopIterator);
+            var idInit = new AssignmentStatementSyntax(
+                new BinaryExpressionSyntax(BinaryOperationKind.Mul, batchSizeLiteral, idX),
+                idX);
+            var idUpdate = new AssignmentStatementSyntax(
+                new BinaryExpressionSyntax(BinaryOperationKind.Add, oneLiteral, idX),
+                idX);
+            var call = new CallExpressionSyntax(
+                FunctionResolver.Resolve(disassemblyResult.MethodDefinition, _ => { }, _ => { }),
+                new[] { id });
+            var block = new BlockStatementSyntax(new StatementSyntax[]
+            {
+                new ExpressionStatementSyntax(call),
+                increment,
+                idUpdate
+            });
+
+            var loop = new WhileStatementSyntax(condition, block);
+            entryPoint = Function!.WithStatements(new StatementSyntax[]
+            {
+                new VariableDeclarationStatementSyntax(TypeResolver.CreateType<int>(), "V_0"),
+                idInit,
+                new AssignmentStatementSyntax(new LiteralExpressionSyntax(0), loopIterator),
+                loop
+            });
+
+            var name = MethodCompilation.DecorateName(disassemblyResult.MethodDefinition.Name);
+            Function = new FunctionDeclarationSyntax(null, name, Function.ReturnType, Function.Parameters,
+                Function.Block, true);
         }
 
         Debug.Assert(!stack.Any());
@@ -115,6 +169,12 @@ internal class SyntaxTree
         foreach (var s in Structs)
         {
             generator.EmitStruct(s);
+        }
+
+        if (entryPoint is not null)
+        {
+            generator.EmitForwardDeclaration(Function!);
+            generator.EmitFunction(entryPoint);
         }
 
         generator.EmitFunction(Function!);

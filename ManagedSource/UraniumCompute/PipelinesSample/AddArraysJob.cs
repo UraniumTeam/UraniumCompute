@@ -16,16 +16,19 @@ public sealed class AddArraysJob : IDeviceJob
 
     private TransientBuffer1D<float> result = null!;
 
-    public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second)
+    private readonly int workgroupSize;
+
+    public AddArraysJob(TransientBuffer1D<float> first, TransientBuffer1D<float> second, int workgroupSize)
     {
         First = first;
         Second = second;
+        this.workgroupSize = workgroupSize;
     }
 
     public IJobSetupContext Setup(IDeviceJobSetupContext ctx)
     {
         return ctx
-            .SetWorkgroups(First)
+            .SetWorkgroups(First, workgroupSize)
             .ReadBuffer(First)
             .ReadBuffer(Second)
             .CreateBuffer(out result, "Add arrays job result", First.LongCount, MemoryKindFlags.HostAndDeviceAccessible);

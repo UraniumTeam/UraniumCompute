@@ -13,7 +13,7 @@ public static class JobContextExtensions
         return ctx.CreateBuffer(out buffer, new Buffer1D<T>.Desc(Name, XDimension), memoryKindFlags);
     }
 
-    public static IDeviceJobSetupContext SetWorkgroups(this IDeviceJobSetupContext ctx, int x, int y = 1, int z = 1)
+    public static IDeviceJobSetupContext SetWorkgroups(this IDeviceJobSetupContext ctx, int x, int y, int z)
     {
         return ctx.SetWorkgroups(new Vector3Int(x, y, z));
     }
@@ -22,12 +22,14 @@ public static class JobContextExtensions
         int workgroupSize = 1)
         where T : unmanaged
     {
-        return ctx.SetWorkgroups(buffer.Count / workgroupSize);
+        return ctx
+            .SetWorkgroups(buffer.Count / workgroupSize, 1, 1)
+            .SetWorkgroupSize(workgroupSize);
     }
 
     public static IDeviceJobSetupContext SetWorkgroups<T>(this IDeviceJobSetupContext ctx, TransientBuffer2D<T> buffer)
         where T : unmanaged
     {
-        return ctx.SetWorkgroups(buffer.Width, buffer.Height);
+        return ctx.SetWorkgroups(buffer.Width, buffer.Height, 1);
     }
 }

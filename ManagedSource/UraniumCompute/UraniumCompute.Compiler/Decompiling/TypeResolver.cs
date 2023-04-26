@@ -44,29 +44,29 @@ internal static class TypeResolver
         return CreateType(typeof(T), _ => { });
     }
 
-    internal static TypeSymbol CreateType(Type type, Action<TypeReference> userTypeCallback)
+    internal static TypeSymbol CreateType(Type type, Action<TypeReference> userTypeCallback, bool intrinsicOnly = false)
     {
-        if (typeRefCache.ContainsKey(type))
+        if (typeRefCache.TryGetValue(type, out var value))
         {
-            return typeCache[typeRefCache[type].FullName];
+            return typeCache[value.FullName];
         }
 
         var a = AssemblyDefinition.ReadAssembly(type.Assembly.Location)!;
         typeRefCache[type] = a.MainModule.ImportReference(type)!;
-        return CreateType(typeRefCache[type], userTypeCallback);
+        return CreateType(typeRefCache[type], userTypeCallback, intrinsicOnly);
     }
 
-    internal static TypeSymbol CreateType(TypeReference tr, Action<TypeReference> userTypeCallback)
+    internal static TypeSymbol CreateType(TypeReference tr, Action<TypeReference> userTypeCallback, bool intrinsicOnly = false)
     {
-        if (typeCache.ContainsKey(tr.FullName))
+        if (typeCache.TryGetValue(tr.FullName, out var value))
         {
-            return typeCache[tr.FullName];
+            return value;
         }
 
-        return typeCache[tr.FullName] = CreateTypeImpl(tr, userTypeCallback);
+        return typeCache[tr.FullName] = CreateTypeImpl(tr, userTypeCallback, intrinsicOnly);
     }
 
-    private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback)
+    private static TypeSymbol CreateTypeImpl(TypeReference tr, Action<TypeReference> typeCallback, bool intrinsicOnly)
     {
         if (tr is ByReferenceType reference)
         {
@@ -122,6 +122,11 @@ internal static class TypeResolver
                 nameof(Matrix4x4) => StructTypeSymbol.CreateSystemType("float4x4", tr),
                 _ => throw new Exception($"Unknown type: {tr.Name}")
             };
+        }
+
+        if (intrinsicOnly)
+        {
+            return new PrimitiveTypeSymbol("void");
         }
 
         typeCallback(tr);

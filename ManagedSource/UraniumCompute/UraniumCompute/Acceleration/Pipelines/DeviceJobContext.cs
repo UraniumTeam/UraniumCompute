@@ -13,6 +13,7 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
     private readonly ResourceBinding resourceBinding;
 
     private Vector3Int workgroupCount;
+    private int workgroupSize = 1;
 
     public DeviceJobContext(IDeviceJob job, Pipeline pipeline)
         : base(pipeline)
@@ -29,9 +30,15 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         return this;
     }
 
+    public IDeviceJobSetupContext SetWorkgroupSize(int size)
+    {
+        workgroupSize = size;
+        return this;
+    }
+
     public void Run(Delegate jobDelegate)
     {
-        CompilerUtils.CompileKernel(jobDelegate, Pipeline.JobScheduler.KernelCompiler, kernel, resourceBinding);
+        CompilerUtils.CompileKernel(jobDelegate, Pipeline.JobScheduler.KernelCompiler, kernel, resourceBinding, workgroupSize);
         for (var i = 0; i < variables.Count; ++i)
         {
             resourceBinding.SetVariableInternal(i, variables[i].Resource);
@@ -58,6 +65,12 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
 
     public override void Run(ICommandRecordingContext ctx)
     {
+        foreach (var variable in variables)
+        {
+            var desc = new MemoryBarrierDesc(AccessFlags.All, AccessFlags.All);
+            ctx.MemoryBarrierUnsafe(variable.Resource, desc);
+        }
+
         ctx.Dispatch(kernel, workgroupCount);
     }
 
