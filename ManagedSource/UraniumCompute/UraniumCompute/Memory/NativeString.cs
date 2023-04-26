@@ -83,4 +83,9 @@ public readonly struct NativeString
         currentIndex = (currentIndex + 1) % maxSize;
         return result;
     }
+
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
+    }
 }
