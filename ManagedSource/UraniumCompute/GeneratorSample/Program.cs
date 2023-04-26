@@ -5,20 +5,20 @@ namespace GeneratorSample;
 internal class Program
 {
     [CompileKernel]
-    public int SomeMethod1()
+    public static int SomeMethod1()
     {
-        return 5+5;
+        return 5 + 5;
     }
-    
+
     public string SomeMethod2()
     {
         return "00";
     }
 
-    [CompileKernel]
-    public static string SomeMethod3()
+    // [CompileKernel]
+    public string SomeMethod3()
     {
-        return "0";
+        return SomeMethod2();
     }
 
     public static void Main(string[] args)
