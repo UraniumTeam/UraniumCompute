@@ -65,11 +65,6 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         Job.Setup(this);
         requiredDeviceMemory = RequiredDeviceMemoryInBytes;
         requiredHostMemory = RequiredHostMemoryInBytes;
-
-        if (workgroupCount == Vector3Int.Zero)
-        {
-            throw new ArgumentException("Workgroups must be set for all device jobs");
-        }
     }
 
     public override void AddBarrier(in MemoryBarrierDesc barrier, BufferBase resource)
@@ -90,6 +85,21 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
             ctx.MemoryBarrierUnsafe(barrier.Item2, barrier.Item1);
         }
 
+        if (!kernel.IsInitialized)
+        {
+            var source = ReadResources.Single();
+            var dest = WrittenResources.SingleOrDefault() ?? CreatedResources.Single();
+            var region = new BufferCopyRegion(source.Resource.Descriptor.Size);
+
+            ctx.CopyUnsafe(source.Resource, dest.Resource, region);
+            return;
+        }
+
+        if (workgroupCount == Vector3Int.Zero)
+        {
+            throw new ArgumentException($"Workgroups were not set for device job {ComputeJob.Name}");
+        }
+
         ctx.Dispatch(kernel, workgroupCount);
     }
 
@@ -101,17 +111,19 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
 
     private void AddBarriers()
     {
+        var isTransfer = !kernel.IsInitialized;
         foreach (var resource in CreatedResources)
         {
-            var barrier = new MemoryBarrierDesc(AccessFlags.None, AccessFlags.KernelWrite);
+            var destAccess = isTransfer ? AccessFlags.TransferWrite : AccessFlags.KernelWrite;
+            var barrier = new MemoryBarrierDesc(AccessFlags.None, destAccess);
             AddBarrier(in barrier, resource.Resource);
-            resource.CurrentAccess = AccessFlags.KernelWrite;
+            resource.CurrentAccess = destAccess;
         }
 
         foreach (var resource in ReadResources)
         {
             var sourceAccess = AccessFlags.None;
-            const AccessFlags destAccess = AccessFlags.KernelRead;
+            var destAccess = isTransfer ? AccessFlags.TransferRead : AccessFlags.KernelRead;
             foreach (var flag in writeFlags)
             {
                 if (resource.CurrentAccess.HasFlag(flag))
@@ -132,7 +144,10 @@ internal sealed class DeviceJobContext : JobSetupContext, IDeviceJobSetupContext
         foreach (var resource in WrittenResources)
         {
             var sourceAccess = AccessFlags.None;
-            const AccessFlags destAccess = AccessFlags.KernelWrite | AccessFlags.KernelRead;
+            var destAccess = isTransfer
+                ? AccessFlags.TransferReadWrite
+                : AccessFlags.KernelReadWrite;
+
             foreach (var flag in allFlags)
             {
                 if (resource.CurrentAccess.HasFlag(flag))
