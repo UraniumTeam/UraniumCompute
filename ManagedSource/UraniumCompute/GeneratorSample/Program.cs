@@ -5,27 +5,24 @@ namespace GeneratorSample;
 internal class Program
 {
     [CompileKernel]
-    public int SomeMethod1()
+    public static int SomeMethod1()
     {
-        return 0;
+        return 5 + 5;
     }
 
-    [CompileKernel]
     public string SomeMethod2()
     {
         return "00";
     }
 
-    [CompileKernel]
+    // [CompileKernel]
     public string SomeMethod3()
     {
-        return "0";
+        return SomeMethod2();
     }
 
     public static void Main(string[] args)
     {
-        TempGenerated.TempClass.Write();
-        //TempGenerated2
-        Console.WriteLine("He, World!");
+        Console.WriteLine($"{MethodsTranslatedToHlsl.SomeMethod1.Code}");
     }
 }
