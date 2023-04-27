@@ -21,7 +21,7 @@ internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJ
 
         foreach (var resource in CreatedResources)
         {
-            resource.CurrentAccess = AccessFlags.HostWrite | AccessFlags.HostRead;
+            resource.CurrentAccess = AccessFlags.HostReadWrite;
         }
 
         foreach (var resource in ReadResources)
@@ -31,7 +31,7 @@ internal sealed class HostJobContext : JobSetupContext, IHostJobSetupContext, IJ
 
         foreach (var resource in WrittenResources)
         {
-            resource.CurrentAccess = AccessFlags.HostRead | AccessFlags.HostWrite;
+            resource.CurrentAccess = AccessFlags.HostReadWrite;
         }
     }
 

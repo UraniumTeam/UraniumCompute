@@ -1,6 +1,4 @@
-﻿using UraniumCompute.Backend;
-
-namespace UraniumCompute.Acceleration.TransientResources;
+﻿namespace UraniumCompute.Acceleration.TransientResources;
 
 public interface ITransientBuffer<out TDesc> : ITransientResource
 {

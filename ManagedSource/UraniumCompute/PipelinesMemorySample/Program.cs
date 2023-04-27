@@ -32,7 +32,7 @@ pipeline.AddDeviceJob("2x",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferB, "BufferB", (ulong)sourceData.Length, MemoryKindFlags.DeviceAccessible)
-        .ReadBuffer(bufferA),
+        .Read(bufferA),
     (Span<float> newBuffer, Span<float> sourceBuffer) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
@@ -43,7 +43,7 @@ pipeline.AddDeviceJob("3x",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferC, "BufferC", (ulong)sourceData.Length, MemoryKindFlags.DeviceAccessible)
-        .ReadBuffer(bufferA),
+        .Read(bufferA),
     (Span<float> newBuffer, Span<float> sourceBuffer) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
@@ -54,7 +54,7 @@ pipeline.AddDeviceJob("2x + 100",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferD, "BufferD", (ulong)sourceData.Length, MemoryKindFlags.DeviceAccessible)
-        .ReadBuffer(bufferB),
+        .Read(bufferB),
     (Span<float> newBuffer, Span<float> sourceBuffer) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
@@ -65,7 +65,7 @@ pipeline.AddDeviceJob("cos(3x)",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferF, "BufferF", (ulong)sourceData.Length, MemoryKindFlags.DeviceAccessible)
-        .ReadBuffer(bufferC),
+        .Read(bufferC),
     (Span<float> newBuffer, Span<float> sourceBuffer) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
@@ -76,7 +76,7 @@ pipeline.AddDeviceJob("sin(2x + 100)",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferE, "BufferE", (ulong)sourceData.Length, MemoryKindFlags.DeviceAccessible)
-        .ReadBuffer(bufferD),
+        .Read(bufferD),
     (Span<float> newBuffer, Span<float> sourceBuffer) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
@@ -87,8 +87,8 @@ pipeline.AddDeviceJob("sin(2x + 100) + cos(3x) + 500",
     ctx => ctx
         .SetWorkgroups(bufferA, workgroupSize)
         .CreateBuffer(out bufferG, "BufferG", (ulong)sourceData.Length, MemoryKindFlags.HostAndDeviceAccessible)
-        .ReadBuffer(bufferE)
-        .ReadBuffer(bufferF),
+        .Read(bufferE)
+        .Read(bufferF),
     (Span<float> newBuffer, Span<float> sourceE, Span<float> sourceF) =>
     {
         var index = (int)GpuIntrinsic.GetGlobalInvocationId().X;
