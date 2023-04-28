@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using UraniumCompute.Acceleration.Jobs;
 using UraniumCompute.Acceleration.TransientResources;
 using UraniumCompute.Backend;
 
@@ -67,6 +68,18 @@ public sealed class Pipeline : IDisposable
     public void AddDeviceJob(string name, Func<IDeviceJobSetupContext, IJobSetupContext> initializer, Delegate kernel)
     {
         _ = AddDeviceJob(new DelegateDeviceJob(name, initializer, kernel));
+    }
+
+    public DeviceCopyJob<T> AddCopyJob<T>(string name, TransientBuffer1D<T> source, TransientBuffer1D<T> destination)
+        where T : unmanaged
+    {
+        return AddDeviceJob(new DeviceCopyJob<T>(name, source, destination));
+    }
+
+    public DeviceCopyJob<T> AddCopyJob<T>(string name, TransientBuffer1D<T> source, MemoryKindFlags destinationMemoryKindFlags)
+        where T : unmanaged
+    {
+        return AddDeviceJob(new DeviceCopyJob<T>(name, source, destinationMemoryKindFlags));
     }
 
     public async Task<Result> Run()
