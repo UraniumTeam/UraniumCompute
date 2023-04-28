@@ -5,7 +5,7 @@ To build and run the projects you will need:
 - VulkanSDK *v1.3.x*
 
 Optional:
-- .Net 6.0 (to build C# bindings)
+- .Net 7.0 (to build C# bindings)
 
 ## CMake Projects
 
