@@ -59,23 +59,23 @@ public abstract class JobSetupContext : IJobSetupContext
         Pipeline.InitResource(resource.Id, buffer);
     }
 
-    public IJobSetupContext ReadBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
+    public IJobSetupContext Read(ITransientResource resource)
     {
-        variables.Add(buffer);
-        ReadResources.Add(buffer);
-        buffer.Readers.Add(ComputeJob);
+        variables.Add(resource);
+        ReadResources.Add(resource);
+        resource.Readers.Add(ComputeJob);
         // TODO: for now we just set the latest reader or writer of the resource as the deleter
         // Later, when job cancelling will be implemented this will no longer work
-        buffer.Deleter = ComputeJob;
+        resource.Deleter = ComputeJob;
         return this;
     }
 
-    public IJobSetupContext WriteBuffer<T>(ITransientBuffer<T> buffer) where T : unmanaged
+    public IJobSetupContext Write(ITransientResource resource)
     {
-        variables.Add(buffer);
-        WrittenResources.Add(buffer);
-        buffer.Writers.Add(ComputeJob);
-        buffer.Deleter = ComputeJob;
+        variables.Add(resource);
+        WrittenResources.Add(resource);
+        resource.Writers.Add(ComputeJob);
+        resource.Deleter = ComputeJob;
         return this;
     }
 

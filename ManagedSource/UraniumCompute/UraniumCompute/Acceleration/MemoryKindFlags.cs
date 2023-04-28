@@ -3,6 +3,7 @@
 /// <summary>
 ///     Device memory kind flags.
 /// </summary>
+[Flags]
 public enum MemoryKindFlags
 {
     /// <summary>

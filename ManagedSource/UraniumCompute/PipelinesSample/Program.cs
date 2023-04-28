@@ -25,7 +25,7 @@ pipeline.AddHostJob("Create buffer A",
     }
 );
 pipeline.AddDeviceJob("Transform buffer A",
-    ctx => ctx.SetWorkgroups(bufferA, batchSize).WriteBuffer(bufferA),
+    ctx => ctx.SetWorkgroups(bufferA, batchSize).Write(bufferA),
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] *= 2; }
 );
 pipeline.AddDeviceJob("Create buffer B",
@@ -34,12 +34,13 @@ pipeline.AddDeviceJob("Create buffer B",
     (Span<float> a) => { a[(int)GpuIntrinsic.GetGlobalInvocationId().X] = GpuIntrinsic.GetGlobalInvocationId().X; }
 );
 var addAB = pipeline.AddDeviceJob(new AddArraysJob(bufferA, bufferB, batchSize));
+var copy = pipeline.AddCopyJob("Copy to host", addAB.Result, MemoryKindFlags.HostAndDeviceAccessible);
 
 Console.WriteLine("Waiting for tasks to complete...");
 var result = await pipeline.Run();
 Console.WriteLine($"Task was completed in {result.ElapsedMilliseconds}ms");
 
-using (var map = addAB.Result.Buffer.Map())
+using (var map = copy.Destination.Buffer.Map())
 {
     for (var i = 0; i < map.Count; i++)
     {
