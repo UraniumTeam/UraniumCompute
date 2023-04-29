@@ -1,14 +1,12 @@
-﻿using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace UraniumCompute.Generator.CSharpToHlslTranslator;
+namespace UraniumCompute.Generator.Translator;
 
-internal partial class Translator
+internal static partial class CSharpToHlslTranslator
 {
-    private readonly StringWriter codeWriter = new();
-    
-    internal TranslatedMethod Translate(CompiledMethod method)
+    internal static TranslatedMethod Translate(CompiledMethod method)
     {
+        var codeWriter = new StringWriter();
         codeWriter.WriteLine("[numthreads(1, 1, 1)]");
         codeWriter.Write($"{method.Declaration.ReturnType} ");
         codeWriter.Write($"{method.Name}");
@@ -19,7 +17,7 @@ internal partial class Translator
         return new TranslatedMethod(method.Name, hlslCode);
     }
 
-    private string TranslateParameters(ParameterListSyntax parameterList)
+    private static string TranslateParameters(ParameterListSyntax parameterList)
     {
         return "uint3 globalInvocationID : SV_DispatchThreadID";
     }

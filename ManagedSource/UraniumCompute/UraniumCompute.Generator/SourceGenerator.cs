@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using UraniumCompute.Generator.Translator;
 
 namespace UraniumCompute.Generator;
 
@@ -37,8 +38,7 @@ public class SourceGenerator : IIncrementalGenerator
         }
 
         var compiledMethods = GetCompiledMethods(methods, context.CancellationToken);
-        var translator = new CSharpToHlslTranslator.Translator();
-        var translatedMethods = compiledMethods.Select(translator.Translate);
+        var translatedMethods = compiledMethods.Select(CSharpToHlslTranslator.Translate);
         AddTranslatedMethodsToContext(translatedMethods, context);
     }
 
