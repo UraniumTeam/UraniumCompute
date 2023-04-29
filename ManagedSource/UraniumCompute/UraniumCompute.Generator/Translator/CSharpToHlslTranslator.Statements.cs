@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace UraniumCompute.Generator.CSharpToHlslTranslator;
+namespace UraniumCompute.Generator.Translator;
 
-internal partial class Translator
+internal static partial class CSharpToHlslTranslator
 {
-    private string Translate(StatementSyntax statement)
+    private static string Translate(StatementSyntax statement)
     {
         return statement switch
         {
@@ -15,7 +15,7 @@ internal partial class Translator
         };
     }
 
-    private string Translate(BlockSyntax block)
+    private static string Translate(BlockSyntax block)
     {
         var sb = new StringWriter();
         sb.WriteLine("{");
@@ -28,7 +28,7 @@ internal partial class Translator
         return sb.ToString();
     }
 
-    private string Translate(ReturnStatementSyntax statement)
+    private static string Translate(ReturnStatementSyntax statement)
     {
         return $"return {Translate(statement.Expression)};";
     }

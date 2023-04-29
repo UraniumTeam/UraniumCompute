@@ -1,11 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace UraniumCompute.Generator.CSharpToHlslTranslator;
+namespace UraniumCompute.Generator.Translator;
 
-internal partial class Translator
+internal static partial class CSharpToHlslTranslator
 {
-    private string Translate(ExpressionSyntax? expression)
+    private static string Translate(ExpressionSyntax? expression)
     {
         return expression switch
         {
@@ -18,12 +18,12 @@ internal partial class Translator
         };
     }
 
-    private string Translate(LiteralExpressionSyntax expression)
+    private static string Translate(LiteralExpressionSyntax expression)
     {
         return expression.ToString();
     }
 
-    private string Translate(BinaryExpressionSyntax expression)
+    private static string Translate(BinaryExpressionSyntax expression)
     {
         return $"({Translate(expression.Left)} " +
                $"{GetBinaryOperator(expression.Kind())} " +
@@ -56,16 +56,16 @@ internal partial class Translator
         };
     }
 
-    private string Translate(PrefixUnaryExpressionSyntax expression)
+    private static string Translate(PrefixUnaryExpressionSyntax expression)
     {
         return $"{GetUnaryOperator(expression.Kind())}{Translate(expression.Operand)}";
     }
-    
-    private string Translate(PostfixUnaryExpressionSyntax expression)
+
+    private static string Translate(PostfixUnaryExpressionSyntax expression)
     {
         return $"{Translate(expression.Operand)}{GetUnaryOperator(expression.Kind())}";
     }
-    
+
     private static string GetUnaryOperator(SyntaxKind kind)
     {
         return kind switch
