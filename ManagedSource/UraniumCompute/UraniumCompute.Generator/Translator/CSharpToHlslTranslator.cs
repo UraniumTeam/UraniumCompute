@@ -11,8 +11,7 @@ internal static partial class CSharpToHlslTranslator
         codeWriter.Write($"{method.Declaration.ReturnType} ");
         codeWriter.Write($"{method.Name}");
         codeWriter.WriteLine($"({TranslateParameters(method.Declaration.ParameterList)})");
-        codeWriter.WriteLine(Translate(method.Body));
-        
+        codeWriter.Write(Translate(method.Body, 0));
         var hlslCode = codeWriter.ToString();
         return new TranslatedMethod(method.Name, hlslCode);
     }

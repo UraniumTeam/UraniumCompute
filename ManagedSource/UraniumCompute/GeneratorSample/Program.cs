@@ -7,7 +7,18 @@ internal class Program
     [CompileKernel]
     public static int SomeMethod1()
     {
-        return 5 + 5;
+        // don't use "var"
+        int m = 9, j = 1;
+        for (int i = j = 4; i < 5 + 5; ++i, j--)
+        {
+            if (i > 6)
+                m += i;
+            else
+                m -= j;
+            if (i == 7)
+                m *= 9;
+        }
+        return j;
     }
 
     public string SomeMethod2()
@@ -23,6 +34,7 @@ internal class Program
 
     public static void Main(string[] args)
     {
+        // build the project to have access to MethodsTranslatedToHlsl
         Console.WriteLine($"{MethodsTranslatedToHlsl.SomeMethod1.Code}");
     }
 }

@@ -57,7 +57,7 @@ namespace MethodsTranslatedToHlsl
     {{");
             result.WriteLine(@"
         public static readonly string Code = """"""");
-            result.Write(@$"{method.Code}");
+            result.WriteLine(@$"{method.Code}");
             result.Write(@""""""";
     }
 }");
