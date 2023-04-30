@@ -5,16 +5,52 @@ namespace UraniumCompute.Generator.Translator;
 
 internal static partial class CSharpToHlslTranslator
 {
-    private static string Translate(ExpressionSyntax? expression)
+    private static string Translate(ExpressionSyntax expression)
     {
         return expression switch
         {
-            null => "",
             LiteralExpressionSyntax literalExpression => Translate(literalExpression),
             BinaryExpressionSyntax binaryExpression => Translate(binaryExpression),
             PostfixUnaryExpressionSyntax postfixUnaryExpression => Translate(postfixUnaryExpression),
             PrefixUnaryExpressionSyntax prefixUnaryExpression => Translate(prefixUnaryExpression),
+            AssignmentExpressionSyntax assignmentExpression => Translate(assignmentExpression),
+            SimpleNameSyntax name => Translate(name),
             _ => throw new NotImplementedException($"{expression.Kind()} is not implemented")
+        };
+    }
+
+    private static string Translate(SimpleNameSyntax name)
+    {
+        return name switch
+        {
+            IdentifierNameSyntax identifierName => identifierName.Identifier.ToString(),
+            _ => throw new NotImplementedException($"{name.Kind()} is not implemented")
+        };
+    }
+
+    private static string Translate(AssignmentExpressionSyntax assignmentExpression)
+    {
+        return $"{Translate(assignmentExpression.Left)} " +
+               $"{GetAssigmentOperator(assignmentExpression.Kind())} " +
+               $"{Translate(assignmentExpression.Right)}";
+    }
+
+    private static string GetAssigmentOperator(SyntaxKind kind)
+    {
+        return kind switch
+        {
+            SyntaxKind.SimpleAssignmentExpression => "=",
+            SyntaxKind.AddAssignmentExpression => "+=",
+            SyntaxKind.SubtractAssignmentExpression => "-=",
+            SyntaxKind.MultiplyAssignmentExpression => "*=",
+            SyntaxKind.DivideAssignmentExpression => "/=",
+            SyntaxKind.ModuloAssignmentExpression => "%=",
+            SyntaxKind.AndAssignmentExpression => "&=",
+            SyntaxKind.ExclusiveOrAssignmentExpression => "^=",
+            SyntaxKind.OrAssignmentExpression => "|=",
+            SyntaxKind.LeftShiftAssignmentExpression => "<<=",
+            SyntaxKind.RightShiftAssignmentExpression => ">>=",
+            _ => throw new NotSupportedException($"{kind} is not supported by HLSL")
         };
     }
 
