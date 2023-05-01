@@ -7,16 +7,7 @@ internal static partial class CSharpToHlslTranslator
 {
     private static string Translate(CSharpSyntaxNode node)
     {
-        return node switch
-        {
-            VariableDeclarationSyntax declaration => Translate(declaration),
-            VariableDeclaratorSyntax declarator => Translate(declarator),
-            ElseClauseSyntax elseClause => Translate(elseClause, 0),
-            // ArgumentSyntax argument => Translate(argument),
-            // ConversionOperatorDeclarationSyntax declaration => Translate(declaration),
-            // IndexerDeclarationSyntax declaration => Translate(declaration),
-            _ => throw new NotImplementedException($"{node.Kind()} is not implemented")
-        };
+        throw new NotImplementedException($"{node.Kind()} is not implemented");
     }
 
     private static string Translate(ElseClauseSyntax elseClause, int nestingLevel)
@@ -26,6 +17,8 @@ internal static partial class CSharpToHlslTranslator
 
     private static string Translate(VariableDeclarationSyntax declaration)
     {
+        if (declaration.Type.IsVar)
+            throw new NotSupportedException($"{declaration.Type} is not supported by HLSL");
         var translate = $"{declaration.Type} {string.Join(", ", declaration.Variables.Select(Translate))}";
         return translate;
     }
