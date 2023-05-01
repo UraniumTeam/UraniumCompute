@@ -16,16 +16,29 @@ internal static partial class CSharpToHlslTranslator
             ExpressionStatementSyntax expressionStatement => Translate(expressionStatement, nestingLevel),
             ForStatementSyntax forStatement => Translate(forStatement, nestingLevel),
             IfStatementSyntax ifStatement => Translate(ifStatement, nestingLevel),
-            // While
-            // Break
+            BreakStatementSyntax => Translate(nestingLevel),
+            WhileStatementSyntax whileStatement => Translate(whileStatement, nestingLevel),
             _ => throw new NotImplementedException($"{statement.Kind()} is not implemented")
         };
+    }
+
+    private static string Translate(WhileStatementSyntax statement, int nestingLevel)
+    {
+        var writer = new StringWriter();
+        writer.WriteLine($"{GetIndent(nestingLevel)}while ({Translate(statement.Condition)})");
+        writer.Write($"{Translate(statement.Statement, nestingLevel)}");
+        return writer.ToString();
+    }
+
+    private static string Translate(int nestingLevel)
+    {
+        return GetIndent(nestingLevel) + "break;";
     }
 
     private static string Translate(IfStatementSyntax statement, int nestingLevel)
     {
         var writer = new StringWriter();
-        writer.WriteLine($"{GetIndent(nestingLevel)}if ({statement.Condition})");
+        writer.WriteLine($"{GetIndent(nestingLevel)}if ({Translate(statement.Condition)})");
         writer.Write($"{Translate(statement.Statement, nestingLevel + 1)}");
         if (statement.Else is not null)
         {

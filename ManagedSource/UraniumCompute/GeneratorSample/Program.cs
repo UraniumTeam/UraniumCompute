@@ -16,7 +16,11 @@ internal class Program
             else
                 m -= j;
             if (i == 7)
-                m *= 9;
+                break;
+        }
+        while (j < 0)
+        {
+            j += 2;
         }
         return j;
     }
